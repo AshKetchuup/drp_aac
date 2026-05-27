@@ -343,3 +343,7 @@ __marimo__/
 .idea
 .dart_tool
 .vscode
+
+# NOOOOO
+*.db
+firebase-credentials.json
