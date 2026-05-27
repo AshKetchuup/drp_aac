@@ -35,11 +35,9 @@ jobs:
           python -m pip install --upgrade pip
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
 
-      - name: Create Dummy Firebase Credentials for Testing
-        run: |
-          echo '{"type": "service_account", "project_id": "mock-id"}' > firebase-credentials.json
-
       - name: Run Python tests with Pytest
+        env:
+          TESTING: true
         run: |
           source .venv/bin/activate
           python -m pytest

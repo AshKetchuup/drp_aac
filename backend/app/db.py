@@ -1,8 +1,11 @@
-import firebase_admin
-from firebase_admin import credentials, firestore
+import os
+from firebase_admin import credentials, initialize_app, firestore
+from google.auth.credentials import AnonymousCredentials
 
-if not firebase_admin._apps:
+if os.getenv("TESTING") == "true":
+    app = initialize_app(credential=AnonymousCredentials(), options={"projectId": "mock-id"})
+else:
     cred = credentials.Certificate("firebase-credentials.json")
-    firebase_admin.initialize_app(cred)
+    app = initialize_app(cred)
 
 db = firestore.client()
