@@ -30,3 +30,11 @@ class StudentAssignmentOut(BaseModel):
     status: str
     assigned_at: datetime
     minigame: MinigameOut
+
+
+class PredictionRequest(BaseModel):
+    audio_base64: str
+
+
+class PredictionResponse(BaseModel):
+    predictions: list[str]
