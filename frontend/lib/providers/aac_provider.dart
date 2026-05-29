@@ -5,11 +5,18 @@ import 'package:http/http.dart' as http;
 import '../models/models.dart';
 
 class AACProvider extends ChangeNotifier {
-  UserProfile? _currentProfile;
+  UserProfile? _currentProfile = UserProfile(
+    id: 'mock_may',
+    name: 'May',
+    avatarId: 'girl_1',
+    likes: ['legos'],
+    dislikes: ['trains'],
+    createdAt: DateTime.now(),
+  );
   List<Symbol> _sentenceBuilder = [];
   bool _isOverloadMode = false;
   String? _currentEmotion;
-  bool _isProfileSetupComplete = false;
+  bool _isProfileSetupComplete = true;
 
   // Smart Suggestions State
   bool _isListeningContext = false;
@@ -89,7 +96,8 @@ class AACProvider extends ChangeNotifier {
     _teacherPrompt = null;
     notifyListeners();
 
-    // Removed listening delay so it is instantly 0 seconds
+    // Simulate listening delay
+    await Future.delayed(const Duration(milliseconds: 1200));
 
     _isListeningContext = false;
     _teacherPrompt = "What do you want to eat today?";

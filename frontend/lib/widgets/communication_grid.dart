@@ -48,7 +48,7 @@ class CommunicationGrid extends StatelessWidget {
     Symbol(id: 'i', label: 'I', icon: Icons.person, category: SymbolCategory.pronoun),
     Symbol(id: 'to', label: 'To', icon: Icons.arrow_forward, category: SymbolCategory.verb),
     Symbol(id: 'want', label: 'Want', icon: Icons.favorite, category: SymbolCategory.verb),
-    Symbol(id: 'come', label: 'Come', icon: Icons.waving_hand, category: SymbolCategory.verb),
+    Symbol(id: 'eat', label: 'Eat', icon: Icons.restaurant, category: SymbolCategory.verb),
     Symbol(id: 'see', label: 'See', icon: Icons.visibility, category: SymbolCategory.verb),
     Symbol(id: 'this', label: 'This', icon: Icons.touch_app, category: SymbolCategory.preposition),
     Symbol(id: 'that', label: 'That', icon: Icons.pan_tool, category: SymbolCategory.preposition),
