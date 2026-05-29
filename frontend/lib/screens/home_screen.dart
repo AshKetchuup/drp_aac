@@ -30,7 +30,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _initTts() async {
-    await _flutterTts.setLanguage('en-US');
+    await _flutterTts.setLanguage('en-GN');
     await _flutterTts.setSpeechRate(0.4);
     await _flutterTts.setVolume(1.0);
     await _flutterTts.setPitch(1.0);
@@ -75,7 +75,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final labels = {
       'quiet': 'I need quiet. I need a break.',
       'drink': 'I want a drink please.',
-      'hurt': 'I am hurt. I need help.',
+      'hurt': 'I am hurt. I need help please.',
       'leave': 'I want to leave. I need to exit.',
     };
     _speak(labels[id] ?? '');
