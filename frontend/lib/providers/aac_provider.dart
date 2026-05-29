@@ -112,7 +112,7 @@ class AACProvider extends ChangeNotifier {
 
     try {
       // Use kIsWeb and defaultTargetPlatform to dynamically set the correct backend URL
-      String apiUrl = 'http://127.0.0.1:8000/api/context/predict'; // Default for Web/Desktop
+      String apiUrl = 'https://drp-aac.onrender.com/api/context/predict'; // Default for Web/Desktop
       if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
         apiUrl = 'http://10.0.2.2:8000/api/context/predict'; // Special IP for Android Emulator host
       }
@@ -130,7 +130,7 @@ class AACProvider extends ChangeNotifier {
         final data = jsonDecode(response.body);
         _contextSuggestions = List<String>.from(data['predictions'] ?? []);
       } else {
-        _contextSuggestions = ["Pizza", "Apple", "Sandwich", "Pasta"]; // Fallback
+        _contextSuggestions = ["Pizza", "Apple", "Sandwich", "Pear"]; // Fallback
       }
     } catch (e) {
       debugPrint('Error fetching predictions: $e');
