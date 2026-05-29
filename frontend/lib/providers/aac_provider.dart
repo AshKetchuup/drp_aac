@@ -7,7 +7,7 @@ import '../models/models.dart';
 class AACProvider extends ChangeNotifier {
   UserProfile? _currentProfile = UserProfile(
     id: 'mock_may',
-    name: 'May',
+    name: 'Bob',
     avatarId: 'girl_1',
     likes: ['legos'],
     dislikes: ['trains'],
