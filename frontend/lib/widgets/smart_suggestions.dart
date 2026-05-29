@@ -171,28 +171,14 @@ class _SmartSuggestionsState extends State<SmartSuggestions> with SingleTickerPr
                               );
                             },
                           )
-                        : ListView(
-                            scrollDirection: Axis.horizontal,
-                            children: [
-                              _SuggestionBtn(
-                                label: 'Pizza',
-                                icon: Icons.local_pizza,
-                                onTap: () => widget.onSuggestionTap('Pizza'),
-                              ),
-                              const SizedBox(width: 8),
-                              _SuggestionBtn(
-                                label: 'Apple',
-                                icon: Icons.apple,
-                                onTap: () => widget.onSuggestionTap('Apple'),
-                              ),
-                              const SizedBox(width: 8),
-                              _SuggestionBtn(
-                                label: 'Sandwich',
-                                icon: Icons.breakfast_dining,
-                                onTap: () => widget.onSuggestionTap('Sandwich'),
-                              ),
-                            ],
-                          ),
+                        : provider.teacherPrompt != null
+                            ? const Center(
+                                child: Text(
+                                  "No suggestions available.",
+                                  style: TextStyle(color: Colors.black54),
+                                ),
+                              )
+                            : const SizedBox.shrink(),
               ),
             ],
           ),
