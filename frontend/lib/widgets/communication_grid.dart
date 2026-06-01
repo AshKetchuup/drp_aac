@@ -501,57 +501,38 @@ class _ContextSuggestionsPage extends StatelessWidget {
                         )
                       : LayoutBuilder(
                           builder: (context, constraints) {
-                            final crossAxisCount = constraints.maxWidth > 700 ? 4 : 2;
+                            final crossAxisCount = constraints.maxWidth > 900
+                                ? 4
+                                : constraints.maxWidth > 600
+                                    ? 3
+                                    : 2;
                             return GridView.builder(
                               physics: const NeverScrollableScrollPhysics(),
+                              padding: EdgeInsets.zero,
                               gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                                 crossAxisCount: crossAxisCount,
-                                mainAxisSpacing: 12,
-                                crossAxisSpacing: 12,
-                                childAspectRatio: 2.4,
+                                mainAxisSpacing: 10,
+                                crossAxisSpacing: 10,
+                                childAspectRatio: 1,
                               ),
                               itemCount: visibleSuggestions.length,
                               itemBuilder: (context, index) {
                                 final suggestion = visibleSuggestions[index];
-                                return GestureDetector(
+                                return SymbolTile(
+                                  symbol: Symbol(
+                                    id: 'context_$index',
+                                    label: suggestion,
+                                    category: SymbolCategory.noun,
+                                  ),
                                   onTap: () {
                                     onSuggestionTap(
                                       Symbol(
                                         id: 'context_$index',
                                         label: suggestion,
                                         category: SymbolCategory.noun,
-                                        icon: Icons.fastfood,
                                       ),
                                     );
                                   },
-                                  child: Container(
-                                    decoration: BoxDecoration(
-                                      color: Colors.white,
-                                      borderRadius: BorderRadius.circular(12),
-                                      border: Border.all(color: AppTheme.primary, width: 2),
-                                    ),
-                                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                                    child: Row(
-                                      mainAxisAlignment: MainAxisAlignment.center,
-                                      children: [
-                                        const Icon(Icons.auto_awesome, size: 18, color: AppTheme.primary),
-                                        const SizedBox(width: 8),
-                                        Flexible(
-                                          child: Text(
-                                            suggestion,
-                                            textAlign: TextAlign.center,
-                                            maxLines: 1,
-                                            overflow: TextOverflow.ellipsis,
-                                            style: const TextStyle(
-                                              color: AppTheme.textPrimary,
-                                              fontSize: 15,
-                                              fontWeight: FontWeight.w600,
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
                                 );
                               },
                             );
