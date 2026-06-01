@@ -7,7 +7,6 @@ import '../models/models.dart';
 import '../widgets/sentence_rail.dart';
 import '../widgets/communication_grid.dart';
 import '../widgets/smart_suggestions.dart';
-import '../widgets/bottom_bar.dart';
 import '../widgets/calming_mode.dart';
 import '../widgets/emotions_bar.dart';
 
@@ -71,16 +70,6 @@ class _HomeScreenState extends State<HomeScreen> {
     provider.clearSentence();
   }
 
-  void _handleEmergencySelect(String id) {
-    final labels = {
-      'quiet': 'I need quiet. I need a break.',
-      'drink': 'I want a drink please.',
-      'hurt': 'I am hurt. I need help please.',
-      'leave': 'I want to leave. I need to exit.',
-    };
-    _speak(labels[id] ?? '');
-  }
-
   void _openSettings() {
     showModalBottomSheet(
       context: context,
@@ -99,7 +88,10 @@ class _HomeScreenState extends State<HomeScreen> {
         if (provider.isCalmingMode) {
           return CalmingMode(
             onExit: () => provider.setCalmingMode(false),
-            onSelect: _handleEmergencySelect,
+            onSymbolTap: _handleSymbolTap,
+            onEmotionTap: _speak,
+            onSpeak: _handleSpeak,
+            onClear: _handleClear,
           );
         }
 
@@ -120,7 +112,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           Container(
                             padding: const EdgeInsets.all(4),
                             decoration: BoxDecoration(
-                              color: Colors.blue.withOpacity(0.1),
+                              color: Colors.blue.withValues(alpha: 0.1),
                               shape: BoxShape.circle,
                             ),
                             child: Icon(Icons.person, color: Colors.blue, size: 18),
