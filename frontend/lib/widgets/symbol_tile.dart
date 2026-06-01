@@ -62,7 +62,7 @@ class SymbolTile extends StatelessWidget {
           boxShadow: isSelected
               ? [
                   BoxShadow(
-                    color: categoryColor.withOpacity(0.5),
+                    color: categoryColor.withValues(alpha: 0.5),
                     blurRadius: 8,
                     spreadRadius: 2,
                   ),
@@ -77,49 +77,57 @@ class SymbolTile extends StatelessWidget {
                 builder: (context, constraints) {
                   final w = constraints.maxWidth;
                   
-                  return Column(
-                    mainAxisAlignment: MainAxisAlignment.start, // Top aligned
-                    children: [
-                      const SizedBox(height: 4),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 2),
-                        child: Text(
-                          symbol.label,
-                          style: TextStyle(
-                            color: Colors.black87, // Black text on colored background
-                            fontSize: w * 0.16, // Proportional font size
-                            fontWeight: FontWeight.w600,
+                  return Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(6),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 2),
+                            child: Text(
+                              symbol.label,
+                              style: TextStyle(
+                                color: Colors.black87, // Black text on colored background
+                                fontSize: w * 0.16, // Proportional font size
+                                fontWeight: FontWeight.w600,
+                              ),
+                              textAlign: TextAlign.center,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
                           ),
-                          textAlign: TextAlign.center,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
+                          const SizedBox(height: 4),
+                          Expanded(
+                            child: Center(
+                              child: Padding(
+                                padding: const EdgeInsets.all(4.0),
+                                child: symbol.imageUrl != null
+                                    ? Image.network(
+                                        symbol.imageUrl!,
+                                        fit: BoxFit.contain,
+                                        errorBuilder: (context, error, stackTrace) => Icon(
+                                          symbol.icon ?? Icons.help_outline,
+                                          size: w * 0.4,
+                                          color: Colors.black54,
+                                        ),
+                                      )
+                                    : Image.asset(
+                                        path,
+                                        fit: BoxFit.contain,
+                                        errorBuilder: (context, error, stackTrace) => Icon(
+                                          symbol.icon ?? Icons.help_outline,
+                                          size: w * 0.4,
+                                          color: Colors.black54,
+                                        ),
+                                      ),
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
-                      Expanded(
-                        child: Padding(
-                          padding: const EdgeInsets.all(4.0),
-                          child: symbol.imageUrl != null 
-                              ? Image.network(
-                                  symbol.imageUrl!,
-                                  fit: BoxFit.contain,
-                                  errorBuilder: (context, error, stackTrace) => Icon(
-                                    symbol.icon ?? Icons.help_outline,
-                                    size: w * 0.4,
-                                    color: Colors.black54,
-                                  ),
-                                )
-                              : Image.asset(
-                                  path,
-                                  fit: BoxFit.contain,
-                                  errorBuilder: (context, error, stackTrace) => Icon(
-                                    symbol.icon ?? Icons.help_outline,
-                                    size: w * 0.4,
-                                    color: Colors.black54,
-                                  ),
-                                ),
-                        ),
-                      ),
-                    ],
+                    ),
                   );
                 },
               ),
@@ -246,7 +254,7 @@ class MiniSymbolTile extends StatelessWidget {
               width: 24,
               height: 24,
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.5),
+                color: Colors.white.withValues(alpha: 0.5),
                 borderRadius: BorderRadius.circular(4),
               ),
               child: ClipRRect(
