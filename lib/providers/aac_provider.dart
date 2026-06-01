@@ -4,13 +4,13 @@ import '../models/models.dart';
 class AACProvider extends ChangeNotifier {
   UserProfile? _currentProfile;
   List<Symbol> _sentenceBuilder = [];
-  bool _isOverloadMode = false;
+  bool _isCalmingMode = false;
   String? _currentEmotion;
   bool _isProfileSetupComplete = false;
 
   UserProfile? get currentProfile => _currentProfile;
   List<Symbol> get sentenceBuilder => _sentenceBuilder;
-  bool get isOverloadMode => _isOverloadMode;
+  bool get isCalmingMode => _isCalmingMode;
   String? get currentEmotion => _currentEmotion;
   bool get isProfileSetupComplete => _isProfileSetupComplete;
 
@@ -51,13 +51,13 @@ class AACProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  void toggleOverloadMode() {
-    _isOverloadMode = !_isOverloadMode;
+  void toggleCalmingMode() {
+    _isCalmingMode = !_isCalmingMode;
     notifyListeners();
   }
 
-  void setOverloadMode(bool value) {
-    _isOverloadMode = value;
+  void setCalmingMode(bool value) {
+    _isCalmingMode = value;
     notifyListeners();
   }
 
@@ -73,7 +73,7 @@ class AACProvider extends ChangeNotifier {
     _currentProfile = null;
     _isProfileSetupComplete = false;
     _sentenceBuilder.clear();
-    _isOverloadMode = false;
+    _isCalmingMode = false;
     _currentEmotion = null;
     notifyListeners();
   }
