@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../theme/app_theme.dart';
 import '../providers/aac_provider.dart';
 import 'symbol_tile.dart';
 
@@ -21,7 +20,7 @@ class SentenceRail extends StatelessWidget {
         return Container(
           padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
           color: Colors.black, // Dark background
-          height: 100, // Fixed height for rail
+          height: 124, // Slightly larger rail
           child: Row(
             children: [
               // Magic wand button
@@ -57,7 +56,7 @@ class SentenceRail extends StatelessWidget {
                       scrollDirection: Axis.horizontal,
                       padding: const EdgeInsets.symmetric(vertical: 4),
                       itemCount: provider.sentenceBuilder.length,
-                      separatorBuilder: (_, __) => const SizedBox(width: 4),
+                      separatorBuilder: (_, _) => const SizedBox(width: 4),
                       itemBuilder: (context, index) {
                         final symbol = provider.sentenceBuilder[index];
                         return MiniSymbolTile(

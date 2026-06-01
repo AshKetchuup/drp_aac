@@ -136,6 +136,8 @@ class _CommunicationGridState extends State<CommunicationGrid> {
   Widget build(BuildContext context) {
     final provider = Provider.of<AACProvider>(context);
     final profile = provider.currentProfile;
+    final showContextPage = provider.isListeningContext || provider.teacherPrompt != null || provider.contextSuggestions.isNotEmpty;
+    final pages = [..._pages, if (showContextPage) _CategoryPage('context', 'Context', Icons.psychology, AppTheme.primary)];
 
     final displaySymbols = List<Symbol>.from(symbols);
     if (profile != null) {
@@ -173,10 +175,10 @@ class _CommunicationGridState extends State<CommunicationGrid> {
           child: ListView.separated(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
             scrollDirection: Axis.horizontal,
-            itemCount: _pages.length,
+            itemCount: pages.length,
             separatorBuilder: (_, _) => const SizedBox(width: 8),
             itemBuilder: (context, index) {
-              final page = _pages[index];
+              final page = pages[index];
               final isActive = index == _currentPage;
 
               return GestureDetector(
@@ -208,6 +210,17 @@ class _CommunicationGridState extends State<CommunicationGrid> {
                           fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
                         ),
                       ),
+                      if (page.categoryId == 'context') ...[
+                        const SizedBox(width: 6),
+                        GestureDetector(
+                          onTap: () => _closeContextPage(context),
+                          child: Icon(
+                            Icons.close,
+                            size: 16,
+                            color: isActive ? page.color : AppTheme.textSecondary,
+                          ),
+                        ),
+                      ],
                     ],
                   ),
                 ),
@@ -219,9 +232,23 @@ class _CommunicationGridState extends State<CommunicationGrid> {
           child: PageView.builder(
             controller: _pageController,
             onPageChanged: _handlePageChanged,
-            itemCount: _pages.length,
+            itemCount: pages.length,
             itemBuilder: (context, pageIndex) {
-              final page = _pages[pageIndex];
+              final page = pages[pageIndex];
+
+              if (page.categoryId == 'context') {
+                return Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                  child: _ContextSuggestionsPage(
+                    teacherPrompt: provider.teacherPrompt,
+                    isLoading: provider.isLoadingSuggestions,
+                    suggestions: provider.contextSuggestions,
+                    onSuggestionTap: widget.onSymbolTap,
+                    onClose: () => _closeContextPage(context),
+                  ),
+                );
+              }
+
               final pageSymbols = _symbolsForCategory(displaySymbols, page.categoryId);
 
               return Padding(
@@ -316,7 +343,9 @@ class _CommunicationGridState extends State<CommunicationGrid> {
       _currentPage = index;
     });
 
-    widget.onCategoryChange(_pages[index].categoryId);
+    if (index < _pages.length) {
+      widget.onCategoryChange(_pages[index].categoryId);
+    }
 
     if (_pageController.hasClients) {
       _pageController.animateToPage(
@@ -324,6 +353,27 @@ class _CommunicationGridState extends State<CommunicationGrid> {
         duration: const Duration(milliseconds: 220),
         curve: Curves.easeOut,
       );
+    }
+  }
+
+  void _closeContextPage(BuildContext context) {
+    final provider = context.read<AACProvider>();
+    provider.resetContextSuggestions();
+    widget.onCategoryChange(null);
+
+    final targetPage = _pageIndexFor(null);
+    if (_pageController.hasClients) {
+      _pageController.animateToPage(
+        targetPage,
+        duration: const Duration(milliseconds: 220),
+        curve: Curves.easeOut,
+      );
+    }
+
+    if (mounted) {
+      setState(() {
+        _currentPage = targetPage;
+      });
     }
   }
 
@@ -336,7 +386,9 @@ class _CommunicationGridState extends State<CommunicationGrid> {
       _currentPage = index;
     });
 
-    widget.onCategoryChange(_pages[index].categoryId);
+    if (index < _pages.length) {
+      widget.onCategoryChange(_pages[index].categoryId);
+    }
   }
 
   _GridMetrics _fitGridMetrics(Size size, int itemCount) {
@@ -378,6 +430,139 @@ class _CategoryPage {
   final Color color;
 
   const _CategoryPage(this.categoryId, this.label, this.icon, this.color);
+}
+
+class _ContextSuggestionsPage extends StatelessWidget {
+  final String? teacherPrompt;
+  final bool isLoading;
+  final List<String> suggestions;
+  final Function(Symbol) onSuggestionTap;
+  final VoidCallback onClose;
+
+  const _ContextSuggestionsPage({
+    required this.teacherPrompt,
+    required this.isLoading,
+    required this.suggestions,
+    required this.onSuggestionTap,
+    required this.onClose,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final visibleSuggestions = isLoading ? const <String>[] : suggestions;
+
+    return Container(
+      decoration: BoxDecoration(
+        color: AppTheme.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppTheme.border),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              children: [
+                const Icon(Icons.psychology_alt, color: AppTheme.primary),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    teacherPrompt != null ? '"$teacherPrompt"' : 'Context suggestions',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      color: AppTheme.textPrimary,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+                TextButton.icon(
+                  onPressed: onClose,
+                  icon: const Icon(Icons.close, size: 18),
+                  label: const Text('Close'),
+                ),
+              ],
+            ),
+          ),
+          const Divider(height: 1),
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: isLoading
+                  ? const Center(child: CircularProgressIndicator())
+                  : visibleSuggestions.isEmpty
+                      ? const Center(
+                          child: Text(
+                            'No suggestions available.',
+                            style: TextStyle(color: AppTheme.textSecondary),
+                          ),
+                        )
+                      : LayoutBuilder(
+                          builder: (context, constraints) {
+                            final crossAxisCount = constraints.maxWidth > 700 ? 4 : 2;
+                            return GridView.builder(
+                              physics: const NeverScrollableScrollPhysics(),
+                              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                                crossAxisCount: crossAxisCount,
+                                mainAxisSpacing: 12,
+                                crossAxisSpacing: 12,
+                                childAspectRatio: 2.4,
+                              ),
+                              itemCount: visibleSuggestions.length,
+                              itemBuilder: (context, index) {
+                                final suggestion = visibleSuggestions[index];
+                                return GestureDetector(
+                                  onTap: () {
+                                    onSuggestionTap(
+                                      Symbol(
+                                        id: 'context_$index',
+                                        label: suggestion,
+                                        category: SymbolCategory.noun,
+                                        icon: Icons.fastfood,
+                                      ),
+                                    );
+                                  },
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      borderRadius: BorderRadius.circular(12),
+                                      border: Border.all(color: AppTheme.primary, width: 2),
+                                    ),
+                                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                    child: Row(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: [
+                                        const Icon(Icons.auto_awesome, size: 18, color: AppTheme.primary),
+                                        const SizedBox(width: 8),
+                                        Flexible(
+                                          child: Text(
+                                            suggestion,
+                                            textAlign: TextAlign.center,
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                            style: const TextStyle(
+                                              color: AppTheme.textPrimary,
+                                              fontSize: 15,
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                );
+                              },
+                            );
+                          },
+                        ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 class _GridMetrics {
