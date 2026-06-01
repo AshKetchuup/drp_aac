@@ -1,5 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
+import 'package:speech_to_text/speech_to_text.dart' as stt;
+import 'package:permission_handler/permission_handler.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import '../models/models.dart';
@@ -90,20 +92,55 @@ class AACProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  final stt.SpeechToText _speech = stt.SpeechToText();
+
   Future<void> startContextListening() async {
+    PermissionStatus micStatus = await Permission.microphone.status;
+
+    if (micStatus.isDenied) {
+      micStatus = await Permission.microphone.request();
+    }
+
+    if (micStatus.isPermanentlyDenied) {
+      print("Microphone permission permanently denied. Opening settings...");
+      openAppSettings();
+      return;
+    }
+
+    if (!micStatus.isGranted) {
+      print("Microphone permission denied.");
+      return;
+    }
+
+    bool available = await _speech.initialize(
+      onStatus: (status) => print('Speech Status: $status'),
+      onError: (error) => print('Speech Error: $error'),
+    );
+
+    if (!available) {
+      print("Speech recognition engine failed to initialize.");
+      return;
+    }
+
     _isListeningContext = true;
-    _contextSuggestions = [];
     _teacherPrompt = null;
     notifyListeners();
 
-    // Simulate listening delay
-    await Future.delayed(const Duration(milliseconds: 1200));
+    await _speech.listen(
+      onResult: (result) async {
+        _teacherPrompt = result.recognizedWords;
 
-    _isListeningContext = false;
-    _teacherPrompt = "What do you want to eat today?";
-    notifyListeners();
-
-    await fetchSuggestions();
+        if (result.finalResult) {
+          _isListeningContext = false;
+          notifyListeners();
+          await fetchSuggestions();
+        } else {
+          notifyListeners();
+        }
+      },
+      listenFor: const Duration(seconds: 30),
+      pauseFor: const Duration(seconds: 3),
+    );
   }
 
   Future<void> fetchSuggestions() async {
