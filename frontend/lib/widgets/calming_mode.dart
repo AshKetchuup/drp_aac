@@ -3,11 +3,11 @@ import '../theme/app_theme.dart';
 import '../models/models.dart';
 import '../widgets/arasaac_image.dart';
 
-class OverloadMode extends StatelessWidget {
+class CalmingMode extends StatelessWidget {
   final VoidCallback onExit;
   final Function(String) onSelect;
 
-  const OverloadMode({
+  const CalmingMode({
     super.key,
     required this.onExit,
     required this.onSelect,
@@ -69,7 +69,7 @@ class OverloadMode extends StatelessWidget {
                       ),
                       const SizedBox(width: 16),
                       Text(
-                        'Overload Mode',
+                        'Calming Mode',
                         style: TextStyle(
                           color: AppTheme.textPrimary,
                           fontSize: 28,

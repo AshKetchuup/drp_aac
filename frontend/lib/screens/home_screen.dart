@@ -8,7 +8,7 @@ import '../widgets/sentence_rail.dart';
 import '../widgets/communication_grid.dart';
 import '../widgets/smart_suggestions.dart';
 import '../widgets/bottom_bar.dart';
-import '../widgets/overload_mode.dart';
+import '../widgets/calming_mode.dart';
 import '../widgets/emotions_bar.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -96,9 +96,9 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Consumer<AACProvider>(
       builder: (context, provider, child) {
-        if (provider.isOverloadMode) {
-          return OverloadMode(
-            onExit: () => provider.setOverloadMode(false),
+        if (provider.isCalmingMode) {
+          return CalmingMode(
+            onExit: () => provider.setCalmingMode(false),
             onSelect: _handleEmergencySelect,
           );
         }
@@ -150,22 +150,22 @@ class _HomeScreenState extends State<HomeScreen> {
                               children: [
                                 Icon(
                                   _showEmotions ? Icons.emoji_emotions : Icons.emoji_emotions_outlined,
-                                  color: Colors.blue,
+                                  color: Colors.purple,
                                   size: 20,
                                 ),
                                 const SizedBox(width: 4),
-                                Text('Emotions', style: TextStyle(color: Colors.blue, fontSize: 14)),
+                                Text('Emotions', style: TextStyle(color: Colors.purple, fontSize: 14)),
                               ],
                             ),
                           ),
                           const SizedBox(width: 16),
                           GestureDetector(
-                            onTap: () => provider.setOverloadMode(true),
+                            onTap: () => provider.setCalmingMode(true),
                             child: Row(
                               children: [
-                                Icon(Icons.warning_amber_rounded, color: Colors.red, size: 20),
+                                Icon(Icons.spa_rounded, color: Colors.blue, size: 20),
                                 const SizedBox(width: 4),
-                                Text('Emergency', style: TextStyle(color: Colors.red, fontSize: 14)),
+                                Text('Calming mode', style: TextStyle(color: Colors.blue, fontSize: 14)),
                               ],
                             ),
                           ),
