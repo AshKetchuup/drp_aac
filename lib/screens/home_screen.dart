@@ -8,7 +8,7 @@ import '../widgets/sentence_rail.dart';
 import '../widgets/communication_grid.dart';
 import '../widgets/smart_suggestions.dart';
 import '../widgets/bottom_bar.dart';
-import '../widgets/overload_mode.dart';
+import '../widgets/calming_mode.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -84,9 +84,9 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Consumer<AACProvider>(
       builder: (context, provider, child) {
-        if (provider.isOverloadMode) {
-          return OverloadMode(
-            onExit: () => provider.setOverloadMode(false),
+        if (provider.isCalmingMode) {
+          return CalmingMode(
+            onExit: () => provider.setCalmingMode(false),
             onSelect: _handleEmergencySelect,
           );
         }
@@ -119,8 +119,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 BottomBar(
                   userName: provider.currentProfile?.name,
                   avatarId: provider.currentProfile?.avatarId,
-                  isOverloadMode: provider.isOverloadMode,
-                  onOverloadToggle: provider.toggleOverloadMode,
+                  isCalmingMode: provider.isCalmingMode,
+                  onOverloadToggle: provider.toggleCalmingMode,
                   onSettingsTap: _openSettings,
                 ),
               ],
