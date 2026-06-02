@@ -9,6 +9,8 @@ import '../widgets/communication_grid.dart';
 import '../widgets/smart_suggestions.dart';
 import '../widgets/calming_mode.dart';
 import '../widgets/emotions_bar.dart';
+import '../widgets/scheduler.dart';
+
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -21,6 +23,7 @@ class _HomeScreenState extends State<HomeScreen> {
   final FlutterTts _flutterTts = FlutterTts();
   String? _activeCategory;
   bool _showEmotions = false; // Toggle for emotions view
+  bool _showSchedule = false;
 
   @override
   void initState() {
@@ -95,6 +98,18 @@ class _HomeScreenState extends State<HomeScreen> {
           );
         }
 
+        if (_showSchedule) {
+          return ScheduleMode(
+            onExit: () {
+              setState(() {
+                _showSchedule = false;
+              });
+            },
+            availableSymbols: List.empty(),
+            onSpeakSchedule: _handleSpeak,
+          );
+        }
+
         return Scaffold(
           backgroundColor: Colors.black, // Dark borders
           body: SafeArea(
@@ -132,6 +147,32 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                       Row(
                         children: [
+                          const SizedBox(width: 16),
+                          GestureDetector(
+                            onTap: () {
+                              setState(() {
+                                _showSchedule = true;
+                              });
+                            },
+                            child: Row(
+                              children: [
+                                Icon(
+                                  Icons.schedule,
+                                  color: Colors.green,
+                                  size: 20,
+                                ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  'Schedule',
+                                  style: TextStyle(
+                                    color: Colors.green,
+                                    fontSize: 14,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(width: 16),
                           GestureDetector(
                             onTap: () {
                               setState(() {
