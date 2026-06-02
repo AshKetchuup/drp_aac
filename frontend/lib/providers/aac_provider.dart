@@ -95,21 +95,28 @@ class AACProvider extends ChangeNotifier {
   final stt.SpeechToText _speech = stt.SpeechToText();
 
   Future<void> startContextListening() async {
-    PermissionStatus micStatus = await Permission.microphone.status;
+    // permission_handler doesn't support web; browsers handle mic permissions natively
+    if (!kIsWeb) {
+      try {
+        PermissionStatus micStatus = await Permission.microphone.status;
 
-    if (micStatus.isDenied) {
-      micStatus = await Permission.microphone.request();
-    }
+        if (micStatus.isDenied) {
+          micStatus = await Permission.microphone.request();
+        }
 
-    if (micStatus.isPermanentlyDenied) {
-      print("Microphone permission permanently denied. Opening settings...");
-      openAppSettings();
-      return;
-    }
+        if (micStatus.isPermanentlyDenied) {
+          print("Microphone permission permanently denied. Opening settings...");
+          openAppSettings();
+          return;
+        }
 
-    if (!micStatus.isGranted) {
-      print("Microphone permission denied.");
-      return;
+        if (!micStatus.isGranted) {
+          print("Microphone permission denied.");
+          return;
+        }
+      } catch (e) {
+        print("Permission check skipped: $e");
+      }
     }
 
     bool available = await _speech.initialize(
@@ -149,7 +156,7 @@ class AACProvider extends ChangeNotifier {
 
     try {
       // Use kIsWeb and defaultTargetPlatform to dynamically set the correct backend URL
-      String apiUrl = 'https://drp-aac.onrender.com/api/context/predict'; // Default for Web/Desktop
+      String apiUrl = 'http://localhost:8000/api/context/predict'; // Local backend
       if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
         apiUrl = 'http://10.0.2.2:8000/api/context/predict'; // Special IP for Android Emulator host
       }
@@ -159,7 +166,9 @@ class AACProvider extends ChangeNotifier {
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'audio_base64': 'bW9jayBhdWRpbyBkYXRh',
-          'text': _teacherPrompt,
+          'text': _teacherPrompt ?? '',
+          'likes': _currentProfile?.likes ?? [],
+          'dislikes': _currentProfile?.dislikes ?? [],
         }),
       );
 
