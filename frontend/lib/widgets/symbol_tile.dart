@@ -7,6 +7,9 @@ class SymbolTile extends StatelessWidget {
   final VoidCallback onTap;
   final bool isSelected;
   final double size;
+  final String? pictogramKeyword;
+  final int labelMaxLines;
+  final double labelFontSizeDelta;
 
   const SymbolTile({
     super.key,
@@ -14,6 +17,9 @@ class SymbolTile extends StatelessWidget {
     required this.onTap,
     this.isSelected = false,
     this.size = 100, // Kept for backwards compatibility but ignored by GridView
+    this.pictogramKeyword,
+    this.labelMaxLines = 1,
+    this.labelFontSizeDelta = 0,
   });
 
   Color get categoryColor {
@@ -45,7 +51,14 @@ class SymbolTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final searchWord = symbol.label.split('/')[0].replaceAll('?', '').replaceAll("'", "").replaceAll(" ", "_").toLowerCase().trim();
+    final searchWord = (pictogramKeyword ?? symbol.label)
+        .split('/')
+        [0]
+        .replaceAll('?', '')
+        .replaceAll("'", '')
+        .replaceAll(' ', '_')
+        .toLowerCase()
+        .trim();
     final path = searchWord == "dont_like" ? 'assets/arasaac/dislike.png' : 'assets/arasaac/$searchWord.png';
 
     return GestureDetector(
@@ -62,7 +75,7 @@ class SymbolTile extends StatelessWidget {
           boxShadow: isSelected
               ? [
                   BoxShadow(
-                    color: categoryColor.withOpacity(0.5),
+                    color: categoryColor.withValues(alpha: 0.5),
                     blurRadius: 8,
                     spreadRadius: 2,
                   ),
@@ -76,50 +89,79 @@ class SymbolTile extends StatelessWidget {
               LayoutBuilder(
                 builder: (context, constraints) {
                   final w = constraints.maxWidth;
-                  
-                  return Column(
-                    mainAxisAlignment: MainAxisAlignment.start, // Top aligned
-                    children: [
-                      const SizedBox(height: 4),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 2),
-                        child: Text(
-                          symbol.label,
-                          style: TextStyle(
-                            color: Colors.black87, // Black text on colored background
-                            fontSize: w * 0.16, // Proportional font size
-                            fontWeight: FontWeight.w600,
+                  final h = constraints.maxHeight;
+                  final labelFontSize = ((w * 0.16) + labelFontSizeDelta).clamp(10.0, 18.0).toDouble();
+                  final iconSize = (h * 0.42).clamp(18.0, 56.0).toDouble();
+                  final labelBoxHeight = (h * 0.28).clamp(16.0, 30.0).toDouble();
+
+                  final imageWidget = symbol.imageUrl != null
+                      ? Image.network(
+                          symbol.imageUrl!,
+                          fit: BoxFit.contain,
+                          errorBuilder: (context, error, stackTrace) => Icon(
+                            symbol.icon ?? Icons.help_outline,
+                            size: iconSize,
+                            color: Colors.black54,
                           ),
-                          textAlign: TextAlign.center,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                      Expanded(
-                        child: Padding(
-                          padding: const EdgeInsets.all(4.0),
-                          child: symbol.imageUrl != null 
-                              ? Image.network(
-                                  symbol.imageUrl!,
-                                  fit: BoxFit.contain,
-                                  errorBuilder: (context, error, stackTrace) => Icon(
-                                    symbol.icon ?? Icons.help_outline,
-                                    size: w * 0.4,
-                                    color: Colors.black54,
-                                  ),
-                                )
-                              : Image.asset(
-                                  path,
-                                  fit: BoxFit.contain,
-                                  errorBuilder: (context, error, stackTrace) => Icon(
-                                    symbol.icon ?? Icons.help_outline,
-                                    size: w * 0.4,
-                                    color: Colors.black54,
+                        )
+                      : Image.asset(
+                          path,
+                          fit: BoxFit.contain,
+                          errorBuilder: (context, error, stackTrace) => Icon(
+                            symbol.icon ?? Icons.help_outline,
+                            size: iconSize,
+                            color: Colors.black54,
+                          ),
+                        );
+                  
+                  return Center(
+                    child: Padding(
+                      padding: EdgeInsets.all((h * 0.05).clamp(4.0, 8.0).toDouble()),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          SizedBox(
+                            height: labelBoxHeight,
+                            child: Center(
+                              child: FittedBox(
+                                fit: BoxFit.scaleDown,
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(horizontal: 2),
+                                  child: Text(
+                                    symbol.label,
+                                    style: TextStyle(
+                                      color: Colors.black87, // Black text on colored background
+                                      fontSize: labelFontSize,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                    textAlign: TextAlign.center,
+                                    maxLines: labelMaxLines,
+                                    overflow: TextOverflow.ellipsis,
                                   ),
                                 ),
-                        ),
+                              ),
+                            ),
+                          ),
+                          SizedBox(height: (h * 0.03).clamp(2.0, 4.0).toDouble()),
+                          Expanded(
+                            child: Center(
+                              child: Padding(
+                                padding: const EdgeInsets.all(4.0),
+                                child: FittedBox(
+                                  fit: BoxFit.contain,
+                                  child: SizedBox(
+                                    width: iconSize,
+                                    height: iconSize,
+                                    child: imageWidget,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
-                    ],
+                    ),
                   );
                 },
               ),
@@ -246,7 +288,7 @@ class MiniSymbolTile extends StatelessWidget {
               width: 24,
               height: 24,
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.5),
+                color: Colors.white.withValues(alpha: 0.5),
                 borderRadius: BorderRadius.circular(4),
               ),
               child: ClipRRect(

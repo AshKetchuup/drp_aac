@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import '../models/models.dart';
 
-class OverloadMode extends StatelessWidget {
+class CalmingMode extends StatelessWidget {
   final VoidCallback onExit;
   final Function(String) onSelect;
 
-  const OverloadMode({
+  const CalmingMode({
     super.key,
     required this.onExit,
     required this.onSelect,

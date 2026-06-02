@@ -1,17 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../theme/app_theme.dart';
 import '../providers/aac_provider.dart';
 import 'symbol_tile.dart';
 
 class SentenceRail extends StatelessWidget {
   final VoidCallback onSpeak;
   final VoidCallback onClear;
+  final double height;
 
   const SentenceRail({
     super.key,
     required this.onSpeak,
     required this.onClear,
+    this.height = 124,
   });
 
   @override
@@ -21,7 +22,7 @@ class SentenceRail extends StatelessWidget {
         return Container(
           padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
           color: Colors.black, // Dark background
-          height: 100, // Fixed height for rail
+          height: height,
           child: Row(
             children: [
               // Magic wand button
@@ -57,7 +58,7 @@ class SentenceRail extends StatelessWidget {
                       scrollDirection: Axis.horizontal,
                       padding: const EdgeInsets.symmetric(vertical: 4),
                       itemCount: provider.sentenceBuilder.length,
-                      separatorBuilder: (_, __) => const SizedBox(width: 4),
+                      separatorBuilder: (_, _) => const SizedBox(width: 4),
                       itemBuilder: (context, index) {
                         final symbol = provider.sentenceBuilder[index];
                         return MiniSymbolTile(
@@ -76,6 +77,7 @@ class SentenceRail extends StatelessWidget {
                 onTap: onSpeak,
                 child: Container(
                   width: 80,
+                  padding: const EdgeInsets.symmetric(horizontal: 4),
                   decoration: BoxDecoration(
                     color: Colors.blue, // Make it stand out
                     borderRadius: BorderRadius.circular(4),
@@ -85,7 +87,17 @@ class SentenceRail extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: const [
                       Icon(Icons.volume_up, color: Colors.white, size: 32),
-                      Text('Speak', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                      FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Text(
+                          'Speak',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ),
                     ],
                   ),
                 ),
