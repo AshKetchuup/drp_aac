@@ -44,6 +44,45 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  final _scheduleSymbols = [
+  Symbol(
+    id: 'home',
+    label: 'Home',
+    icon: Icons.home,
+    category: SymbolCategory.activity,
+  ),
+  Symbol(
+    id: 'school',
+    label: 'School',
+    icon: Icons.school,
+    category: SymbolCategory.activity,
+  ),
+  Symbol(
+    id: 'break',
+    label: 'Break',
+    icon: Icons.chair,
+    category: SymbolCategory.activity,
+  ),
+  Symbol(
+    id: 'lunch',
+    label: 'Lunch',
+    icon: Icons.restaurant,
+    category: SymbolCategory.activity,
+  ),
+  Symbol(
+    id: 'outside',
+    label: 'Outside',
+    icon: Icons.park,
+    category: SymbolCategory.activity,
+  ),
+  Symbol(
+    id: 'tablet',
+    label: 'Tablet',
+    icon: Icons.tablet,
+    category: SymbolCategory.activity,
+  ),
+];
+
   void _handleSymbolTap(Symbol symbol) {
     final provider = Provider.of<AACProvider>(context, listen: false);
     provider.addToSentence(symbol);
@@ -105,7 +144,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 _showSchedule = false;
               });
             },
-            availableSymbols: List.empty(),
+            availableSymbols: _scheduleSymbols,
             onSpeakSchedule: _handleSpeak,
           );
         }
