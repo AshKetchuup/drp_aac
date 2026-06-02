@@ -4,7 +4,7 @@ import '../theme/app_theme.dart';
 class BottomBar extends StatelessWidget {
   final String? userName;
   final String? avatarId;
-  final bool isOverloadMode;
+  final bool isCalmingMode;
   final VoidCallback onOverloadToggle;
   final VoidCallback onSettingsTap;
   final VoidCallback? onProfileTap;
@@ -13,7 +13,7 @@ class BottomBar extends StatelessWidget {
     super.key,
     this.userName,
     this.avatarId,
-    required this.isOverloadMode,
+    required this.isCalmingMode,
     required this.onOverloadToggle,
     required this.onSettingsTap,
     this.onProfileTap,
@@ -96,30 +96,30 @@ class BottomBar extends StatelessWidget {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
               decoration: BoxDecoration(
-                color: isOverloadMode 
+                color: isCalmingMode 
                     ? AppTheme.error.withOpacity(0.2) 
                     : AppTheme.surfaceLight,
                 borderRadius: BorderRadius.circular(10),
                 border: Border.all(
-                  color: isOverloadMode ? AppTheme.error : AppTheme.border,
+                  color: isCalmingMode ? AppTheme.error : AppTheme.border,
                 ),
               ),
               child: Row(
                 children: [
                   Icon(
-                    isOverloadMode 
+                    isCalmingMode 
                         ? Icons.emergency_rounded 
                         : Icons.shield_outlined,
-                    color: isOverloadMode 
+                    color: isCalmingMode 
                         ? AppTheme.error 
                         : AppTheme.textSecondary,
                     size: 20,
                   ),
                   const SizedBox(width: 8),
                   Text(
-                    isOverloadMode ? 'Exit Overload' : 'Overload Mode',
+                    isCalmingMode ? 'Exit Overload' : 'Overload Mode',
                     style: TextStyle(
-                      color: isOverloadMode 
+                      color: isCalmingMode 
                           ? AppTheme.error 
                           : AppTheme.textSecondary,
                       fontSize: 14,
