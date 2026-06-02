@@ -13,8 +13,7 @@ class AACProvider extends ChangeNotifier {
     dislikes: ['trains'],
     createdAt: DateTime.now(),
   );
-  List<Symbol> _sentenceBuilder = [];
-  bool _isCalmingMode = false;
+  final List<Symbol> _sentenceBuilder = [];
   String? _currentEmotion;
   bool _isProfileSetupComplete = true;
 
@@ -26,7 +25,6 @@ class AACProvider extends ChangeNotifier {
 
   UserProfile? get currentProfile => _currentProfile;
   List<Symbol> get sentenceBuilder => _sentenceBuilder;
-  bool get isCalmingMode => _isCalmingMode;
   String? get currentEmotion => _currentEmotion;
   bool get isProfileSetupComplete => _isProfileSetupComplete;
 
@@ -69,16 +67,6 @@ class AACProvider extends ChangeNotifier {
 
   void clearSentence() {
     _sentenceBuilder.clear();
-    notifyListeners();
-  }
-
-  void toggleCalmingMode() {
-    _isCalmingMode = !_isCalmingMode;
-    notifyListeners();
-  }
-
-  void setCalmingMode(bool value) {
-    _isCalmingMode = value;
     notifyListeners();
   }
 
@@ -151,7 +139,6 @@ class AACProvider extends ChangeNotifier {
     _currentProfile = null;
     _isProfileSetupComplete = false;
     _sentenceBuilder.clear();
-    _isCalmingMode = false;
     _currentEmotion = null;
     resetContextSuggestions();
   }
