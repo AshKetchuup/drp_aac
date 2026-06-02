@@ -77,7 +77,7 @@ class CalmingMode extends StatelessWidget {
         final railHeight = (constraints.maxHeight * 0.16).clamp(144.0, 176.0).toDouble();
         final emotionHeight = (constraints.maxHeight * 0.11).clamp(76.0, 92.0).toDouble();
 
-        return Container(
+        return Material(
           color: AppTheme.background,
           child: SafeArea(
             child: Padding(
