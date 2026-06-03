@@ -1,18 +1,17 @@
 import 'package:flutter/material.dart';
-
 import '../models/models.dart';
 import '../theme/app_theme.dart';
 import 'sentence_rail.dart';
 import 'symbol_tile.dart';
 
-class CalmingMode extends StatelessWidget {
+class DebriefMode extends StatelessWidget {
   final VoidCallback onExit;
   final Function(Symbol) onSymbolTap;
   final Function(String) onEmotionTap;
   final VoidCallback onSpeak;
   final VoidCallback onClear;
 
-  const CalmingMode({
+  const DebriefMode({
     super.key,
     required this.onExit,
     required this.onSymbolTap,
@@ -22,60 +21,123 @@ class CalmingMode extends StatelessWidget {
   });
 
   static final List<_CalmingSymbol> _firstColumn = [
-    _CalmingSymbol('I want', 'want', SymbolCategory.verb, Icons.favorite),
-    _CalmingSymbol('I need', 'need', SymbolCategory.verb, Icons.priority_high),
-    _CalmingSymbol('I have', 'feel', SymbolCategory.verb, Icons.sentiment_satisfied),
-    _CalmingSymbol('I miss', 'miss', SymbolCategory.feeling, Icons.person),
-    _CalmingSymbol('Will you', 'ask', SymbolCategory.question, Icons.question_answer),
+    _CalmingSymbol(
+      'I felt',
+      'feel',
+      SymbolCategory.feeling,
+      Icons.sentiment_satisfied,
+    ),
+    _CalmingSymbol('Too loud', 'loud', SymbolCategory.feeling, Icons.volume_up),
+    _CalmingSymbol('Too busy', 'busy', SymbolCategory.feeling, Icons.groups),
+    _CalmingSymbol('Too hot', 'hot', SymbolCategory.feeling, Icons.thermostat),
+    _CalmingSymbol(
+      'Overwhelmed',
+      'overwhelmed',
+      SymbolCategory.feeling,
+      Icons.psychology,
+    ),
   ];
 
   static final List<_CalmingSymbol> _secondColumn = [
-    _CalmingSymbol('to eat', 'eat', SymbolCategory.verb, Icons.restaurant),
-    _CalmingSymbol('to drink', 'drink', SymbolCategory.verb, Icons.local_drink),
-    _CalmingSymbol('to go', 'go', SymbolCategory.verb, Icons.directions_walk),
-    _CalmingSymbol('to leave', 'leave', SymbolCategory.verb, Icons.exit_to_app),
-    _CalmingSymbol('to help', 'help', SymbolCategory.verb, Icons.help),
-    _CalmingSymbol('to give', 'give', SymbolCategory.verb, Icons.card_giftcard),
-
+    _CalmingSymbol(
+      'Confused',
+      'confused',
+      SymbolCategory.feeling,
+      Icons.help_outline,
+    ),
+    _CalmingSymbol(
+      'Frustrated',
+      'angry',
+      SymbolCategory.feeling,
+      Icons.mood_bad,
+    ),
+    _CalmingSymbol(
+      'Surprised',
+      'surprised',
+      SymbolCategory.feeling,
+      Icons.priority_high,
+    ),
+    _CalmingSymbol('In pain', 'pain', SymbolCategory.feeling, Icons.healing),
+    _CalmingSymbol(
+      'Hungry',
+      'hungry',
+      SymbolCategory.feeling,
+      Icons.restaurant,
+    ),
+    _CalmingSymbol('Tired', 'tired', SymbolCategory.feeling, Icons.bedtime),
   ];
 
   static final List<_CalmingSymbol> _thirdColumn = [
-    _CalmingSymbol('School', 'school', SymbolCategory.noun, Icons.school),
-    _CalmingSymbol('Home', 'home', SymbolCategory.noun, Icons.home),
-    _CalmingSymbol('Park', 'park', SymbolCategory.activity, Icons.park),
-    _CalmingSymbol('Shop', 'shop', SymbolCategory.activity, Icons.shop),
+    _CalmingSymbol('At school', 'school', SymbolCategory.noun, Icons.school),
+    _CalmingSymbol('At home', 'home', SymbolCategory.noun, Icons.home),
+    _CalmingSymbol('At the park', 'park', SymbolCategory.activity, Icons.park),
+    _CalmingSymbol('At the shop', 'shop', SymbolCategory.activity, Icons.shop),
+    _CalmingSymbol('Outside', 'outside', SymbolCategory.activity, Icons.forest),
     _CalmingSymbol('Swimming', 'swimming', SymbolCategory.activity, Icons.pool),
-    _CalmingSymbol('Outside', 'garden', SymbolCategory.activity, Icons.forest),
   ];
 
   static final List<_CalmingSymbol> _specificPhrases = [
-    _CalmingSymbol('Help me', 'help', SymbolCategory.verb, Icons.help),
-    _CalmingSymbol('I need a break', 'rest', SymbolCategory.verb, Icons.spa),
-    _CalmingSymbol('Too loud', 'quiet', SymbolCategory.feeling, Icons.volume_off),
-    _CalmingSymbol('Want quiet', 'quiet', SymbolCategory.feeling, Icons.volume_off),
+    _CalmingSymbol(
+      'Too many people',
+      'crowd',
+      SymbolCategory.feeling,
+      Icons.groups,
+    ),
+    _CalmingSymbol(
+      'Too much noise',
+      'loud',
+      SymbolCategory.feeling,
+      Icons.volume_off,
+    ),
+    _CalmingSymbol('Needed a break', 'rest', SymbolCategory.verb, Icons.spa),
+    _CalmingSymbol(
+      'Didn\'t understand',
+      'confused',
+      SymbolCategory.feeling,
+      Icons.help_outline,
+    ),
   ];
 
   static final List<_CalmingSymbol> _simpleTiles = [
-    _CalmingSymbol('Yes', 'yes', SymbolCategory.question, Icons.check_circle),
-    _CalmingSymbol('No', 'no', SymbolCategory.question, Icons.cancel),
-    _CalmingSymbol('More', 'more', SymbolCategory.adjective, Icons.add_circle),
-    _CalmingSymbol('Stop', 'stop', SymbolCategory.verb, Icons.stop_circle),
+    _CalmingSymbol(
+      'I am okay',
+      'okay',
+      SymbolCategory.question,
+      Icons.check_circle,
+    ),
+    _CalmingSymbol(
+      'I am sorry',
+      'sorry',
+      SymbolCategory.feeling,
+      Icons.favorite_border,
+    ),
+    _CalmingSymbol(
+      'Thank you',
+      'thanks',
+      SymbolCategory.question,
+      Icons.thumb_up,
+    ),
+    _CalmingSymbol('All done', 'finish', SymbolCategory.verb, Icons.done_all),
   ];
 
   static final List<_EmotionChip> _emotions = [
     _EmotionChip('😊', 'Happy'),
     _EmotionChip('😢', 'Sad'),
     _EmotionChip('😡', 'Angry'),
-    _EmotionChip('😴', 'Tired'),
-    _EmotionChip('😌', 'Calm'),
+    _EmotionChip('😰', 'Scared'),
+    _EmotionChip('😵', 'Overwhelmed'),
   ];
 
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final railHeight = (constraints.maxHeight * 0.16).clamp(144.0, 176.0).toDouble();
-        final emotionHeight = (constraints.maxHeight * 0.11).clamp(76.0, 92.0).toDouble();
+        final railHeight = (constraints.maxHeight * 0.16)
+            .clamp(144.0, 176.0)
+            .toDouble();
+        final emotionHeight = (constraints.maxHeight * 0.11)
+            .clamp(76.0, 92.0)
+            .toDouble();
 
         return Material(
           color: AppTheme.background,
@@ -111,11 +173,26 @@ class CalmingMode extends StatelessWidget {
                           flex: 2,
                           child: Row(
                             children: [
-                              Expanded(child: _VerticalTileColumn(tiles: _firstColumn, onTap: onSymbolTap)),
+                              Expanded(
+                                child: _VerticalTileColumn(
+                                  tiles: _firstColumn,
+                                  onTap: onSymbolTap,
+                                ),
+                              ),
                               const SizedBox(width: 8),
-                              Expanded(child: _VerticalTileColumn(tiles: _secondColumn, onTap: onSymbolTap)),
+                              Expanded(
+                                child: _VerticalTileColumn(
+                                  tiles: _secondColumn,
+                                  onTap: onSymbolTap,
+                                ),
+                              ),
                               const SizedBox(width: 8),
-                              Expanded(child: _VerticalTileColumn(tiles: _thirdColumn, onTap: onSymbolTap)),
+                              Expanded(
+                                child: _VerticalTileColumn(
+                                  tiles: _thirdColumn,
+                                  onTap: onSymbolTap,
+                                ),
+                              ),
                             ],
                           ),
                         ),
@@ -126,7 +203,7 @@ class CalmingMode extends StatelessWidget {
                             children: [
                               Expanded(
                                 child: _TilePanel(
-                                  title: 'My phrases',
+                                  title: 'What happened',
                                   tiles: _specificPhrases,
                                   onTap: onSymbolTap,
                                 ),
@@ -134,7 +211,7 @@ class CalmingMode extends StatelessWidget {
                               const SizedBox(height: 12),
                               Expanded(
                                 child: _TilePanel(
-                                  title: 'Responses',
+                                  title: 'I feel now',
                                   tiles: _simpleTiles,
                                   onTap: onSymbolTap,
                                 ),
@@ -155,9 +232,10 @@ class CalmingMode extends StatelessWidget {
   }
 }
 
+// ── private widgets & data classes — identical to CalmingMode ─────────────────
+
 class _Header extends StatelessWidget {
   final VoidCallback onExit;
-
   const _Header({required this.onExit});
 
   @override
@@ -177,13 +255,13 @@ class _Header extends StatelessWidget {
                 width: 12,
                 height: 12,
                 decoration: const BoxDecoration(
-                  color: AppTheme.warning,
+                  color: AppTheme.secondary, // blue dot instead of yellow
                   shape: BoxShape.circle,
                 ),
               ),
               const SizedBox(width: 10),
-              Text(
-                'Calming Mode',
+              const Text(
+                'Debriefing Mode',
                 style: TextStyle(
                   color: AppTheme.textPrimary,
                   fontSize: 20,
@@ -203,10 +281,10 @@ class _Header extends StatelessWidget {
               borderRadius: BorderRadius.circular(14),
               border: Border.all(color: AppTheme.border),
             ),
-            child: Row(
+            child: const Row(
               children: [
                 Icon(Icons.close, color: AppTheme.textSecondary, size: 18),
-                const SizedBox(width: 6),
+                SizedBox(width: 6),
                 Text(
                   'Exit',
                   style: TextStyle(
@@ -227,11 +305,7 @@ class _Header extends StatelessWidget {
 class _EmotionStrip extends StatelessWidget {
   final List<_EmotionChip> emotions;
   final Function(String) onEmotionTap;
-
-  const _EmotionStrip({
-    required this.emotions,
-    required this.onEmotionTap,
-  });
+  const _EmotionStrip({required this.emotions, required this.onEmotionTap});
 
   @override
   Widget build(BuildContext context) {
@@ -248,15 +322,17 @@ class _EmotionStrip extends StatelessWidget {
             width: 132,
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
             decoration: BoxDecoration(
-              color: AppTheme.primary.withValues(alpha: 0.12),
+              color: AppTheme.secondary.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: AppTheme.primary.withValues(alpha: 0.6)),
+              border: Border.all(
+                color: AppTheme.secondary.withValues(alpha: 0.6),
+              ),
             ),
-            child: Text(
-              'I am feeling',
+            child: const Text(
+              'I was feeling',
               textAlign: TextAlign.center,
               style: TextStyle(
-                color: AppTheme.primary,
+                color: AppTheme.secondary,
                 fontSize: 16,
                 fontWeight: FontWeight.w700,
               ),
@@ -265,7 +341,6 @@ class _EmotionStrip extends StatelessWidget {
           const SizedBox(width: 10),
           Expanded(
             child: Row(
-              mainAxisAlignment: MainAxisAlignment.start,
               children: emotions
                   .map(
                     (emotion) => Padding(
@@ -302,11 +377,7 @@ class _EmotionStrip extends StatelessWidget {
 class _VerticalTileColumn extends StatelessWidget {
   final List<_CalmingSymbol> tiles;
   final Function(Symbol) onTap;
-
-  const _VerticalTileColumn({
-    required this.tiles,
-    required this.onTap,
-  });
+  const _VerticalTileColumn({required this.tiles, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -322,7 +393,9 @@ class _VerticalTileColumn extends StatelessWidget {
           for (var index = 0; index < tiles.length; index++) ...[
             Expanded(
               child: Padding(
-                padding: EdgeInsets.only(bottom: index == tiles.length - 1 ? 0 : 8),
+                padding: EdgeInsets.only(
+                  bottom: index == tiles.length - 1 ? 0 : 8,
+                ),
                 child: SymbolTile(
                   symbol: tiles[index].symbol,
                   onTap: () => onTap(tiles[index].symbol),
@@ -343,7 +416,6 @@ class _TilePanel extends StatelessWidget {
   final String title;
   final List<_CalmingSymbol> tiles;
   final Function(Symbol) onTap;
-
   const _TilePanel({
     required this.title,
     required this.tiles,
@@ -366,7 +438,7 @@ class _TilePanel extends StatelessWidget {
             padding: const EdgeInsets.only(bottom: 8),
             child: Text(
               title,
-              style: TextStyle(
+              style: const TextStyle(
                 color: AppTheme.textPrimary,
                 fontSize: 20,
                 fontWeight: FontWeight.w700,
@@ -407,18 +479,21 @@ class _CalmingSymbol {
   final String pictogramKeyword;
   final Symbol symbol;
 
-  _CalmingSymbol(this.label, this.pictogramKeyword, SymbolCategory category, IconData fallbackIcon)
-      : symbol = Symbol(
-          id: label.toLowerCase().replaceAll(' ', '_'),
-          label: label,
-          category: category,
-          icon: fallbackIcon,
-        );
+  _CalmingSymbol(
+    this.label,
+    this.pictogramKeyword,
+    SymbolCategory category,
+    IconData fallbackIcon,
+  ) : symbol = Symbol(
+        id: label.toLowerCase().replaceAll(' ', '_'),
+        label: label,
+        category: category,
+        icon: fallbackIcon,
+      );
 }
 
 class _EmotionChip {
   final String emoji;
   final String label;
-
   const _EmotionChip(this.emoji, this.label);
 }
