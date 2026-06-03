@@ -22,8 +22,8 @@ class _ProfileSetupState extends State<ProfileSetup> {
   String? _selectedPronoun;
   String? _selectedLocation;
   String _selectedAvatar = 'boy_1';
-  List<String> _selectedLikes = [];
-  List<String> _selectedDislikes = [];
+  final List<String> _selectedLikes = [];
+  final List<String> _selectedDislikes = [];
   String? _selectedMood;
 
   static const List<String> pronounOptions = ['He/Him', 'She/Her', 'They/Them', 'Other'];
@@ -134,7 +134,7 @@ class _ProfileSetupState extends State<ProfileSetup> {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: AppTheme.primary.withOpacity(0.2),
+                  color: AppTheme.primary.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Icon(
@@ -270,7 +270,7 @@ class _ProfileSetupState extends State<ProfileSetup> {
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                   decoration: BoxDecoration(
-                    color: isSelected ? AppTheme.primary.withOpacity(0.2) : AppTheme.surface,
+                    color: isSelected ? AppTheme.primary.withValues(alpha: 0.2) : AppTheme.surface,
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
                       color: isSelected ? AppTheme.primary : AppTheme.border,
@@ -329,7 +329,7 @@ class _ProfileSetupState extends State<ProfileSetup> {
                     height: 120,
                     decoration: BoxDecoration(
                       color: isSelected 
-                          ? (avatar['color'] as Color).withOpacity(0.2)
+                          ? (avatar['color'] as Color).withValues(alpha: 0.2)
                           : AppTheme.surface,
                       borderRadius: BorderRadius.circular(24),
                       border: Border.all(
@@ -339,7 +339,7 @@ class _ProfileSetupState extends State<ProfileSetup> {
                       boxShadow: isSelected
                           ? [
                               BoxShadow(
-                                color: (avatar['color'] as Color).withOpacity(0.3),
+                                color: (avatar['color'] as Color).withValues(alpha: 0.3),
                                 blurRadius: 16,
                               ),
                             ]
@@ -426,7 +426,7 @@ class _ProfileSetupState extends State<ProfileSetup> {
                     duration: const Duration(milliseconds: 200),
                     decoration: BoxDecoration(
                       color: isSelected 
-                          ? (interest['color'] as Color).withOpacity(0.2)
+                          ? (interest['color'] as Color).withValues(alpha: 0.2)
                           : AppTheme.surface,
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(
@@ -523,14 +523,14 @@ class _ProfileSetupState extends State<ProfileSetup> {
                     duration: const Duration(milliseconds: 200),
                     decoration: BoxDecoration(
                       color: isLiked
-                          ? AppTheme.surfaceLight.withOpacity(0.3)
+                          ? AppTheme.surfaceLight.withValues(alpha: 0.3)
                           : isSelected 
-                              ? AppTheme.error.withOpacity(0.2)
+                              ? AppTheme.error.withValues(alpha: 0.2)
                               : AppTheme.surface,
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(
                         color: isLiked
-                            ? AppTheme.border.withOpacity(0.3)
+                            ? AppTheme.border.withValues(alpha: 0.3)
                             : isSelected 
                                 ? AppTheme.error 
                                 : AppTheme.border,
@@ -616,7 +616,7 @@ class _ProfileSetupState extends State<ProfileSetup> {
                     height: 140,
                     decoration: BoxDecoration(
                       color: isSelected 
-                          ? (mood['color'] as Color).withOpacity(0.2)
+                          ? (mood['color'] as Color).withValues(alpha: 0.2)
                           : AppTheme.surface,
                       borderRadius: BorderRadius.circular(24),
                       border: Border.all(
@@ -626,7 +626,7 @@ class _ProfileSetupState extends State<ProfileSetup> {
                       boxShadow: isSelected
                           ? [
                               BoxShadow(
-                                color: (mood['color'] as Color).withOpacity(0.3),
+                                color: (mood['color'] as Color).withValues(alpha: 0.3),
                                 blurRadius: 16,
                               ),
                             ]
