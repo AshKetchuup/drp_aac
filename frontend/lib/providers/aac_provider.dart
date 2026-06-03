@@ -156,9 +156,9 @@ class AACProvider extends ChangeNotifier {
       // Use kIsWeb and defaultTargetPlatform to dynamically set the correct backend URL
       // On web, the browser is on Windows but the backend is in WSL — use the WSL IP
       String apiUrl = 'https://drp-aac.onrender.com/api/context/predict';
-      if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
-        apiUrl = 'http://10.0.2.2:8000/api/context/predict'; // Special IP for Android Emulator host
-      }
+      // if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
+      //   apiUrl = 'http://10.0.2.2:8000/api/context/predict'; // Special IP for Android Emulator host
+      // }
 
       final response = await http.post(
         Uri.parse(apiUrl),
