@@ -95,6 +95,12 @@ class AACProvider extends ChangeNotifier {
   final stt.SpeechToText _speech = stt.SpeechToText();
 
   Future<void> startContextListening() async {
+    // If already listening, stop instead (toggle behavior)
+    if (_isListeningContext) {
+      await stopContextListening();
+      return;
+    }
+
     // permission_handler doesn't support web; browsers handle mic permissions natively
     if (!kIsWeb) {
       try {
@@ -134,20 +140,24 @@ class AACProvider extends ChangeNotifier {
     notifyListeners();
 
     await _speech.listen(
-      onResult: (result) async {
+      onResult: (result) {
         _teacherPrompt = result.recognizedWords;
-
-        if (result.finalResult) {
-          _isListeningContext = false;
-          notifyListeners();
-          await fetchSuggestions();
-        } else {
-          notifyListeners();
-        }
+        notifyListeners();
       },
-      listenFor: const Duration(seconds: 30),
-      pauseFor: const Duration(seconds: 3),
+      listenFor: const Duration(minutes: 10), // Effectively unlimited
+      pauseFor: const Duration(minutes: 10),  // Don't auto-stop on silence
     );
+  }
+
+  Future<void> stopContextListening() async {
+    await _speech.stop();
+    _isListeningContext = false;
+    notifyListeners();
+
+    // Only fetch suggestions if we actually heard something
+    if (_teacherPrompt != null && _teacherPrompt!.isNotEmpty) {
+      await fetchSuggestions();
+    }
   }
 
   Future<void> fetchSuggestions() async {
@@ -156,7 +166,8 @@ class AACProvider extends ChangeNotifier {
 
     try {
       // Use kIsWeb and defaultTargetPlatform to dynamically set the correct backend URL
-      String apiUrl = 'http://localhost:8000/api/context/predict'; // Local backend
+      // On web, the browser is on Windows but the backend is in WSL — use the WSL IP
+      String apiUrl = 'http://172.25.46.159:8000/api/context/predict'; // WSL backend
       if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
         apiUrl = 'http://10.0.2.2:8000/api/context/predict'; // Special IP for Android Emulator host
       }
