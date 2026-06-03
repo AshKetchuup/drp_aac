@@ -127,15 +127,6 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Consumer<AACProvider>(
       builder: (context, provider, child) {
-        if (provider.isCalmingMode) {
-          return CalmingMode(
-            onExit: () => provider.setCalmingMode(false),
-            onSymbolTap: _handleSymbolTap,
-            onEmotionTap: _speak,
-            onSpeak: _handleSpeak,
-            onClear: _handleClear,
-          );
-        }
 
         if (_showSchedule) {
           return ScheduleMode(
