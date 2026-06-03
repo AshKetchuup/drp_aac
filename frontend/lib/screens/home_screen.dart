@@ -9,6 +9,8 @@ import '../widgets/communication_grid.dart';
 import '../widgets/smart_suggestions.dart';
 import '../widgets/emotions_bar.dart';
 import 'calming_mode_screen.dart';
+import '../widgets/scheduler.dart';
+
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -21,6 +23,7 @@ class _HomeScreenState extends State<HomeScreen> {
   final FlutterTts _flutterTts = FlutterTts();
   String? _activeCategory;
   bool _showEmotions = false; // Toggle for emotions view
+  bool _showSchedule = false;
 
   @override
   void initState() {
@@ -40,6 +43,45 @@ class _HomeScreenState extends State<HomeScreen> {
       await _flutterTts.speak(text);
     }
   }
+
+  final _scheduleSymbols = [
+  Symbol(
+    id: 'home',
+    label: 'Home',
+    icon: Icons.home,
+    category: SymbolCategory.activity,
+  ),
+  Symbol(
+    id: 'school',
+    label: 'School',
+    icon: Icons.school,
+    category: SymbolCategory.activity,
+  ),
+  Symbol(
+    id: 'break',
+    label: 'Break',
+    icon: Icons.chair,
+    category: SymbolCategory.activity,
+  ),
+  Symbol(
+    id: 'lunch',
+    label: 'Lunch',
+    icon: Icons.restaurant,
+    category: SymbolCategory.activity,
+  ),
+  Symbol(
+    id: 'outside',
+    label: 'Outside',
+    icon: Icons.park,
+    category: SymbolCategory.activity,
+  ),
+  Symbol(
+    id: 'tablet',
+    label: 'Tablet',
+    icon: Icons.tablet,
+    category: SymbolCategory.activity,
+  ),
+];
 
   void _handleSymbolTap(Symbol symbol) {
     final provider = Provider.of<AACProvider>(context, listen: false);
@@ -85,6 +127,28 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Consumer<AACProvider>(
       builder: (context, provider, child) {
+        if (provider.isCalmingMode) {
+          return CalmingMode(
+            onExit: () => provider.setCalmingMode(false),
+            onSymbolTap: _handleSymbolTap,
+            onEmotionTap: _speak,
+            onSpeak: _handleSpeak,
+            onClear: _handleClear,
+          );
+        }
+
+        if (_showSchedule) {
+          return ScheduleMode(
+            onExit: () {
+              setState(() {
+                _showSchedule = false;
+              });
+            },
+            availableSymbols: _scheduleSymbols,
+            onSpeakSchedule: _handleSpeak,
+          );
+        }
+
         return Scaffold(
           backgroundColor: Colors.black, // Dark borders
           body: SafeArea(
@@ -129,6 +193,32 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                       Row(
                         children: [
+                          const SizedBox(width: 16),
+                          GestureDetector(
+                            onTap: () {
+                              setState(() {
+                                _showSchedule = true;
+                              });
+                            },
+                            child: Row(
+                              children: [
+                                Icon(
+                                  Icons.schedule,
+                                  color: Colors.green,
+                                  size: 20,
+                                ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  'Schedule',
+                                  style: TextStyle(
+                                    color: Colors.green,
+                                    fontSize: 14,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(width: 16),
                           GestureDetector(
                             onTap: () {
                               setState(() {
