@@ -7,8 +7,8 @@ import '../models/models.dart';
 import '../widgets/sentence_rail.dart';
 import '../widgets/communication_grid.dart';
 import '../widgets/smart_suggestions.dart';
-import '../widgets/calming_mode.dart';
 import '../widgets/emotions_bar.dart';
+import 'calming_mode_screen.dart';
 import '../widgets/scheduler.dart';
 
 
@@ -97,7 +97,7 @@ class _HomeScreenState extends State<HomeScreen> {
       icon: Icons.fastfood,
     );
     provider.addToSentence(dynamicSymbol);
-    
+
     // Speak the full sentence after adding the new word
     _speak(provider.currentSentence);
   }
@@ -157,7 +157,10 @@ class _HomeScreenState extends State<HomeScreen> {
                 // Top thin menu bar
                 Container(
                   color: Colors.white,
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 4,
+                  ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -169,7 +172,11 @@ class _HomeScreenState extends State<HomeScreen> {
                               color: Colors.blue.withValues(alpha: 0.1),
                               shape: BoxShape.circle,
                             ),
-                            child: Icon(Icons.person, color: Colors.blue, size: 18),
+                            child: Icon(
+                              Icons.person,
+                              color: Colors.blue,
+                              size: 18,
+                            ),
                           ),
                           const SizedBox(width: 8),
                           Text(
@@ -221,32 +228,65 @@ class _HomeScreenState extends State<HomeScreen> {
                             child: Row(
                               children: [
                                 Icon(
-                                  _showEmotions ? Icons.emoji_emotions : Icons.emoji_emotions_outlined,
+                                  _showEmotions
+                                      ? Icons.emoji_emotions
+                                      : Icons.emoji_emotions_outlined,
                                   color: Colors.purple,
                                   size: 20,
                                 ),
                                 const SizedBox(width: 4),
-                                Text('Emotions', style: TextStyle(color: Colors.purple, fontSize: 14)),
+                                Text(
+                                  'Emotions',
+                                  style: TextStyle(
+                                    color: Colors.purple,
+                                    fontSize: 14,
+                                  ),
+                                ),
                               ],
                             ),
                           ),
                           const SizedBox(width: 16),
                           GestureDetector(
-                            onTap: () => provider.setCalmingMode(true),
+                            onTap: () => Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => const CalmingModeScreen(),
+                              ),
+                            ),
                             child: Row(
                               children: [
-                                Icon(Icons.spa_rounded, color: Colors.blue, size: 20),
+                                Icon(
+                                  Icons.spa_rounded,
+                                  color: Colors.blue,
+                                  size: 20,
+                                ),
                                 const SizedBox(width: 4),
-                                Text('Calming mode', style: TextStyle(color: Colors.blue, fontSize: 14)),
+                                Text(
+                                  'Calming mode',
+                                  style: TextStyle(
+                                    color: Colors.blue,
+                                    fontSize: 14,
+                                  ),
+                                ),
                               ],
                             ),
                           ),
                           const SizedBox(width: 16),
-                          Text('Edit', style: TextStyle(color: Colors.black87, fontSize: 14)),
+                          Text(
+                            'Edit',
+                            style: TextStyle(
+                              color: Colors.black87,
+                              fontSize: 14,
+                            ),
+                          ),
                           const SizedBox(width: 16),
                           GestureDetector(
                             onTap: _openSettings,
-                            child: Icon(Icons.settings, color: Colors.black87, size: 20),
+                            child: Icon(
+                              Icons.settings,
+                              color: Colors.black87,
+                              size: 20,
+                            ),
                           ),
                         ],
                       ),
@@ -254,16 +294,11 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ),
                 // Sentence builder rail
-                SentenceRail(
-                  onSpeak: _handleSpeak,
-                  onClear: _handleClear,
-                ),
+                SentenceRail(onSpeak: _handleSpeak, onClear: _handleClear),
                 // Smart suggestions or Emotions Bar
-                _showEmotions 
+                _showEmotions
                     ? EmotionsBar(onTap: (val) => _speak(val))
-                    : SmartSuggestions(
-                        onSuggestionTap: _handleSuggestionTap,
-                      ),
+                    : SmartSuggestions(onSuggestionTap: _handleSuggestionTap),
                 // Main communication grid
                 Expanded(
                   child: CommunicationGrid(
@@ -398,9 +433,7 @@ class _SettingsTile extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 16),
         decoration: BoxDecoration(
-          border: Border(
-            bottom: BorderSide(color: AppTheme.border),
-          ),
+          border: Border(bottom: BorderSide(color: AppTheme.border)),
         ),
         child: Row(
           children: [
@@ -409,10 +442,7 @@ class _SettingsTile extends StatelessWidget {
             Expanded(
               child: Text(
                 label,
-                style: TextStyle(
-                  color: AppTheme.textPrimary,
-                  fontSize: 16,
-                ),
+                style: TextStyle(color: AppTheme.textPrimary, fontSize: 16),
               ),
             ),
             Icon(Icons.chevron_right, color: AppTheme.textSecondary),
