@@ -6,7 +6,6 @@ import json
 
 router = APIRouter(prefix="/api/context", tags=["predictions"])
 
-
 past_predictions = [
     {
         "text": "I want juice",
@@ -64,7 +63,7 @@ def generate_suggestions(payload):
         history_str = "No recent history."
         
     system_prompt = f"""You are the predictive engine for a non-verbal child's AAC (communication) app. 
-Your job is to predict exactly 3 to 5 single words or short phrases the child might want to communicate next.
+Your job is to predict 3 to 6 single words or short phrases the child might want to communicate next.
 
 Child's Profile:
 - Likes: {likes_str}
@@ -74,14 +73,24 @@ Recent Communication History:
 {history_str}
 
 CRITICAL RULES:
-1. Provide words the child would say in response.
-2. Bias your suggestions toward the child's 'Likes' when appropriate, and avoid their 'Dislikes'.
-3. VOCABULARY EXPANSION: Include 1 or 2 new 'stretch' words (advanced vocabulary, descriptive adjectives, or specific nouns) that are highly relevant but NOT in their recent history, to help them learn new words.
-4. Output ONLY a valid JSON array of exactly 3 to 5 strings based off of how many words the child needs. No other text."""
+1. FRINGE VOCABULARY: Provide specific, subject-related words the child needs for this specific topic (e.g. names, specific nouns, descriptive adjectives). DO NOT provide basic core words (like "Yes", "No", "I want") because they already have those on their board.
+2. Bias your suggestions toward the child's 'Likes' when appropriate.
+3. Output ONLY a valid JSON array of strings. No explanation.
+4. You may need to include subject related words from the child that gets said in the context.
+
+EXAMPLES:
+Context: "Who is the GOAT of football?"
+Output: ["Messi", "Ronaldo", "Pele", "Maradona"]
+
+Context: "What do you want to play with?"
+Likes: legos, cars
+Dislikes: dolls
+Output: ["Red car", "Lego batman", "Race track", "Build tower"]"""
 
     user_prompt = f"""Someone just said this to the child: "{payload.text}"
 
-What 3 to 5 words/phrases might the child want to say in response?"""
+IMPORTANT: The child likes: {likes_str}. The child dislikes: {dislikes_str}.
+Provide AT LEAST 3 subject-specific, DISTINCT, advanced words related to this topic. Output JSON array only."""
 
     response = ollama.chat(
         model='qwen2.5:1.5b', 
@@ -89,7 +98,12 @@ What 3 to 5 words/phrases might the child want to say in response?"""
             {'role': 'system', 'content': system_prompt},
             {'role': 'user', 'content': user_prompt}
         ],
-        format='json'
+        format='json',
+        options={
+            'num_predict': 80,
+            'num_ctx': 512,
+            'temperature': 0.7,
+        }
     )
     
     json_string = response['message']['content']
