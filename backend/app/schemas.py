@@ -34,6 +34,9 @@ class StudentAssignmentOut(BaseModel):
 
 class PredictionRequest(BaseModel):
     audio_base64: str
+    text: str = ""
+    likes: list[str] = []
+    dislikes: list[str] = []
 
 
 class PredictionResponse(BaseModel):

@@ -77,62 +77,61 @@ class _SmartSuggestionsState extends State<SmartSuggestions> with SingleTickerPr
                       ),
               ),
               const SizedBox(width: 8),
-              if (provider.isListeningContext)
-                AnimatedBuilder(
-                  animation: _pulseAnimation,
-                  builder: (context, child) {
-                    return Container(
+              GestureDetector(
+                onTap: provider.startContextListening,
+                child: provider.isListeningContext
+                  ? AnimatedBuilder(
+                      animation: _pulseAnimation,
+                      builder: (context, child) {
+                        return Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: Colors.black,
+                            border: Border.all(color: _pulseAnimation.value ?? Colors.redAccent, width: 2),
+                            borderRadius: BorderRadius.circular(18),
+                          ),
+                          child: const Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.stop, size: 16, color: Colors.redAccent),
+                              SizedBox(width: 6),
+                              Text(
+                                'Stop',
+                                style: TextStyle(
+                                  color: Colors.redAccent,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 14,
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                    )
+                  : Container(
                       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                       decoration: BoxDecoration(
-                        color: Colors.black,
-                        border: Border.all(color: _pulseAnimation.value ?? Colors.greenAccent, width: 2),
+                        color: Colors.green.withValues(alpha: 0.1),
+                        border: Border.all(color: Colors.green, width: 2),
                         borderRadius: BorderRadius.circular(18),
                       ),
                       child: const Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(Icons.mic, size: 16, color: Colors.greenAccent),
+                          Icon(Icons.mic, size: 16, color: Colors.green),
                           SizedBox(width: 6),
                           Text(
-                            'Listening...',
+                            'Listen',
                             style: TextStyle(
-                              color: Colors.greenAccent,
+                              color: Colors.green,
                               fontWeight: FontWeight.bold,
                               fontSize: 14,
                             ),
                           ),
                         ],
                       ),
-                    );
-                  },
-                )
-              else
-                GestureDetector(
-                  onTap: provider.startContextListening,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: Colors.green.withValues(alpha: 0.1),
-                      border: Border.all(color: Colors.green, width: 2),
-                      borderRadius: BorderRadius.circular(18),
                     ),
-                    child: const Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(Icons.mic, size: 16, color: Colors.green),
-                        SizedBox(width: 6),
-                        Text(
-                          'Listen Context',
-                          style: TextStyle(
-                            color: Colors.green,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 14,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
+              ),
             ],
           ),
         );
