@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
+import '../widgets/scheduler.dart';
 
 class BottomBar extends StatelessWidget {
   final String? userName;
@@ -8,6 +9,7 @@ class BottomBar extends StatelessWidget {
   final VoidCallback onOverloadToggle;
   final VoidCallback onSettingsTap;
   final VoidCallback? onProfileTap;
+  final VoidCallback onScheduleTap;
 
   const BottomBar({
     super.key,
@@ -16,6 +18,7 @@ class BottomBar extends StatelessWidget {
     required this.isCalmingMode,
     required this.onOverloadToggle,
     required this.onSettingsTap,
+    required this.onScheduleTap,
     this.onProfileTap,
   });
 
@@ -41,9 +44,9 @@ class BottomBar extends StatelessWidget {
                     width: 40,
                     height: 40,
                     decoration: BoxDecoration(
-                      color: AppTheme.primary.withOpacity(0.2),
+                      color: AppTheme.primary.withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(10),
-                      border: Border.all(color: AppTheme.primary.withOpacity(0.5)),
+                      border: Border.all(color: AppTheme.primary.withValues(alpha: 0.5)),
                     ),
                     child: Icon(
                       Icons.person_rounded,
@@ -90,6 +93,39 @@ class BottomBar extends StatelessWidget {
               ),
             ),
           const Spacer(),
+          const SizedBox(width: 12),
+          GestureDetector(
+            onTap: onScheduleTap,
+            child: Container(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 10,
+              ),
+              decoration: BoxDecoration(
+                color: AppTheme.surfaceLight,
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: AppTheme.border),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.schedule,
+                    color: AppTheme.textSecondary,
+                    size: 20,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Schedule',
+                    style: TextStyle(
+                      color: AppTheme.textSecondary,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
           // Overload mode toggle
           GestureDetector(
             onTap: onOverloadToggle,
@@ -97,7 +133,7 @@ class BottomBar extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
               decoration: BoxDecoration(
                 color: isCalmingMode 
-                    ? AppTheme.error.withOpacity(0.2) 
+                    ? AppTheme.error.withValues(alpha: 0.2) 
                     : AppTheme.surfaceLight,
                 borderRadius: BorderRadius.circular(10),
                 border: Border.all(
