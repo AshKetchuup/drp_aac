@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_tts/flutter_tts.dart';
 
 import '../models/models.dart';
 import '../theme/app_theme.dart';
@@ -38,6 +39,51 @@ class _NowNextModeState extends State<NowNextMode> {
   // Sentence builder — ordered list of symbols
   final List<Symbol> _sentence = [];
 
+  final FlutterTts _flutterTts = FlutterTts();
+
+  @override
+  void initState() {
+    super.initState();
+    _initTts();
+  }
+
+  Future<void> _initTts() async {
+    await _flutterTts.setLanguage('en-GN');
+    await _flutterTts.setSpeechRate(0.4);
+    await _flutterTts.setVolume(1.0);
+    await _flutterTts.setPitch(1.0);
+  }
+
+  Future<void> _speakCurrent() async {
+    String textToSpeak = '';
+    if (_mode == _BoardMode.nowNext) {
+      if (_now != null && _next != null) {
+        textToSpeak = 'Now ${_now!.label}, then ${_next!.label}';
+      } else if (_now != null) {
+        textToSpeak = 'Now ${_now!.label}';
+      } else if (_next != null) {
+        textToSpeak = 'Next ${_next!.label}';
+      }
+    } else {
+      if (_sentence.isNotEmpty) {
+        textToSpeak = 'First, I need to ${_sentence.first.label}';
+        if (_sentence.length > 1) {
+          textToSpeak += ', then I can ${_sentence[1].label}';
+        }
+      }
+    }
+    
+    if (textToSpeak.isNotEmpty) {
+      await _flutterTts.speak(textToSpeak);
+    }
+  }
+
+  @override
+  void dispose() {
+    _flutterTts.stop();
+    super.dispose();
+  }
+
   void _clearAll() => setState(() {
         _now = null;
         _next = null;
@@ -58,7 +104,7 @@ class _NowNextModeState extends State<NowNextMode> {
                 mode: _mode,
                 onModeChanged: (m) => setState(() => _mode = m),
                 onClear: _clearAll,
-                onSpeak: widget.onSpeak,
+                onSpeak: _speakCurrent,
                 onExit: widget.onExit,
               ),
 

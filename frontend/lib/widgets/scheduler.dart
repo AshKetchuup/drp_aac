@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_tts/flutter_tts.dart';
 
 import '../models/models.dart';
 import '../theme/app_theme.dart';
@@ -79,6 +80,48 @@ class _ScheduleModeState extends State<ScheduleMode> {
     return wd - 1;
   }();
 
+  final FlutterTts _flutterTts = FlutterTts();
+
+  @override
+  void initState() {
+    super.initState();
+    _initTts();
+  }
+
+  Future<void> _initTts() async {
+    await _flutterTts.setLanguage('en-GN');
+    await _flutterTts.setSpeechRate(0.4);
+    await _flutterTts.setVolume(1.0);
+    await _flutterTts.setPitch(1.0);
+  }
+
+  Future<void> _speakCurrent() async {
+    int dayToSpeak = _weekView ? (DateTime.now().weekday - 1) : _currentDayIndex;
+    String dayName = _kDays[dayToSpeak];
+    String textToSpeak = 'On $dayName, ';
+    
+    for (final slot in TimeSlot.values) {
+      final symbols = _schedule[(dayToSpeak, slot)] ?? [];
+      if (symbols.isNotEmpty) {
+        textToSpeak += 'in the ${slot.name}, ';
+        textToSpeak += symbols.map((s) => s.label).join(' and ');
+        textToSpeak += '. ';
+      }
+    }
+    
+    if (textToSpeak.length > 'On $dayName, '.length) {
+      await _flutterTts.speak(textToSpeak);
+    } else {
+      await _flutterTts.speak('Nothing is scheduled for $dayName');
+    }
+  }
+
+  @override
+  void dispose() {
+    _flutterTts.stop();
+    super.dispose();
+  }
+
   void _removeItem(SlotKey key, int index) =>
       setState(() => _schedule[key]!.removeAt(index));
 
@@ -100,7 +143,7 @@ class _ScheduleModeState extends State<ScheduleMode> {
               _Header(
                 onExit: widget.onExit,
                 onClear: _clearSchedule,
-                onSpeak: widget.onSpeakSchedule,
+                onSpeak: _speakCurrent,
                 weekView: _weekView,
                 onToggleView: () => setState(() => _weekView = !_weekView),
               ),
