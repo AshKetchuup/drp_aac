@@ -4,7 +4,7 @@ import 'package:provider/provider.dart';
 import 'theme/app_theme.dart';
 import 'providers/aac_provider.dart';
 import 'screens/profile_setup_screen.dart';
-import 'screens/home_screen.dart';
+import 'screens/dashboard_screen.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -60,7 +60,7 @@ class AppShell extends StatelessWidget {
             },
           );
         }
-        return const HomeScreen();
+        return const DashboardScreen();
       },
     );
   }

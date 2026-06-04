@@ -141,6 +141,14 @@ class _CommunicationGridState extends State<CommunicationGrid> {
 
     final displaySymbols = List<Symbol>.from(symbols);
     if (profile != null) {
+      // Inject the child's own name as a primary pronoun
+      displaySymbols.insert(0, Symbol(
+        id: 'profile_name',
+        label: profile.name,
+        icon: Icons.face_rounded,
+        category: SymbolCategory.pronoun,
+      ));
+
       if (profile.likes.isNotEmpty) {
         for (final like in profile.likes) {
           displaySymbols.add(
