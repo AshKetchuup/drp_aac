@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/aac_provider.dart';
+import '../models/models.dart';
 import 'symbol_tile.dart';
 
 class SentenceRail extends StatelessWidget {
@@ -25,11 +26,50 @@ class SentenceRail extends StatelessWidget {
           height: height,
           child: Row(
             children: [
-              // Magic wand button
+              // Add custom word button
               _IconButton(
-                icon: Icons.auto_fix_high,
+                icon: Icons.add,
                 color: Colors.blueGrey,
-                onTap: () {},
+                onTap: () async {
+                  final String? customWord = await showDialog<String>(
+                    context: context,
+                    builder: (context) {
+                      String inputText = '';
+                      return AlertDialog(
+                        title: const Text('Add Word'),
+                        content: TextField(
+                          autofocus: true,
+                          onChanged: (val) => inputText = val,
+                          decoration: const InputDecoration(
+                            hintText: 'Type a custom word...',
+                            border: OutlineInputBorder(),
+                          ),
+                          onSubmitted: (val) => Navigator.pop(context, val),
+                        ),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.pop(context),
+                            child: const Text('Cancel'),
+                          ),
+                          TextButton(
+                            onPressed: () => Navigator.pop(context, inputText),
+                            child: const Text('Add'),
+                          ),
+                        ],
+                      );
+                    },
+                  );
+                  if (customWord != null && customWord.trim().isNotEmpty) {
+                    provider.addToSentence(
+                      Symbol(
+                        id: 'custom_${DateTime.now().millisecondsSinceEpoch}',
+                        label: customWord.trim(),
+                        icon: Icons.text_fields,
+                        category: SymbolCategory.noun,
+                      ),
+                    );
+                  }
+                },
               ),
               const SizedBox(width: 4),
               // Undo/Backspace (Word level)

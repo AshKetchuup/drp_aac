@@ -178,56 +178,25 @@ class DebriefMode extends StatelessWidget {
                   const SizedBox(height: 10),
                   Expanded(
                     child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         Expanded(
-                          flex: 2,
-                          child: Row(
-                            children: [
-                              Expanded(
-                                child: _VerticalTileColumn(
-                                  tiles: _firstColumn,
-                                  onTap: onSymbolTap,
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: _VerticalTileColumn(
-                                  tiles: _secondColumn,
-                                  onTap: onSymbolTap,
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: _VerticalTileColumn(
-                                  tiles: _thirdColumn,
-                                  onTap: onSymbolTap,
-                                ),
-                              ),
-                            ],
+                          child: _VerticalTileColumn(
+                            tiles: _firstColumn,
+                            onTap: onSymbolTap,
                           ),
                         ),
-                        const SizedBox(width: 12),
+                        const SizedBox(width: 8),
                         Expanded(
-                          flex: 1,
-                          child: Column(
-                            children: [
-                              Expanded(
-                                child: _TilePanel(
-                                  title: 'What happened',
-                                  tiles: _specificPhrases,
-                                  onTap: onSymbolTap,
-                                ),
-                              ),
-                              const SizedBox(height: 12),
-                              Expanded(
-                                child: _TilePanel(
-                                  title: 'I feel now',
-                                  tiles: _simpleTiles,
-                                  onTap: onSymbolTap,
-                                ),
-                              ),
-                            ],
+                          child: _VerticalTileColumn(
+                            tiles: _secondColumn,
+                            onTap: onSymbolTap,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: _VerticalTileColumn(
+                            tiles: _thirdColumn,
+                            onTap: onSymbolTap,
                           ),
                         ),
                       ],
