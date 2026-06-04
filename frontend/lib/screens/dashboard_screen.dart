@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/aac_provider.dart';
 import '../models/models.dart';
+import '../theme/app_theme.dart';
 import 'home_screen.dart';
 import 'profile_setup_screen.dart';
 import 'calming_mode_screen.dart';
@@ -105,16 +106,17 @@ class DashboardScreen extends StatelessWidget {
               // Tiles grid
               Expanded(
                 child: GridView.count(
+                  physics: const NeverScrollableScrollPhysics(),
                   crossAxisCount: 3,
-                  mainAxisSpacing: 16,
-                  crossAxisSpacing: 16,
-                  childAspectRatio: 1.4,
+                  mainAxisSpacing: 12,
+                  crossAxisSpacing: 12,
+                  childAspectRatio: 1.8,
                   children: [
                     _DashboardTile(
                       title: 'My Board',
-                      subtitle: 'Start communicating',
+                      subtitle: 'Start talking',
                       icon: Icons.grid_view_rounded,
-                      gradient: const [Color(0xFF3B82F6), Color(0xFF2563EB)],
+                      color: AppTheme.categoryNoun, // Orange
                       onTap: () {
                         Navigator.push(
                           context,
@@ -126,9 +128,9 @@ class DashboardScreen extends StatelessWidget {
                     ),
                     _DashboardTile(
                       title: 'Profile',
-                      subtitle: 'Edit your profile',
+                      subtitle: 'About me',
                       icon: Icons.person_rounded,
-                      gradient: const [Color(0xFF22C55E), Color(0xFF16A34A)],
+                      color: AppTheme.categoryPronoun, // Yellow
                       onTap: () {
                         Navigator.push(
                           context,
@@ -147,7 +149,7 @@ class DashboardScreen extends StatelessWidget {
                       title: 'Minigames',
                       subtitle: 'Learn & play',
                       icon: Icons.sports_esports_rounded,
-                      gradient: const [Color(0xFFF97316), Color(0xFFEA580C)],
+                      color: AppTheme.categoryVerb, // Green
                       onTap: () {
                         Navigator.push(
                           context,
@@ -159,9 +161,9 @@ class DashboardScreen extends StatelessWidget {
                     ),
                     _DashboardTile(
                       title: 'Now & Next',
-                      subtitle: 'Visual schedule',
+                      subtitle: 'What is happening',
                       icon: Icons.view_agenda_rounded,
-                      gradient: const [Color(0xFFEC4899), Color(0xFFDB2777)],
+                      color: AppTheme.categoryPreposition, // White
                       onTap: () {
                         Navigator.push(
                           context,
@@ -179,7 +181,7 @@ class DashboardScreen extends StatelessWidget {
                       title: 'Schedule',
                       subtitle: 'Plan your day',
                       icon: Icons.calendar_today_rounded,
-                      gradient: const [Color(0xFF8B5CF6), Color(0xFF7C3AED)],
+                      color: AppTheme.categoryQuestion, // Purple
                       onTap: () {
                         Navigator.push(
                           context,
@@ -197,7 +199,7 @@ class DashboardScreen extends StatelessWidget {
                       title: 'Calming Mode',
                       subtitle: 'Relax & breathe',
                       icon: Icons.spa_rounded,
-                      gradient: const [Color(0xFF06B6D4), Color(0xFF0891B2)],
+                      color: AppTheme.categoryAdjective, // Blue
                       onTap: () {
                         Navigator.push(
                           context,
@@ -223,14 +225,14 @@ class _DashboardTile extends StatefulWidget {
   final String title;
   final String subtitle;
   final IconData icon;
-  final List<Color> gradient;
+  final Color color;
   final VoidCallback onTap;
 
   const _DashboardTile({
     required this.title,
     required this.subtitle,
     required this.icon,
-    required this.gradient,
+    required this.color,
     required this.onTap,
   });
 
@@ -256,53 +258,52 @@ class _DashboardTileState extends State<_DashboardTile> {
         child: Container(
           width: double.infinity,
           decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: widget.gradient,
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-            borderRadius: BorderRadius.circular(20),
+            color: widget.color,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: Colors.black12, width: 2),
             boxShadow: [
               BoxShadow(
-                color: widget.gradient[0].withValues(alpha: 0.35),
-                blurRadius: 20,
-                offset: const Offset(0, 8),
+                color: widget.color.withValues(alpha: 0.4),
+                blurRadius: 12,
+                offset: const Offset(0, 4),
               ),
             ],
           ),
           child: Padding(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Container(
-                  width: 48,
-                  height: 48,
+                  width: 36,
+                  height: 36,
                   decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.2),
-                    borderRadius: BorderRadius.circular(14),
+                    color: Colors.black.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(10),
                   ),
                   child: Icon(
                     widget.icon,
-                    size: 28,
-                    color: Colors.white,
+                    size: 20,
+                    color: Colors.black87,
                   ),
                 ),
-                const SizedBox(height: 10),
+                const SizedBox(height: 8),
                 Text(
                   widget.title,
+                  textAlign: TextAlign.center,
                   style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 16,
+                    color: Colors.black87,
+                    fontSize: 15,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
                 const SizedBox(height: 2),
                 Text(
                   widget.subtitle,
-                  style: TextStyle(
-                    color: Colors.white.withValues(alpha: 0.8),
-                    fontSize: 12,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    color: Colors.black54,
+                    fontSize: 11,
                   ),
                 ),
               ],
