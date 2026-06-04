@@ -57,18 +57,11 @@ class DashboardScreen extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Hi, $name! 👋',
+                          'AAC dashboard!',
                           style: const TextStyle(
                             color: Color(0xFF1E293B),
                             fontSize: 28,
                             fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const Text(
-                          'What would you like to do?',
-                          style: TextStyle(
-                            color: Color(0xFF64748B),
-                            fontSize: 16,
                           ),
                         ),
                       ],
