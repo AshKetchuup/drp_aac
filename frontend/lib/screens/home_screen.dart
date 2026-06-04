@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_tts/flutter_tts.dart';
 import 'package:provider/provider.dart';
 import '../theme/app_theme.dart';
 import '../providers/aac_provider.dart';
@@ -10,9 +9,6 @@ import '../widgets/smart_suggestions.dart';
 import '../widgets/emotions_bar.dart';
 import 'calming_mode_screen.dart';
 import 'dashboard_screen.dart';
-import '../widgets/scheduler.dart';
-import 'now_next_screen.dart';
-import '../widgets/symbol_tile.dart';
 
 
 class HomeScreen extends StatefulWidget {
