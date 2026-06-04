@@ -9,6 +9,7 @@ import '../widgets/communication_grid.dart';
 import '../widgets/smart_suggestions.dart';
 import '../widgets/emotions_bar.dart';
 import 'calming_mode_screen.dart';
+import 'dashboard_screen.dart';
 import '../widgets/scheduler.dart';
 import 'now_next_screen.dart';
 
@@ -180,66 +181,26 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                           ),
                           const SizedBox(width: 16),
-                          Icon(Icons.home, color: Colors.black54, size: 20),
-                        ],
-                      ),
-                      Row(
-                        children: [
-                          const SizedBox(width: 16),
-                          GestureDetector(
-                            onTap: () {
-                              setState(() {
-                                _showSchedule = true;
-                              });
-                            },
-                            child: Row(
-                              children: [
-                                Icon(
-                                  Icons.schedule,
-                                  color: Colors.green,
-                                  size: 20,
-                                ),
-                                const SizedBox(width: 4),
-                                Text(
-                                  'Schedule',
-                                  style: TextStyle(
-                                    color: Colors.green,
-                                    fontSize: 14,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(width: 16),
                           GestureDetector(
                             onTap: () => Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (_) => NowNextMode(
-                                  onExit: () => Navigator.pop(context),
-                                  availableSymbols: _scheduleSymbols,
-                                  onSpeak: _handleSpeak,
-                                ),                              
-                                ),
+                                builder: (_) => const DashboardScreen(),
+                              ),
                             ),
-                            child: Row(
-                              children: [
-                                Icon(
-                                  Icons.view_agenda_outlined,
-                                  color: Colors.orange,
-                                  size: 20,
-                                ),
-                                const SizedBox(width: 4),
-                                Text(
-                                  'Now & Next',
-                                  style: TextStyle(
-                                    color: Colors.orange,
-                                    fontSize: 14,
-                                  ),
-                                ),
-                              ],
+                            child: Container(
+                              padding: const EdgeInsets.all(6),
+                              decoration: BoxDecoration(
+                                color: Colors.grey.withValues(alpha: 0.1),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Icon(Icons.apps_rounded, color: Colors.black54, size: 20),
                             ),
                           ),
+                        ],
+                      ),
+                      Row(
+                        children: [
                           const SizedBox(width: 16),
                           GestureDetector(
                             onTap: () {
