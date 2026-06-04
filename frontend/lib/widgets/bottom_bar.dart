@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
-import '../widgets/scheduler.dart';
 
 class BottomBar extends StatelessWidget {
   final String? userName;

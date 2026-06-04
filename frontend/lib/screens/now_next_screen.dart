@@ -227,7 +227,7 @@ class _SingleDropZone extends StatelessWidget {
                 width: double.infinity,
                 padding: const EdgeInsets.symmetric(vertical: 10),
                 decoration: BoxDecoration(
-                  color: labelColor.withOpacity(0.15),
+                  color: labelColor.withValues(alpha: 0.15),
                   borderRadius: const BorderRadius.vertical(
                       top: Radius.circular(17)),
                 ),
@@ -253,7 +253,7 @@ class _SingleDropZone extends StatelessWidget {
                             Icon(Icons.add_circle_outline,
                                 size: 40,
                                 color: AppTheme.textSecondary
-                                    .withOpacity(0.4)),
+                                    .withValues(alpha: 0.4)),
                             const SizedBox(height: 8),
                             Text(
                               'Drop activity here',
@@ -478,7 +478,7 @@ class _SentenceDropBox extends StatelessWidget {
                       Icons.add_circle_outline,
                       size: 36,
                       color:
-                          AppTheme.textSecondary.withOpacity(0.5),
+                          AppTheme.textSecondary.withValues(alpha: 0.5),
                     ),
                     const SizedBox(height: 8),
                     Text(
@@ -516,8 +516,7 @@ class _SymbolPicker extends StatelessWidget {
   const _SymbolPicker({
     required this.symbols,
     required this.height,
-    this.onTap,
-  });
+  }) : onTap = null;
 
   @override
   Widget build(BuildContext context) {
