@@ -42,6 +42,18 @@ const _emotions = [
     icon: Icons.spa,
     category: SymbolCategory.feeling,
   ),
+  Symbol(
+    id: 'excited',
+    label: 'Excited',
+    icon: Icons.celebration,
+    category: SymbolCategory.feeling,
+  ),
+  Symbol(
+    id: 'confused',
+    label: 'Confused',
+    icon: Icons.help_outline,
+    category: SymbolCategory.feeling,
+  ),
 ];
 
 const _needs = [
@@ -81,6 +93,18 @@ const _needs = [
     icon: Icons.favorite,
     category: SymbolCategory.feeling,
   ),
+    Symbol(
+    id: 'toilet',
+    label: 'Toilet',
+    icon: Icons.wc,
+    category: SymbolCategory.verb,
+  ),
+  Symbol(
+    id: 'help',
+    label: 'Help',
+    icon: Icons.pan_tool,
+    category: SymbolCategory.feeling,
+  ),
 ];
 
 class CalmingModeScreen extends StatefulWidget {
@@ -92,6 +116,8 @@ class CalmingModeScreen extends StatefulWidget {
 
 class _CalmingModeScreenState extends State<CalmingModeScreen> {
   final FlutterTts _tts = FlutterTts();
+  final PageController _pageController = PageController();
+  int _currentPage = 0;
 
   @override
   void initState() {
@@ -104,9 +130,19 @@ class _CalmingModeScreenState extends State<CalmingModeScreen> {
 
   void _speak(String text) => _tts.speak(text);
 
+  void _goToPage(int page) {
+    setState(() => _currentPage = page);
+    _pageController.animateToPage(
+      page,
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeInOut,
+    );
+  }
+
   @override
   void dispose() {
     _tts.stop();
+    _pageController.dispose();
     super.dispose();
   }
 
@@ -115,73 +151,149 @@ class _CalmingModeScreenState extends State<CalmingModeScreen> {
     return Scaffold(
       backgroundColor: AppTheme.background,
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            children: [
-              _Header(onExit: () => Navigator.pop(context)),
-              const SizedBox(height: 16),
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start, // ← align to top, not stretch
-                children: [
-                  Expanded(
-                    child: SymbolGridSection(
-                      title: 'I feel...',
-                      items: _emotions,
-                      onTap: _speak,
-                      cellSize: 110,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: SymbolGridSection(
-                      title: 'I want...',
-                      items: _needs,
-                      onTap: _speak,
-                      cellSize: 110,
-                    ),
-                  ),
-                ],
+        child: PageView(
+          controller: _pageController,
+          physics:
+              const NeverScrollableScrollPhysics(), // controlled by buttons only
+          onPageChanged: (page) => setState(() => _currentPage = page),
+          children: [
+            _FeelPage(
+              onSpeak: _speak,
+              onBack: () => Navigator.pop(context),
+              onNext: () => _goToPage(1),
+            ),
+            _WantPage(
+              onSpeak: _speak,
+              onBack: () => _goToPage(0),
+              onFeelBetter: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const DebriefModeScreen()),
               ),
-              const SizedBox(height: 24),
-              GestureDetector(
-                onTap: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const DebriefModeScreen()),
-                ),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 14),
-                  decoration: BoxDecoration(
-                    color: AppTheme.primary.withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(14),
-                    border: Border.all(color: AppTheme.primary.withValues(alpha: 0.6)),
-                  ),
-                  child: const Text(
-                    'I feel better',
-                    style: TextStyle(
-                      color: AppTheme.primary,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
   }
 }
 
+// ── Page 1: I feel ────────────────────────────────────────────────────────────
+
+class _FeelPage extends StatelessWidget {
+  final void Function(String) onSpeak;
+  final VoidCallback onBack;
+  final VoidCallback onNext;
+
+  const _FeelPage({
+    required this.onSpeak,
+    required this.onBack,
+    required this.onNext,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        children: [
+          _Header(title: 'Calming Mode', onBack: onBack),
+          const SizedBox(height: 16),
+          Expanded(
+            child: SymbolGridSection(
+              title: 'I feel...',
+              items: _emotions,
+              onTap: onSpeak,
+            ),
+          ),
+          const SizedBox(height: 16),
+          _BottomButton(
+            label: 'I want...',
+            onTap: onNext,
+            icon: Icons.arrow_forward,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ── Page 2: I want ────────────────────────────────────────────────────────────
+
+class _WantPage extends StatelessWidget {
+  final void Function(String) onSpeak;
+  final VoidCallback onBack;
+  final VoidCallback onFeelBetter;
+
+  const _WantPage({
+    required this.onSpeak,
+    required this.onBack,
+    required this.onFeelBetter,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        children: [
+          _Header(title: 'Calming Mode', onBack: onBack),
+          const SizedBox(height: 16),
+          Expanded(
+            child: SymbolGridSection(
+              title: 'I want...',
+              items: _needs,
+              onTap: onSpeak,
+            ),
+          ),
+          const SizedBox(height: 16),
+          _BottomButton(
+            label: 'I feel better',
+            onTap: onFeelBetter,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ── Shared widgets ────────────────────────────────────────────────────────────
+
 class _Header extends StatelessWidget {
-  final VoidCallback onExit;
-  const _Header({required this.onExit});
+  final String title;
+  final VoidCallback onBack;
+
+  const _Header({required this.title, required this.onBack});
 
   @override
   Widget build(BuildContext context) {
     return Row(
       children: [
+        GestureDetector(
+          onTap: onBack,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+            decoration: BoxDecoration(
+              color: AppTheme.surface,
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: AppTheme.border),
+            ),
+            child: const Row(
+              children: [
+                Icon(Icons.arrow_back, color: AppTheme.textSecondary, size: 18),
+                SizedBox(width: 6),
+                Text(
+                  'Back',
+                  style: TextStyle(
+                    color: AppTheme.textSecondary,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(width: 12),
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
           decoration: BoxDecoration(
@@ -200,9 +312,9 @@ class _Header extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 10),
-              const Text(
-                'Calming Mode',
-                style: TextStyle(
+              Text(
+                title,
+                style: const TextStyle(
                   color: AppTheme.textPrimary,
                   fontSize: 20,
                   fontWeight: FontWeight.w700,
@@ -211,33 +323,47 @@ class _Header extends StatelessWidget {
             ],
           ),
         ),
-        const Spacer(),
-        GestureDetector(
-          onTap: onExit,
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-            decoration: BoxDecoration(
-              color: AppTheme.surface,
-              borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: AppTheme.border),
-            ),
-            child: const Row(
-              children: [
-                Icon(Icons.close, color: AppTheme.textSecondary, size: 18),
-                SizedBox(width: 6),
-                Text(
-                  'Exit',
-                  style: TextStyle(
-                    color: AppTheme.textSecondary,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
       ],
+    );
+  }
+}
+
+class _BottomButton extends StatelessWidget {
+  final String label;
+  final VoidCallback onTap;
+  final IconData? icon;
+
+  const _BottomButton({required this.label, required this.onTap, this.icon});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 14),
+        decoration: BoxDecoration(
+          color: AppTheme.primary.withValues(alpha: 0.12),
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: AppTheme.primary.withValues(alpha: 0.6)),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              label,
+              style: const TextStyle(
+                color: AppTheme.primary,
+                fontSize: 16,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            if (icon != null) ...[
+              const SizedBox(width: 8),
+              Icon(icon, color: AppTheme.primary, size: 18),
+            ],
+          ],
+        ),
+      ),
     );
   }
 }
