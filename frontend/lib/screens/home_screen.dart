@@ -22,29 +22,9 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  final FlutterTts _flutterTts = FlutterTts();
   String? _activeCategory;
   bool _showEmotions = false; // Toggle for emotions view
-  bool _showSchedule = false;
 
-  @override
-  void initState() {
-    super.initState();
-    _initTts();
-  }
-
-  Future<void> _initTts() async {
-    await _flutterTts.setLanguage('en-GN');
-    await _flutterTts.setSpeechRate(0.4);
-    await _flutterTts.setVolume(1.0);
-    await _flutterTts.setPitch(1.0);
-  }
-
-  Future<void> _speak(String text) async {
-    if (text.isNotEmpty) {
-      await _flutterTts.speak(text);
-    }
-  }
 
   final _scheduleSymbols = [
   Symbol(
@@ -101,12 +81,12 @@ class _HomeScreenState extends State<HomeScreen> {
     provider.addToSentence(dynamicSymbol);
 
     // Speak the full sentence after adding the new word
-    _speak(provider.currentSentence);
+    provider.speak(provider.currentSentence);
   }
 
   void _handleSpeak() {
     final provider = Provider.of<AACProvider>(context, listen: false);
-    _speak(provider.currentSentence);
+    provider.speak(provider.currentSentence);
   }
 
   void _handleClear() {
@@ -129,19 +109,6 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Consumer<AACProvider>(
       builder: (context, provider, child) {
-
-        if (_showSchedule) {
-          return ScheduleMode(
-            onExit: () {
-              setState(() {
-                _showSchedule = false;
-              });
-            },
-            availableSymbols: _scheduleSymbols,
-            onSpeakSchedule: _handleSpeak,
-          );
-        }
-
         return Scaffold(
           backgroundColor: Colors.black, // Dark borders
           body: SafeArea(
@@ -278,10 +245,9 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
                 // Sentence builder rail
                 SentenceRail(onSpeak: _handleSpeak, onClear: _handleClear),
-                // Smart suggestions or Emotions Bar
-                _showEmotions
-                    ? EmotionsBar(onTap: (val) => _speak(val))
-                    : SmartSuggestions(onSuggestionTap: _handleSuggestionTap),
+                    _showEmotions
+                        ? EmotionsBar(onTap: (val) => Provider.of<AACProvider>(context, listen: false).speak(val))
+                        : SmartSuggestions(onSuggestionTap: _handleSuggestionTap),
                 // Main communication grid
                 Expanded(
                   child: CommunicationGrid(
@@ -298,12 +264,6 @@ class _HomeScreenState extends State<HomeScreen> {
         );
       },
     );
-  }
-
-  @override
-  void dispose() {
-    _flutterTts.stop();
-    super.dispose();
   }
 }
 

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/aac_provider.dart';
 import '../models/models.dart';
-import '../theme/app_theme.dart';
 import 'home_screen.dart';
 import 'profile_setup_screen.dart';
 import 'calming_mode_screen.dart';
@@ -105,18 +104,27 @@ class DashboardScreen extends StatelessWidget {
               const SizedBox(height: 24),
               // Tiles grid
               Expanded(
-                child: GridView.count(
-                  physics: const NeverScrollableScrollPhysics(),
-                  crossAxisCount: 3,
-                  mainAxisSpacing: 12,
-                  crossAxisSpacing: 12,
-                  childAspectRatio: 1.8,
-                  children: [
-                    _DashboardTile(
-                      title: 'My Board',
-                      subtitle: 'Start talking',
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    final crossAxisSpacing = 16.0;
+                    final mainAxisSpacing = 16.0;
+                    // Calculate exact aspect ratio to fit 2 rows of 3 columns
+                    final cellWidth = (constraints.maxWidth - (crossAxisSpacing * 2)) / 3;
+                    final cellHeight = (constraints.maxHeight - mainAxisSpacing) / 2;
+                    final aspectRatio = cellWidth / cellHeight;
+
+                    return GridView.count(
+                      physics: const NeverScrollableScrollPhysics(), // No scrolling needed!
+                      crossAxisCount: 3,
+                      mainAxisSpacing: mainAxisSpacing,
+                      crossAxisSpacing: crossAxisSpacing,
+                      childAspectRatio: aspectRatio,
+                      children: [
+                        _DashboardTile(
+                          title: 'My Board',
                       icon: Icons.grid_view_rounded,
-                      color: AppTheme.categoryNoun, // Orange
+                      backgroundColor: const Color(0xFFDCFCE7), // Soft Green (What)
+                      iconColor: const Color(0xFF16A34A),
                       onTap: () {
                         Navigator.push(
                           context,
@@ -126,11 +134,11 @@ class DashboardScreen extends StatelessWidget {
                         );
                       },
                     ),
-                    _DashboardTile(
-                      title: 'Profile',
-                      subtitle: 'About me',
+                        _DashboardTile(
+                          title: 'Profile',
                       icon: Icons.person_rounded,
-                      color: AppTheme.categoryPronoun, // Yellow
+                      backgroundColor: const Color(0xFFFFEDD5), // Soft Orange (Who)
+                      iconColor: const Color(0xFFEA580C),
                       onTap: () {
                         Navigator.push(
                           context,
@@ -145,11 +153,11 @@ class DashboardScreen extends StatelessWidget {
                         );
                       },
                     ),
-                    _DashboardTile(
-                      title: 'Minigames',
-                      subtitle: 'Learn & play',
+                        _DashboardTile(
+                          title: 'Minigames',
                       icon: Icons.sports_esports_rounded,
-                      color: AppTheme.categoryVerb, // Green
+                      backgroundColor: const Color(0xFFFEF9C3), // Soft Yellow (What doing)
+                      iconColor: const Color(0xFFCA8A04),
                       onTap: () {
                         Navigator.push(
                           context,
@@ -159,11 +167,11 @@ class DashboardScreen extends StatelessWidget {
                         );
                       },
                     ),
-                    _DashboardTile(
-                      title: 'Now & Next',
-                      subtitle: 'What is happening',
+                        _DashboardTile(
+                          title: 'Now & Next',
                       icon: Icons.view_agenda_rounded,
-                      color: AppTheme.categoryPreposition, // White
+                      backgroundColor: const Color(0xFFEFEBE9), // Soft Brown (When)
+                      iconColor: const Color(0xFF795548),
                       onTap: () {
                         Navigator.push(
                           context,
@@ -171,17 +179,16 @@ class DashboardScreen extends StatelessWidget {
                             builder: (_) => NowNextMode(
                               onExit: () => Navigator.pop(context),
                               availableSymbols: _scheduleSymbols,
-                              onSpeak: () {},
                             ),
                           ),
                         );
                       },
                     ),
-                    _DashboardTile(
-                      title: 'Schedule',
-                      subtitle: 'Plan your day',
+                        _DashboardTile(
+                          title: 'Schedule',
                       icon: Icons.calendar_today_rounded,
-                      color: AppTheme.categoryQuestion, // Purple
+                      backgroundColor: const Color(0xFFEFEBE9), // Soft Brown (When)
+                      iconColor: const Color(0xFF795548),
                       onTap: () {
                         Navigator.push(
                           context,
@@ -189,17 +196,16 @@ class DashboardScreen extends StatelessWidget {
                             builder: (_) => ScheduleMode(
                               onExit: () => Navigator.pop(context),
                               availableSymbols: _scheduleSymbols,
-                              onSpeakSchedule: () {},
                             ),
                           ),
                         );
                       },
                     ),
-                    _DashboardTile(
-                      title: 'Calming Mode',
-                      subtitle: 'Relax & breathe',
+                        _DashboardTile(
+                          title: 'Calming Mode',
                       icon: Icons.spa_rounded,
-                      color: AppTheme.categoryAdjective, // Blue
+                      backgroundColor: const Color(0xFFDBEAFE), // Soft Blue (Where/Describe)
+                      iconColor: const Color(0xFF2563EB),
                       onTap: () {
                         Navigator.push(
                           context,
@@ -209,7 +215,9 @@ class DashboardScreen extends StatelessWidget {
                         );
                       },
                     ),
-                  ],
+                      ],
+                    );
+                  },
                 ),
               ),
               const SizedBox(height: 24),
@@ -223,16 +231,16 @@ class DashboardScreen extends StatelessWidget {
 
 class _DashboardTile extends StatefulWidget {
   final String title;
-  final String subtitle;
   final IconData icon;
-  final Color color;
+  final Color? backgroundColor;
+  final Color? iconColor;
   final VoidCallback onTap;
 
   const _DashboardTile({
     required this.title,
-    required this.subtitle,
     required this.icon,
-    required this.color,
+    this.backgroundColor,
+    this.iconColor,
     required this.onTap,
   });
 
@@ -258,53 +266,58 @@ class _DashboardTileState extends State<_DashboardTile> {
         child: Container(
           width: double.infinity,
           decoration: BoxDecoration(
-            color: widget.color,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: Colors.black12, width: 2),
+            color: widget.backgroundColor ?? Colors.white,
+            borderRadius: BorderRadius.circular(16), // More square, blocky
+            border: Border.all(color: widget.iconColor ?? Colors.black, width: 4), // Chunky outline
             boxShadow: [
+              // Hard drop shadow for pixel art / neo-brutalist feel
               BoxShadow(
-                color: widget.color.withValues(alpha: 0.4),
-                blurRadius: 12,
-                offset: const Offset(0, 4),
+                color: widget.iconColor ?? Colors.black,
+                blurRadius: 0,
+                offset: const Offset(4, 6),
               ),
             ],
           ),
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Container(
-                  width: 36,
-                  height: 36,
-                  decoration: BoxDecoration(
-                    color: Colors.black.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Icon(
-                    widget.icon,
-                    size: 20,
-                    color: Colors.black87,
+                Expanded(
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(12), // Square with slight rounding
+                      border: Border.all(color: widget.iconColor ?? Colors.black, width: 3),
+                      boxShadow: [
+                        BoxShadow(
+                          color: widget.iconColor ?? Colors.black,
+                          blurRadius: 0,
+                          offset: const Offset(3, 4),
+                        ),
+                      ],
+                    ),
+                    child: Center(
+                      child: Icon(
+                        widget.icon,
+                        size: 56, // Massive icon
+                        color: widget.iconColor ?? Colors.black,
+                      ),
+                    ),
                   ),
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 12),
                 Text(
                   widget.title,
-                  textAlign: TextAlign.center,
                   style: const TextStyle(
-                    color: Colors.black87,
-                    fontSize: 15,
-                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF1E293B),
+                    fontSize: 22, 
+                    fontWeight: FontWeight.w900, // Extra bold for blocky feel
+                    letterSpacing: 0.5,
                   ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  widget.subtitle,
                   textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    color: Colors.black54,
-                    fontSize: 11,
-                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ],
             ),

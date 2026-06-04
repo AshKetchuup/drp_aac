@@ -4,9 +4,29 @@ import 'package:speech_to_text/speech_to_text.dart' as stt;
 import 'package:permission_handler/permission_handler.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:flutter_tts/flutter_tts.dart';
 import '../models/models.dart';
 
 class AACProvider extends ChangeNotifier {
+  final FlutterTts _flutterTts = FlutterTts();
+
+  AACProvider() {
+    _initTts();
+  }
+
+  Future<void> _initTts() async {
+    await _flutterTts.setLanguage('en-GN');
+    await _flutterTts.setSpeechRate(0.4);
+    await _flutterTts.setVolume(1.0);
+    await _flutterTts.setPitch(1.0);
+  }
+
+  Future<void> speak(String text) async {
+    if (text.isNotEmpty) {
+      await _flutterTts.speak(text);
+    }
+  }
+
   UserProfile? _currentProfile = UserProfile(
     id: 'mock_may',
     name: 'Bob',
