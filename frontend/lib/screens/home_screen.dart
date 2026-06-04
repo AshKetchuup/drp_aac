@@ -10,6 +10,7 @@ import '../widgets/smart_suggestions.dart';
 import '../widgets/emotions_bar.dart';
 import 'calming_mode_screen.dart';
 import '../widgets/scheduler.dart';
+import 'now_next_screen.dart';
 
 
 class HomeScreen extends StatefulWidget {
@@ -203,6 +204,36 @@ class _HomeScreenState extends State<HomeScreen> {
                                   'Schedule',
                                   style: TextStyle(
                                     color: Colors.green,
+                                    fontSize: 14,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          GestureDetector(
+                            onTap: () => Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => NowNextMode(
+                                  onExit: () => Navigator.pop(context),
+                                  availableSymbols: _scheduleSymbols,
+                                  onSpeak: _handleSpeak,
+                                ),                              
+                                ),
+                            ),
+                            child: Row(
+                              children: [
+                                Icon(
+                                  Icons.view_agenda_outlined,
+                                  color: Colors.orange,
+                                  size: 20,
+                                ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  'Now & Next',
+                                  style: TextStyle(
+                                    color: Colors.orange,
                                     fontSize: 14,
                                   ),
                                 ),
