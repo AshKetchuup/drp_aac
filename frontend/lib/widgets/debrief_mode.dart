@@ -27,6 +27,12 @@ class DebriefMode extends StatelessWidget {
       SymbolCategory.feeling,
       Icons.sentiment_satisfied,
     ),
+    _CalmingSymbol(
+      'It was',
+      'was',
+      SymbolCategory.feeling,
+      Icons.sentiment_satisfied,
+    ),
     _CalmingSymbol('Too loud', 'loud', SymbolCategory.feeling, Icons.volume_up),
     _CalmingSymbol('Too busy', 'busy', SymbolCategory.feeling, Icons.groups),
     _CalmingSymbol('Too hot', 'hot', SymbolCategory.feeling, Icons.thermostat),
@@ -72,8 +78,13 @@ class DebriefMode extends StatelessWidget {
     _CalmingSymbol('At home', 'home', SymbolCategory.noun, Icons.home),
     _CalmingSymbol('At the park', 'park', SymbolCategory.activity, Icons.park),
     _CalmingSymbol('At the shop', 'shop', SymbolCategory.activity, Icons.shop),
-    _CalmingSymbol('Outside', 'outside', SymbolCategory.activity, Icons.forest),
-    _CalmingSymbol('Swimming', 'swimming', SymbolCategory.activity, Icons.pool),
+    _CalmingSymbol(
+      'Outside',
+      'outdoors',
+      SymbolCategory.activity,
+      Icons.forest,
+    ),
+    _CalmingSymbol('Inside', 'inside', SymbolCategory.activity, Icons.pool),
   ];
 
   static final List<_CalmingSymbol> _specificPhrases = [
