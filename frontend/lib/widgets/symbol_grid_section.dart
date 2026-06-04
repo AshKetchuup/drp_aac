@@ -7,20 +7,19 @@ class SymbolGridSection extends StatelessWidget {
   final String title;
   final List<Symbol> items;
   final void Function(String) onTap;
-  final double cellSize; // ← add this
 
   const SymbolGridSection({
     super.key,
     required this.title,
     required this.items,
     required this.onTap,
-    this.cellSize = 100,
   });
 
   int _crossAxisCount(int count) {
     if (count <= 2) return 1;
     if (count <= 4) return 2;
-    return 3;
+    if (count <= 6) return 3;
+    return 4;
   }
 
   @override
@@ -37,7 +36,6 @@ class SymbolGridSection extends StatelessWidget {
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
         children: [
           Text(
             title,
@@ -48,34 +46,49 @@ class SymbolGridSection extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 10),
-          LayoutBuilder(
-            builder: (context, constraints) {
-              const spacing = 8.0;
-              // actual cell width based on real available width
-              final cellWidth = (constraints.maxWidth - (spacing * (columns - 1))) / columns;
-              final gridHeight = (rows * cellWidth) + ((rows - 1) * spacing);
+          Expanded(
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                const spacing = 8.0;
 
-              return SizedBox(
-                height: gridHeight,
-                child: GridView.builder(
-                  physics: const NeverScrollableScrollPhysics(),
-                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: columns,
-                    mainAxisSpacing: spacing,
-                    crossAxisSpacing: spacing,
-                    childAspectRatio: 1,
+                final cellByWidth =
+                    (constraints.maxWidth - (spacing * (columns - 1))) /
+                    columns;
+                final cellByHeight =
+                    (constraints.maxHeight - (spacing * (rows - 1))) / rows;
+                final cellSize = cellByWidth < cellByHeight
+                    ? cellByWidth
+                    : cellByHeight;
+
+                final gridWidth =
+                    (cellSize * columns) + (spacing * (columns - 1));
+                final gridHeight = (cellSize * rows) + (spacing * (rows - 1));
+
+                return Center(
+                  child: SizedBox(
+                    width: gridWidth,
+                    height: gridHeight,
+                    child: GridView.builder(
+                      physics: const NeverScrollableScrollPhysics(),
+                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: columns,
+                        mainAxisSpacing: spacing,
+                        crossAxisSpacing: spacing,
+                        childAspectRatio: 1,
+                      ),
+                      itemCount: items.length,
+                      itemBuilder: (context, index) {
+                        final symbol = items[index];
+                        return SymbolTile(
+                          symbol: symbol,
+                          onTap: () => onTap(symbol.label),
+                        );
+                      },
+                    ),
                   ),
-                  itemCount: items.length,
-                  itemBuilder: (context, index) {
-                    final symbol = items[index];
-                    return SymbolTile(
-                      symbol: symbol,
-                      onTap: () => onTap(symbol.label),
-                    );
-                  },
-                ),
-              );
-            },
+                );
+              },
+            ),
           ),
         ],
       ),
