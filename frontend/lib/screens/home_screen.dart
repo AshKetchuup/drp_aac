@@ -12,6 +12,7 @@ import 'calming_mode_screen.dart';
 import 'dashboard_screen.dart';
 import '../widgets/scheduler.dart';
 import 'now_next_screen.dart';
+import '../widgets/symbol_tile.dart';
 
 
 class HomeScreen extends StatefulWidget {
