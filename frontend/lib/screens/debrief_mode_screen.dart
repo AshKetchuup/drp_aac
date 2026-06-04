@@ -49,7 +49,11 @@ class _DebriefModeScreenState extends State<DebriefModeScreen> {
   @override
   Widget build(BuildContext context) {
     return DebriefMode(
-      onExit: () => Navigator.pop(context),
+      onExit: () {
+        // Return back to the grid
+        Navigator.pop(context);
+        Navigator.pop(context);
+      },
       onSymbolTap: _handleSymbolTap,
       onEmotionTap: _speak,
       onSpeak: _handleSpeak,
