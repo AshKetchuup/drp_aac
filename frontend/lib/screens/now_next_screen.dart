@@ -67,7 +67,17 @@ class _NowNextModeState extends State<NowNextMode> {
                     final nextText = _next != null ? "Next ${_next!.label}." : "";
                     provider.speak("$nowText $nextText".trim());
                   } else {
-                    provider.speak(_sentence.map((s) => s.label).join(' '));
+                    String textToSpeak = "";
+                    if (_sentence.isNotEmpty) {
+                      textToSpeak += "First I need to ${_sentence[0].label}. ";
+                    }
+                    if (_sentence.length > 1) {
+                      textToSpeak += "Then I can ${_sentence[1].label}.";
+                    }
+                    if (textToSpeak.isEmpty) {
+                      textToSpeak = "Drop symbols to build a sentence.";
+                    }
+                    provider.speak(textToSpeak.trim());
                   }
                 },
                 onExit: widget.onExit,
