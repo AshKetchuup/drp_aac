@@ -1,0 +1,388 @@
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../providers/aac_provider.dart';
+import '../models/models.dart';
+import 'home_screen.dart';
+import 'profile_setup_screen.dart';
+import 'calming_mode_screen.dart';
+import 'now_next_screen.dart';
+import '../widgets/scheduler.dart';
+
+class DashboardScreen extends StatelessWidget {
+  const DashboardScreen({super.key});
+
+  // Schedule symbols shared with NowNext and Schedule screens
+  static final _scheduleSymbols = [
+    Symbol(id: 'home', label: 'Home', icon: Icons.home, category: SymbolCategory.activity),
+    Symbol(id: 'school', label: 'School', icon: Icons.school, category: SymbolCategory.activity),
+    Symbol(id: 'break', label: 'Break', icon: Icons.chair, category: SymbolCategory.activity),
+    Symbol(id: 'lunch', label: 'Lunch', icon: Icons.restaurant, category: SymbolCategory.activity),
+    Symbol(id: 'outside', label: 'Outside', icon: Icons.park, category: SymbolCategory.activity),
+    Symbol(id: 'tablet', label: 'Tablet', icon: Icons.tablet, category: SymbolCategory.activity),
+  ];
+  @override
+  Widget build(BuildContext context) {
+    final provider = Provider.of<AACProvider>(context);
+    final name = provider.currentProfile?.name ?? 'Friend';
+
+    return Scaffold(
+      backgroundColor: const Color(0xFFF0F4F8),
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Header
+              Row(
+                children: [
+                  Container(
+                    width: 56,
+                    height: 56,
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: [Color(0xFF6366F1), Color(0xFF8B5CF6)],
+                      ),
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: const Icon(
+                      Icons.apps_rounded,
+                      color: Colors.white,
+                      size: 28,
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'AAC dashboard!',
+                          style: const TextStyle(
+                            color: Color(0xFF1E293B),
+                            fontSize: 28,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  // Settings button
+                  GestureDetector(
+                    onTap: () {
+                      // TODO: settings
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(12),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.05),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: const Icon(
+                        Icons.settings_rounded,
+                        color: Color(0xFF64748B),
+                        size: 24,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 24),
+              // Tiles grid
+              Expanded(
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    final crossAxisSpacing = 16.0;
+                    final mainAxisSpacing = 16.0;
+                    // Calculate exact aspect ratio to fit 2 rows of 3 columns
+                    final cellWidth = (constraints.maxWidth - (crossAxisSpacing * 2)) / 3;
+                    final cellHeight = (constraints.maxHeight - mainAxisSpacing) / 2;
+                    final aspectRatio = cellWidth / cellHeight;
+
+                    return GridView.count(
+                      physics: const NeverScrollableScrollPhysics(), // No scrolling needed!
+                      crossAxisCount: 3,
+                      mainAxisSpacing: mainAxisSpacing,
+                      crossAxisSpacing: crossAxisSpacing,
+                      childAspectRatio: aspectRatio,
+                      children: [
+                        _DashboardTile(
+                          title: 'My Board',
+                      icon: Icons.grid_view_rounded,
+                      backgroundColor: const Color(0xFFDCFCE7), // Soft Green (What)
+                      iconColor: const Color(0xFF16A34A),
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const HomeScreen(),
+                          ),
+                        );
+                      },
+                    ),
+                        _DashboardTile(
+                          title: 'Profile',
+                      icon: Icons.person_rounded,
+                      backgroundColor: const Color(0xFFFFEDD5), // Soft Orange (Who)
+                      iconColor: const Color(0xFFEA580C),
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => ProfileSetup(
+                              onComplete: (profile) {
+                                provider.setProfile(profile);
+                                Navigator.pop(context);
+                              },
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                        _DashboardTile(
+                          title: 'Minigames',
+                      icon: Icons.sports_esports_rounded,
+                      backgroundColor: const Color(0xFFFEF9C3), // Soft Yellow (What doing)
+                      iconColor: const Color(0xFFCA8A04),
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const MinigamesPlaceholder(),
+                          ),
+                        );
+                      },
+                    ),
+                        _DashboardTile(
+                          title: 'Now & Next',
+                      icon: Icons.view_agenda_rounded,
+                      backgroundColor: const Color(0xFFEFEBE9), // Soft Brown (When)
+                      iconColor: const Color(0xFF795548),
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => NowNextMode(
+                              onExit: () => Navigator.pop(context),
+                              availableSymbols: _scheduleSymbols,
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                        _DashboardTile(
+                          title: 'Schedule',
+                      icon: Icons.calendar_today_rounded,
+                      backgroundColor: const Color(0xFFEFEBE9), // Soft Brown (When)
+                      iconColor: const Color(0xFF795548),
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => ScheduleMode(
+                              onExit: () => Navigator.pop(context),
+                              availableSymbols: _scheduleSymbols,
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                        _DashboardTile(
+                          title: 'Calming Mode',
+                      icon: Icons.spa_rounded,
+                      backgroundColor: const Color(0xFFDBEAFE), // Soft Blue (Where/Describe)
+                      iconColor: const Color(0xFF2563EB),
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const CalmingModeScreen(),
+                          ),
+                        );
+                      },
+                    ),
+                      ],
+                    );
+                  },
+                ),
+              ),
+              const SizedBox(height: 24),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _DashboardTile extends StatefulWidget {
+  final String title;
+  final IconData icon;
+  final Color? backgroundColor;
+  final Color? iconColor;
+  final VoidCallback onTap;
+
+  const _DashboardTile({
+    required this.title,
+    required this.icon,
+    this.backgroundColor,
+    this.iconColor,
+    required this.onTap,
+  });
+
+  @override
+  State<_DashboardTile> createState() => _DashboardTileState();
+}
+
+class _DashboardTileState extends State<_DashboardTile> {
+  bool _isPressed = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTapDown: (_) => setState(() => _isPressed = true),
+      onTapUp: (_) {
+        setState(() => _isPressed = false);
+        widget.onTap();
+      },
+      onTapCancel: () => setState(() => _isPressed = false),
+      child: AnimatedScale(
+        scale: _isPressed ? 0.95 : 1.0,
+        duration: const Duration(milliseconds: 120),
+        child: Container(
+          width: double.infinity,
+          decoration: BoxDecoration(
+            color: widget.backgroundColor ?? Colors.white,
+            borderRadius: BorderRadius.circular(16), // More square, blocky
+            border: Border.all(color: widget.iconColor ?? Colors.black, width: 4), // Chunky outline
+            boxShadow: [
+              // Hard drop shadow for pixel art / neo-brutalist feel
+              BoxShadow(
+                color: widget.iconColor ?? Colors.black,
+                blurRadius: 0,
+                offset: const Offset(4, 6),
+              ),
+            ],
+          ),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Expanded(
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(12), // Square with slight rounding
+                      border: Border.all(color: widget.iconColor ?? Colors.black, width: 3),
+                      boxShadow: [
+                        BoxShadow(
+                          color: widget.iconColor ?? Colors.black,
+                          blurRadius: 0,
+                          offset: const Offset(3, 4),
+                        ),
+                      ],
+                    ),
+                    child: Center(
+                      child: Icon(
+                        widget.icon,
+                        size: 56, // Massive icon
+                        color: widget.iconColor ?? Colors.black,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  widget.title,
+                  style: const TextStyle(
+                    color: Color(0xFF1E293B),
+                    fontSize: 22, 
+                    fontWeight: FontWeight.w900, // Extra bold for blocky feel
+                    letterSpacing: 0.5,
+                  ),
+                  textAlign: TextAlign.center,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Placeholder screen for Minigames — to be replaced with real content later
+class MinigamesPlaceholder extends StatelessWidget {
+  const MinigamesPlaceholder({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xFFF0F4F8),
+      appBar: AppBar(
+        backgroundColor: const Color(0xFFF0F4F8),
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_rounded, color: Color(0xFF1E293B)),
+          onPressed: () => Navigator.pop(context),
+        ),
+        title: const Text(
+          'Minigames',
+          style: TextStyle(
+            color: Color(0xFF1E293B),
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              width: 120,
+              height: 120,
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [Color(0xFFF97316), Color(0xFFEA580C)],
+                ),
+                borderRadius: BorderRadius.circular(28),
+              ),
+              child: const Icon(
+                Icons.sports_esports_rounded,
+                size: 56,
+                color: Colors.white,
+              ),
+            ),
+            const SizedBox(height: 24),
+            const Text(
+              'Minigames',
+              style: TextStyle(
+                color: Color(0xFF1E293B),
+                fontSize: 28,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              'Coming soon!',
+              style: TextStyle(
+                color: Color(0xFF64748B),
+                fontSize: 16,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}

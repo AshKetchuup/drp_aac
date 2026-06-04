@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 
+import 'package:provider/provider.dart';
 import '../models/models.dart';
 import '../theme/app_theme.dart';
 import 'symbol_tile.dart';
+import '../providers/aac_provider.dart';
 
 class ScheduleMode extends StatefulWidget {
   final VoidCallback onExit;
@@ -100,7 +102,44 @@ class _ScheduleModeState extends State<ScheduleMode> {
               _Header(
                 onExit: widget.onExit,
                 onClear: _clearSchedule,
-                onSpeak: widget.onSpeakSchedule,
+                onSpeak: () {
+                  final provider = Provider.of<AACProvider>(context, listen: false);
+                  final sentences = <String>[];
+                  
+                  if (_weekView) {
+                    // Speak the whole week (could be long, but let's do it)
+                    for (int d = 0; d < _kDays.length; d++) {
+                      final dayName = _kDays[d];
+                      final morning = _schedule[(d, TimeSlot.morning)]!;
+                      final afternoon = _schedule[(d, TimeSlot.afternoon)]!;
+                      final evening = _schedule[(d, TimeSlot.evening)]!;
+                      
+                      if (morning.isNotEmpty || afternoon.isNotEmpty || evening.isNotEmpty) {
+                        sentences.add("On $dayName.");
+                        if (morning.isNotEmpty) sentences.add("In the morning: ${morning.map((s) => s.label).join(', ')}.");
+                        if (afternoon.isNotEmpty) sentences.add("In the afternoon: ${afternoon.map((s) => s.label).join(', ')}.");
+                        if (evening.isNotEmpty) sentences.add("In the evening: ${evening.map((s) => s.label).join(', ')}.");
+                      }
+                    }
+                  } else {
+                    // Speak just the current day
+                    final dayName = _kDays[_currentDayIndex];
+                    final morning = _schedule[(_currentDayIndex, TimeSlot.morning)]!;
+                    final afternoon = _schedule[(_currentDayIndex, TimeSlot.afternoon)]!;
+                    final evening = _schedule[(_currentDayIndex, TimeSlot.evening)]!;
+                    
+                    sentences.add("For $dayName.");
+                    if (morning.isNotEmpty) sentences.add("In the morning: ${morning.map((s) => s.label).join(', ')}.");
+                    if (afternoon.isNotEmpty) sentences.add("In the afternoon: ${afternoon.map((s) => s.label).join(', ')}.");
+                    if (evening.isNotEmpty) sentences.add("In the evening: ${evening.map((s) => s.label).join(', ')}.");
+                  }
+                  
+                  if (sentences.isEmpty) {
+                    provider.speak("The schedule is empty.");
+                  } else {
+                    provider.speak(sentences.join(' '));
+                  }
+                },
                 weekView: _weekView,
                 onToggleView: () => setState(() => _weekView = !_weekView),
               ),
