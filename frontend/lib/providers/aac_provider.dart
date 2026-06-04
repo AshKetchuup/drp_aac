@@ -1,5 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
+import 'package:speech_to_text/speech_to_text.dart' as stt;
+import 'package:permission_handler/permission_handler.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import '../models/models.dart';
@@ -78,20 +80,72 @@ class AACProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  final stt.SpeechToText _speech = stt.SpeechToText();
+
   Future<void> startContextListening() async {
+    // If already listening, stop instead (toggle behavior)
+    if (_isListeningContext) {
+      await stopContextListening();
+      return;
+    }
+
+    // permission_handler doesn't support web; browsers handle mic permissions natively
+    if (!kIsWeb) {
+      try {
+        PermissionStatus micStatus = await Permission.microphone.status;
+
+        if (micStatus.isDenied) {
+          micStatus = await Permission.microphone.request();
+        }
+
+        if (micStatus.isPermanentlyDenied) {
+          print("Microphone permission permanently denied. Opening settings...");
+          openAppSettings();
+          return;
+        }
+
+        if (!micStatus.isGranted) {
+          print("Microphone permission denied.");
+          return;
+        }
+      } catch (e) {
+        print("Permission check skipped: $e");
+      }
+    }
+
+    bool available = await _speech.initialize(
+      onStatus: (status) => print('Speech Status: $status'),
+      onError: (error) => print('Speech Error: $error'),
+    );
+
+    if (!available) {
+      print("Speech recognition engine failed to initialize.");
+      return;
+    }
+
     _isListeningContext = true;
-    _contextSuggestions = [];
     _teacherPrompt = null;
     notifyListeners();
 
-    // Simulate listening delay
-    await Future.delayed(const Duration(milliseconds: 1200));
+    await _speech.listen(
+      onResult: (result) {
+        _teacherPrompt = result.recognizedWords;
+        notifyListeners();
+      },
+      listenFor: const Duration(minutes: 10), // Effectively unlimited
+      pauseFor: const Duration(minutes: 10),  // Don't auto-stop on silence
+    );
+  }
 
+  Future<void> stopContextListening() async {
+    await _speech.stop();
     _isListeningContext = false;
-    _teacherPrompt = "What do you want to eat today?";
     notifyListeners();
 
-    await fetchSuggestions();
+    // Only fetch suggestions if we actually heard something
+    if (_teacherPrompt != null && _teacherPrompt!.isNotEmpty) {
+      await fetchSuggestions();
+    }
   }
 
   Future<void> fetchSuggestions() async {
@@ -100,17 +154,20 @@ class AACProvider extends ChangeNotifier {
 
     try {
       // Use kIsWeb and defaultTargetPlatform to dynamically set the correct backend URL
-      String apiUrl = 'https://drp-aac.onrender.com/api/context/predict'; // Default for Web/Desktop
-      if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
-        apiUrl = 'http://10.0.2.2:8000/api/context/predict'; // Special IP for Android Emulator host
-      }
+      // On web, the browser is on Windows but the backend is in WSL — use the WSL IP
+      String apiUrl = 'https://api.ismailmehmood.co.uk/api/context/predict';
+      // if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
+      //   apiUrl = 'http://10.0.2.2:8000/api/context/predict'; // Special IP for Android Emulator host
+      // }
 
       final response = await http.post(
         Uri.parse(apiUrl),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'audio_base64': 'bW9jayBhdWRpbyBkYXRh',
-          'text': _teacherPrompt,
+          'text': _teacherPrompt ?? '',
+          'likes': _currentProfile?.likes ?? [],
+          'dislikes': _currentProfile?.dislikes ?? [],
         }),
       );
 
