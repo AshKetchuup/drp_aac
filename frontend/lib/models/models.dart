@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:typed_data';
 
 enum SymbolCategory {
   pronoun,
@@ -120,4 +121,115 @@ class EmergencyOption {
     required this.color,
     this.imageUrl,
   });
+}
+
+class ImportedBoard {
+  final String id;
+  final String name;
+  final BoardGrid grid;
+  final List<ImportedButton> buttons;
+  final Map<String, ImportedImage> imagesById;
+  final String? sourcePath;
+
+  const ImportedBoard({
+    required this.id,
+    required this.name,
+    required this.grid,
+    required this.buttons,
+    required this.imagesById,
+    this.sourcePath,
+  });
+
+  Map<String, ImportedButton> get buttonsById {
+    return {for (final button in buttons) button.id: button};
+  }
+}
+
+class BoardGrid {
+  final int rows;
+  final int columns;
+  final List<List<String?>> order;
+
+  const BoardGrid({
+    required this.rows,
+    required this.columns,
+    required this.order,
+  });
+}
+
+class ImportedButton {
+  final String id;
+  final String label;
+  final String? vocalization;
+  final String? imageId;
+  final String? linkedBoardPath;
+  final String? linkedBoardId;
+  final String? linkedBoardName;
+
+  const ImportedButton({
+    required this.id,
+    required this.label,
+    this.vocalization,
+    this.imageId,
+    this.linkedBoardPath,
+    this.linkedBoardId,
+    this.linkedBoardName,
+  });
+
+  String get speechText {
+    final value = vocalization?.trim();
+    if (value != null && value.isNotEmpty) {
+      return value;
+    }
+    return label;
+  }
+
+  bool get hasLink {
+    return (linkedBoardPath != null && linkedBoardPath!.isNotEmpty) ||
+        (linkedBoardId != null && linkedBoardId!.isNotEmpty);
+  }
+}
+
+class ImportedImage {
+  final String id;
+  final String? dataUri;
+  final String? path;
+  final String? url;
+
+  const ImportedImage({
+    required this.id,
+    this.dataUri,
+    this.path,
+    this.url,
+  });
+}
+
+class ImportedBoardSet {
+  final String? rootPath;
+  final Map<String, ImportedBoard> boardsByPath;
+  final Map<String, List<int>> filesByPath;
+
+  const ImportedBoardSet({
+    required this.rootPath,
+    required this.boardsByPath,
+    required this.filesByPath,
+  });
+
+  ImportedBoard? get rootBoard {
+    if (rootPath == null) return null;
+    return boardsByPath[rootPath];
+  }
+}
+
+class ResolvedImportedImage {
+  final Uint8List? bytes;
+  final String? url;
+
+  const ResolvedImportedImage({
+    this.bytes,
+    this.url,
+  });
+
+  bool get hasBytes => bytes != null && bytes!.isNotEmpty;
+  bool get hasUrl => url != null && url!.isNotEmpty;
 }
