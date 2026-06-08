@@ -320,6 +320,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     onImportedBoardChange: (path) {
                       provider.setActiveImportedBoard(path);
                     },
+
+                    nowNextData: provider.calculateNowNext(),
                   ),
                 ),
               ],

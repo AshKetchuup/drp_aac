@@ -21,6 +21,42 @@ class AACProvider extends ChangeNotifier {
     _initTts();
   }
 
+  ({Symbol? now, Symbol? next}) calculateNowNext() {
+    final hour = DateTime.now().hour;
+    
+    // Determine current slot
+    TimeSlot currentSlot = TimeSlot.evening;
+    if (hour >= 5 && hour < 12) currentSlot = TimeSlot.morning;
+    if (hour >= 12 && hour < 18) currentSlot = TimeSlot.afternoon;
+
+    // Get current weekday index (0 = Monday, 6 = Sunday)
+    final dayIndex = DateTime.now().weekday - 1;
+    final currentList = schedule[(dayIndex, currentSlot)] ?? [];
+
+    Symbol? nowSymbol;
+    Symbol? nextSymbol;
+
+    if (currentList.isNotEmpty) {
+      nowSymbol = currentList[0];
+      nextSymbol = currentList.length > 1 
+          ? currentList[1] 
+          : _getNextSlotFirstSymbol(dayIndex, currentSlot);
+    } else {
+      nowSymbol = _getNextSlotFirstSymbol(dayIndex, currentSlot);
+      if (nowSymbol != null && currentSlot == TimeSlot.morning) {
+        nextSymbol = schedule[(dayIndex, TimeSlot.afternoon)]?.firstOrNull; 
+      }
+    }
+    return (now: nowSymbol, next: nextSymbol);
+  }
+
+  // Private helper used internally by the provider calculator
+  Symbol? _getNextSlotFirstSymbol(int day, TimeSlot current) {
+    if (current == TimeSlot.morning) return schedule[(day, TimeSlot.afternoon)]?.firstOrNull;
+    if (current == TimeSlot.afternoon) return schedule[(day, TimeSlot.evening)]?.firstOrNull;
+    return null;
+  }
+
   Map<SlotKey, List<Symbol>> schedule = {};
   bool _scheduleLoaded = false;
 
