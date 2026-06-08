@@ -1,4 +1,9 @@
+import 'dart:convert';
+
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:frontend/services/obf/obf_parser.dart';
+import 'package:frontend/services/obf/obz_parser.dart';
 import 'package:provider/provider.dart';
 import '../theme/app_theme.dart';
 import '../providers/aac_provider.dart';
@@ -102,6 +107,51 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  Future<void> _importBoard() async {
+    final result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['obf', 'obz'],
+      withData: true,
+    );
+
+    if (result == null) return;
+
+    final file = result.files.single;
+
+    try {
+      final provider =
+          Provider.of<AACProvider>(context, listen: false);
+
+      if (file.extension?.toLowerCase() == 'obz') {
+        final boardSet =
+            ObzParser().parseObzBytes(file.bytes!);
+
+        provider.setImportedBoardSet(boardSet);
+      } else {
+        final jsonText = utf8.decode(file.bytes!);
+
+        final board =
+            ObfParser().parseObfString(jsonText);
+
+        provider.setImportedBoardSet(
+          ImportedBoardSet(
+            rootPath: 'board.obf',
+            boardsByPath: {
+              'board.obf': board,
+            },
+            filesByPath: {},
+          ),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to import board: $e'),
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Consumer<AACProvider>(
@@ -121,47 +171,53 @@ class _HomeScreenState extends State<HomeScreen> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(4),
-                            decoration: BoxDecoration(
-                              color: Colors.blue.withValues(alpha: 0.1),
-                              shape: BoxShape.circle,
-                            ),
-                            child: Icon(
-                              Icons.person,
-                              color: Colors.blue,
-                              size: 18,
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            provider.currentProfile?.name ?? 'My Board',
-                            style: TextStyle(
-                              color: Colors.black87,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16,
-                            ),
-                          ),
-                          const SizedBox(width: 16),
-                          GestureDetector(
-                            onTap: () => Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => const DashboardScreen(),
-                              ),
-                            ),
-                            child: Container(
-                              padding: const EdgeInsets.all(6),
+                      Expanded(
+                        child: Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(4),
                               decoration: BoxDecoration(
-                                color: Colors.grey.withValues(alpha: 0.1),
-                                borderRadius: BorderRadius.circular(8),
+                                color: Colors.blue.withValues(alpha: 0.1),
+                                shape: BoxShape.circle,
                               ),
-                              child: Icon(Icons.apps_rounded, color: Colors.black54, size: 20),
+                              child: Icon(
+                                Icons.person,
+                                color: Colors.blue,
+                                size: 18,
+                              ),
                             ),
-                          ),
-                        ],
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                provider.importedBoardSet?.boardsByPath[provider.activeImportedBoardPath]?.name ?? provider.currentProfile?.name ?? 'My Board',
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  color: Colors.black87,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                            GestureDetector(
+                              onTap: () => Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => const DashboardScreen(),
+                                ),
+                              ),
+                              child: Container(
+                                padding: const EdgeInsets.all(6),
+                                decoration: BoxDecoration(
+                                  color: Colors.grey.withValues(alpha: 0.1),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Icon(Icons.apps_rounded, color: Colors.black54, size: 20),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                       Row(
                         children: [
@@ -219,11 +275,14 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                           ),
                           const SizedBox(width: 16),
-                          Text(
-                            'Edit',
-                            style: TextStyle(
-                              color: Colors.black87,
-                              fontSize: 14,
+                          GestureDetector(
+                            onTap: _importBoard,
+                            child: Row(
+                              children: const [
+                                Icon(Icons.upload_file),
+                                SizedBox(width: 4),
+                                Text('Import Board'),
+                              ],
                             ),
                           ),
                           const SizedBox(width: 16),
@@ -253,6 +312,14 @@ class _HomeScreenState extends State<HomeScreen> {
                     onCategoryChange: (category) {
                       setState(() => _activeCategory = category);
                     },
+
+                    importedBoardSet: provider.importedBoardSet,
+                    activeImportedBoardPath:
+                        provider.activeImportedBoardPath,
+
+                    onImportedBoardChange: (path) {
+                      provider.setActiveImportedBoard(path);
+                    },
                   ),
                 ),
               ],
@@ -267,90 +334,120 @@ class _HomeScreenState extends State<HomeScreen> {
 class _SettingsSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(24),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    return Consumer<AACProvider>(
+      builder: (context, provider, _) {
+        return Container(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                'Settings',
-                style: TextStyle(
-                  color: AppTheme.textPrimary,
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Settings',
+                    style: TextStyle(
+                      color: AppTheme.textPrimary,
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  GestureDetector(
+                    onTap: () => Navigator.pop(context),
+                    child: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: AppTheme.surfaceLight,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Icon(Icons.close, color: AppTheme.textSecondary),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 32),
+              Flexible(
+                child: SingleChildScrollView(
+                  child: Column(
+                    children: [
+                      _SettingsTile(
+                        icon: Icons.person_outline,
+                        label: 'Edit Profile',
+                        onTap: () {},
+                      ),
+                      _SettingsTile(
+                        icon: Icons.volume_up_outlined,
+                        label: 'Voice Settings',
+                        onTap: () {},
+                      ),
+                      _SettingsTile(
+                        icon: Icons.grid_view_outlined,
+                        label: 'Grid Layout',
+                        onTap: () {},
+                      ),
+                      _SettingsTile(
+                        icon: Icons.color_lens_outlined,
+                        label: 'Appearance',
+                        onTap: () {},
+                      ),
+                      _SettingsTile(
+                        icon: Icons.cloud_outlined,
+                        label: 'Backup & Sync',
+                        onTap: () {},
+                      ),
+                      _SettingsTile(
+                        icon: Icons.help_outline,
+                        label: 'Help & Support',
+                        onTap: () {},
+                      ),
+                      _SettingsTile(
+                        icon: Icons.file_upload_outlined,
+                        label: 'Import OBF/OBZ Board',
+                        onTap: () async {
+                          Navigator.pop(context);
+                          try {
+                            await provider.importBoard();
+                          } catch (e) {
+                            debugPrint('Error importing board: $e');
+                          }
+                        },
+                      ),
+                      if (provider.importedBoardSet != null)
+                        _SettingsTile(
+                          icon: Icons.clear_all_outlined,
+                          label: 'Clear Imported Board',
+                          onTap: () {
+                            Navigator.pop(context);
+                          },
+                        ),
+                    ],
+                  ),
                 ),
               ),
-              GestureDetector(
-                onTap: () => Navigator.pop(context),
-                child: Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: AppTheme.surfaceLight,
-                    borderRadius: BorderRadius.circular(8),
+              const SizedBox(height: 16),
+              SizedBox(
+                width: double.infinity,
+                child: OutlinedButton.icon(
+                  onPressed: () {
+                    provider.resetSetup();
+                    Navigator.pop(context);
+                  },
+                  icon: const Icon(Icons.logout, color: AppTheme.error),
+                  label: Text(
+                    'Switch Profile',
+                    style: TextStyle(color: AppTheme.error),
                   ),
-                  child: Icon(Icons.close, color: AppTheme.textSecondary),
+                  style: OutlinedButton.styleFrom(
+                    side: const BorderSide(color: AppTheme.error),
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                  ),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 32),
-          _SettingsTile(
-            icon: Icons.person_outline,
-            label: 'Edit Profile',
-            onTap: () {},
-          ),
-          _SettingsTile(
-            icon: Icons.volume_up_outlined,
-            label: 'Voice Settings',
-            onTap: () {},
-          ),
-          _SettingsTile(
-            icon: Icons.grid_view_outlined,
-            label: 'Grid Layout',
-            onTap: () {},
-          ),
-          _SettingsTile(
-            icon: Icons.color_lens_outlined,
-            label: 'Appearance',
-            onTap: () {},
-          ),
-          _SettingsTile(
-            icon: Icons.cloud_outlined,
-            label: 'Backup & Sync',
-            onTap: () {},
-          ),
-          _SettingsTile(
-            icon: Icons.help_outline,
-            label: 'Help & Support',
-            onTap: () {},
-          ),
-          const SizedBox(height: 16),
-          Consumer<AACProvider>(
-            builder: (context, provider, _) => SizedBox(
-              width: double.infinity,
-              child: OutlinedButton.icon(
-                onPressed: () {
-                  provider.resetSetup();
-                  Navigator.pop(context);
-                },
-                icon: const Icon(Icons.logout, color: AppTheme.error),
-                label: Text(
-                  'Switch Profile',
-                  style: TextStyle(color: AppTheme.error),
-                ),
-                style: OutlinedButton.styleFrom(
-                  side: const BorderSide(color: AppTheme.error),
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 }

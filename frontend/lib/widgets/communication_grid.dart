@@ -1,6 +1,8 @@
 import 'dart:math' as math;
+import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
+import 'package:frontend/services/obf/imported_image_resolver.dart';
 import 'package:provider/provider.dart';
 
 import '../models/models.dart';
@@ -13,11 +15,18 @@ class CommunicationGrid extends StatefulWidget {
   final String? activeCategory;
   final Function(String?) onCategoryChange;
 
+  final ImportedBoardSet? importedBoardSet;
+  final String? activeImportedBoardPath;
+  final ValueChanged<String>? onImportedBoardChange;
+
   const CommunicationGrid({
     super.key,
     required this.onSymbolTap,
     this.activeCategory,
     required this.onCategoryChange,
+    this.importedBoardSet,
+    this.activeImportedBoardPath,
+    this.onImportedBoardChange,
   });
 
   @override
@@ -27,6 +36,24 @@ class CommunicationGrid extends StatefulWidget {
 class _CommunicationGridState extends State<CommunicationGrid> {
   late final PageController _pageController;
   late int _currentPage;
+  bool get _isImportedMode => widget.importedBoardSet != null;
+
+  List<_ImportedBoardPage> _importedPagesFor(ImportedBoardSet boardSet) {
+    final entries = boardSet.boardsByPath.entries.toList();
+
+    entries.sort((a, b) {
+      if (a.key == boardSet.rootPath) return -1;
+      if (b.key == boardSet.rootPath) return 1;
+      return a.value.name.compareTo(b.value.name);
+    });
+
+    return entries.map((entry) {
+      return _ImportedBoardPage(
+        path: entry.key,
+        label: entry.value.name,
+      );
+    }).toList();
+  }
 
   static const List<_CategoryPage> _pages = [
     _CategoryPage(null, 'All', Icons.apps, AppTheme.textSecondary),
@@ -105,13 +132,49 @@ class _CommunicationGridState extends State<CommunicationGrid> {
   @override
   void initState() {
     super.initState();
-    _currentPage = _pageIndexFor(widget.activeCategory);
+    _currentPage = _initialPageIndex();
     _pageController = PageController(initialPage: _currentPage);
+  }
+
+  int _initialPageIndex() {
+    if (_isImportedMode) {
+      return _importedPageIndexFor(widget.activeImportedBoardPath);
+    }
+    return _pageIndexFor(widget.activeCategory);
+  }
+
+  int _importedPageIndexFor(String? boardPath) {
+    final boardSet = widget.importedBoardSet;
+    if (boardSet == null) {
+      return 0;
+    }
+
+    final pages = _importedPagesFor(boardSet);
+    final effectivePath = boardPath ?? boardSet.rootPath;
+
+    final index = pages.indexWhere((page) => page.path == effectivePath);
+    return index == -1 ? 0 : index;
   }
 
   @override
   void didUpdateWidget(covariant CommunicationGrid oldWidget) {
     super.didUpdateWidget(oldWidget);
+
+    if (_isImportedMode) {
+      if (oldWidget.activeImportedBoardPath == widget.activeImportedBoardPath &&
+          oldWidget.importedBoardSet == widget.importedBoardSet) {
+        return;
+      }
+
+      final targetPage = _importedPageIndexFor(widget.activeImportedBoardPath);
+      if (targetPage != _currentPage) {
+        _currentPage = targetPage;
+        if (_pageController.hasClients) {
+          _pageController.jumpToPage(targetPage);
+        }
+      }
+      return;
+    }
 
     if (oldWidget.activeCategory == widget.activeCategory) {
       return;
@@ -134,6 +197,10 @@ class _CommunicationGridState extends State<CommunicationGrid> {
 
   @override
   Widget build(BuildContext context) {
+    if (_isImportedMode) {
+      return _buildImportedBoardView(context);
+    }
+
     final provider = Provider.of<AACProvider>(context);
     final profile = provider.currentProfile;
     final showContextPage = provider.isListeningContext || provider.teacherPrompt != null || provider.contextSuggestions.isNotEmpty;
@@ -298,6 +365,148 @@ class _CommunicationGridState extends State<CommunicationGrid> {
     );
   }
 
+  Widget _buildImportedBoardView(BuildContext context) {
+    final boardSet = widget.importedBoardSet!;
+    final pages = _importedPagesFor(boardSet);
+
+    return Column(
+      children: [
+        SizedBox(
+          height: 64,
+          child: ListView.separated(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            scrollDirection: Axis.horizontal,
+            itemCount: pages.length,
+            separatorBuilder: (_, _) => const SizedBox(width: 8),
+            itemBuilder: (context, index) {
+              final page = pages[index];
+              final isActive = index == _currentPage;
+
+              return GestureDetector(
+                onTap: () => _goToImportedPage(index),
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 180),
+                  padding: const EdgeInsets.symmetric(horizontal: 14),
+                  decoration: BoxDecoration(
+                    color: isActive
+                        ? AppTheme.primary.withValues(alpha: 0.18)
+                        : AppTheme.surface,
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(
+                      color: isActive ? AppTheme.primary : AppTheme.border,
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.dashboard_customize,
+                        size: 18,
+                        color: isActive ? AppTheme.primary : AppTheme.textSecondary,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        page.label,
+                        style: TextStyle(
+                          color: isActive ? AppTheme.primary : AppTheme.textSecondary,
+                          fontSize: 14,
+                          fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+        Expanded(
+          child: PageView.builder(
+            controller: _pageController,
+            onPageChanged: _handleImportedPageChanged,
+            itemCount: pages.length,
+            itemBuilder: (context, pageIndex) {
+              final page = pages[pageIndex];
+              final board = boardSet.boardsByPath[page.path];
+
+              if (board == null) {
+                return const SizedBox.shrink();
+              }
+
+              return Padding(
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                child: _ImportedBoardPageView(
+                  board: board,
+                  packagedFiles: boardSet.filesByPath,
+                  onButtonTap: _handleImportedButtonTap,
+                ),
+              );
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+void _goToImportedPage(int index) {
+  final boardSet = widget.importedBoardSet;
+  if (boardSet == null) return;
+
+  final pages = _importedPagesFor(boardSet);
+
+  if (index == _currentPage || index < 0 || index >= pages.length) {
+    return;
+  }
+
+  setState(() {
+    _currentPage = index;
+  });
+
+  widget.onImportedBoardChange?.call(pages[index].path);
+
+  if (_pageController.hasClients) {
+    _pageController.animateToPage(
+      index,
+      duration: const Duration(milliseconds: 220),
+      curve: Curves.easeOut,
+    );
+  }
+}
+
+  void _handleImportedPageChanged(int index) {
+    final boardSet = widget.importedBoardSet;
+    if (!mounted || boardSet == null || index == _currentPage) {
+      return;
+    }
+
+    final pages = _importedPagesFor(boardSet);
+
+    setState(() {
+      _currentPage = index;
+    });
+
+    if (index >= 0 && index < pages.length) {
+      widget.onImportedBoardChange?.call(pages[index].path);
+    }
+  }
+
+  void _handleImportedButtonTap(ImportedButton button) {
+    final linkedPath = button.linkedBoardPath;
+    if (linkedPath != null && linkedPath.isNotEmpty) {
+      final targetIndex = _importedPageIndexFor(linkedPath);
+      _goToImportedPage(targetIndex);
+      return;
+    }
+
+    widget.onSymbolTap(
+      Symbol(
+        id: button.id,
+        label: button.speechText,
+        category: SymbolCategory.noun,
+      ),
+    );
+  }
+
   IconData _interestIconFor(String interest) {
     switch (interest.toLowerCase()) {
       case 'minecraft':
@@ -440,6 +649,16 @@ class _CategoryPage {
   const _CategoryPage(this.categoryId, this.label, this.icon, this.color);
 }
 
+class _ImportedBoardPage {
+  final String path;
+  final String label;
+
+  const _ImportedBoardPage({
+    required this.path,
+    required this.label,
+  });
+}
+
 class _ContextSuggestionsPage extends StatelessWidget {
   final String? teacherPrompt;
   final bool isLoading;
@@ -564,4 +783,161 @@ class _GridMetrics {
     required this.childAspectRatio,
     required this.spacing,
   });
+}
+
+
+class _ImportedBoardPageView extends StatelessWidget {
+  final ImportedBoard board;
+  final Map<String, List<int>> packagedFiles;
+  final ValueChanged<ImportedButton> onButtonTap;
+
+  const _ImportedBoardPageView({
+    required this.board,
+    required this.packagedFiles,
+    required this.onButtonTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final buttonMap = board.buttonsById;
+    final orderedIds = board.grid.order.expand((row) => row).toList();
+    final imageResolver = ImportedImageResolver();
+
+  return LayoutBuilder(
+    builder: (context, constraints) {
+      final columns = board.grid.columns <= 0 ? 1 : board.grid.columns;
+      final rows = board.grid.rows <= 0 ? 1 : board.grid.rows;
+
+      const spacing = 10.0;
+
+      final cellWidth =
+          (constraints.maxWidth - ((columns - 1) * spacing)) / columns;
+
+      final cellHeight =
+          (constraints.maxHeight - ((rows - 1) * spacing)) / rows;
+
+      final aspectRatio =
+          cellHeight > 0 ? cellWidth / cellHeight : 1.0;
+
+      return GridView.builder(
+        physics: const NeverScrollableScrollPhysics(),
+        padding: EdgeInsets.zero,
+        itemCount: orderedIds.length,
+        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: columns,
+          mainAxisSpacing: spacing,
+          crossAxisSpacing: spacing,
+          childAspectRatio: aspectRatio,
+        ),
+        itemBuilder: (context, index) {
+          final buttonId = orderedIds[index];
+
+          if (buttonId == null) {
+            return const SizedBox.shrink();
+          }
+
+          final button = buttonMap[buttonId];
+          if (button == null) {
+            return const SizedBox.shrink();
+          }
+
+          final image = button.imageId != null
+              ? board.imagesById[button.imageId]
+              : null;
+
+          final resolvedImage =
+              imageResolver.resolve(image, packagedFiles);
+
+          return _ImportedBoardTile(
+            button: button,
+            imageBytes: resolvedImage?.bytes,
+            imageUrl: resolvedImage?.url,
+            onTap: () => onButtonTap(button),
+          );
+        },
+      );
+    },
+  );
+  }
+}
+
+class _ImportedBoardTile extends StatelessWidget {
+  final ImportedButton button;
+  final Uint8List? imageBytes;
+  final String? imageUrl;
+  final VoidCallback onTap;
+
+  const _ImportedBoardTile({
+    required this.button,
+    required this.onTap,
+    this.imageBytes,
+    this.imageUrl,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final hasBytes = imageBytes != null && imageBytes!.isNotEmpty;
+    final hasUrl = imageUrl != null && imageUrl!.isNotEmpty;
+
+    return Material(
+      color: AppTheme.surface,
+      borderRadius: BorderRadius.circular(16),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16),
+        child: Container(
+          decoration: BoxDecoration(
+            color: AppTheme.surface,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: AppTheme.border),
+          ),
+          padding: const EdgeInsets.all(10),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Expanded(
+                child: hasBytes
+                    ? Image.memory(
+                        imageBytes!,
+                        fit: BoxFit.contain,
+                        errorBuilder: (_, _, _) => const Icon(
+                          Icons.image_outlined,
+                          color: AppTheme.textSecondary,
+                          size: 32,
+                        ),
+                      )
+                    : hasUrl
+                        ? Image.network(
+                            imageUrl!,
+                            fit: BoxFit.contain,
+                            errorBuilder: (_, _, _) => const Icon(
+                              Icons.image_outlined,
+                              color: AppTheme.textSecondary,
+                              size: 32,
+                            ),
+                          )
+                        : const Icon(
+                            Icons.image_outlined,
+                            color: AppTheme.textSecondary,
+                            size: 32,
+                          ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                button.label,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  color: AppTheme.textPrimary,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 }
