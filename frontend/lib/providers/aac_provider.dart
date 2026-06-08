@@ -1,5 +1,9 @@
 import 'dart:convert';
+import 'package:file_picker/file_picker.dart';
+import 'dart:io';
 import 'package:flutter/foundation.dart';
+import 'package:frontend/services/obf/obf_parser.dart';
+import 'package:frontend/services/obf/obz_parser.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
 import 'package:permission_handler/permission_handler.dart';
 import 'package:http/http.dart' as http;
@@ -8,9 +12,62 @@ import '../models/models.dart';
 
 class AACProvider extends ChangeNotifier {
   final FlutterTts _flutterTts = FlutterTts();
+  ImportedBoardSet? _importedBoardSet;
+  String? _activeImportedBoardPath;
+
+  ImportedBoardSet? get importedBoardSet => _importedBoardSet;
+  String? get activeImportedBoardPath => _activeImportedBoardPath;
 
   AACProvider() {
     _initTts();
+  }
+
+  void setImportedBoardSet(ImportedBoardSet boardSet) {
+    _importedBoardSet = boardSet;
+    _activeImportedBoardPath = boardSet.rootPath;
+    notifyListeners();
+  }
+
+  void setActiveImportedBoard(String path) {
+    _activeImportedBoardPath = path;
+    notifyListeners();
+  }
+
+  void clearImportedBoardSet() {
+    _importedBoardSet = null;
+    _activeImportedBoardPath = null;
+    notifyListeners();
+  }
+
+  Future<void> importBoard() async {
+    final result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['obf', 'obz'],
+    );
+
+    if (result == null) return;
+
+    final file = File(result.files.single.path!);
+
+    if (file.path.toLowerCase().endsWith('.obz')) {
+      final boardSet = await ObzParser().parseObzFile(file);
+
+      _importedBoardSet = boardSet;
+      _activeImportedBoardPath = boardSet.rootPath;
+    } else {
+      final text = await file.readAsString();
+      final board = ObfParser().parseObfString(text);
+
+      _importedBoardSet = ImportedBoardSet(
+        rootPath: 'root',
+        boardsByPath: {'root': board},
+        filesByPath: {},
+      );
+
+      _activeImportedBoardPath = 'root';
+    }
+
+    notifyListeners();
   }
 
   Future<void> _initTts() async {
