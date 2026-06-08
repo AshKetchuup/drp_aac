@@ -1,9 +1,10 @@
+// lib/screens/schedule_mode.dart
 import 'package:flutter/material.dart';
-
 import 'package:provider/provider.dart';
 import '../models/models.dart';
 import '../theme/app_theme.dart';
-import 'symbol_tile.dart';
+import '../widgets/symbol_tile.dart';
+import '../widgets/now_next_display.dart'; // Ensure this matches your file location
 import '../providers/aac_provider.dart';
 
 enum TimeSlot { morning, afternoon, evening }
@@ -27,6 +28,9 @@ const List<String> _kDays = [
 ];
 
 typedef SlotKey = (int, TimeSlot);
+
+// ─── View Modes ───────────────────────────────────────────────────────────────
+enum ScheduleViewMode { nowNext, day, week }
 
 ({double tileSize, int cols}) _bestTileLayout({
   required int count,
@@ -74,7 +78,8 @@ class ScheduleMode extends StatefulWidget {
 }
 
 class _ScheduleModeState extends State<ScheduleMode> {
-  bool _weekView = true;
+  // Controlled view state defaulted to week view
+  ScheduleViewMode _currentView = ScheduleViewMode.week;
 
   // Default to today; clamp to Mon–Sun range
   int _currentDayIndex = () {
@@ -92,12 +97,62 @@ class _ScheduleModeState extends State<ScheduleMode> {
     });
   }
 
+  TimeSlot _getCurrentTimeSlot() {
+    final hour = DateTime.now().hour;
+    if (hour >= 5 && hour <= 12) return TimeSlot.morning;
+    if (hour >= 13 && hour <= 17) return TimeSlot.afternoon;
+    return TimeSlot.evening;
+  }
+
+  ({Symbol? now, Symbol? next}) _calculateNowNext(
+    Map<SlotKey, List<Symbol>> schedule,
+    int dayIndex,
+  ) {
+    final currentSlot = _getCurrentTimeSlot();
+    final currentList = schedule[(dayIndex, currentSlot)] ?? [];
+
+    Symbol? nowSymbol;
+    Symbol? nextSymbol;
+
+    if (currentList.isNotEmpty) {
+      nowSymbol = currentList[0];
+      nextSymbol = (currentList.length > 1)
+          ? currentList[1]
+          : _getNextSlotFirstSymbol(schedule, dayIndex, currentSlot);
+    } else {
+      // If current time slot is empty, check upcoming slot for "now", and look further ahead for "next"
+      nowSymbol = _getNextSlotFirstSymbol(schedule, dayIndex, currentSlot);
+      if (nowSymbol != null) {
+        if (currentSlot == TimeSlot.morning) {
+          nextSymbol = schedule[(dayIndex, TimeSlot.evening)]?.firstOrNull;
+        }
+      }
+    }
+
+    return (now: nowSymbol, next: nextSymbol);
+  }
+
+  Symbol? _getNextSlotFirstSymbol(
+    Map<SlotKey, List<Symbol>> schedule,
+    int day,
+    TimeSlot current,
+  ) {
+    if (current == TimeSlot.morning)
+      return schedule[(day, TimeSlot.afternoon)]?.firstOrNull;
+    if (current == TimeSlot.afternoon)
+      return schedule[(day, TimeSlot.evening)]?.firstOrNull;
+    return null;
+  }
+
   @override
   Widget build(BuildContext context) {
-    // Consumer rebuilds this section whenever provider.notifyListeners() is called
     return Consumer<AACProvider>(
       builder: (context, provider, child) {
         final currentSchedule = provider.schedule;
+        final nowNextData = _calculateNowNext(
+          currentSchedule,
+          _currentDayIndex,
+        );
 
         return Material(
           color: AppTheme.background,
@@ -109,15 +164,29 @@ class _ScheduleModeState extends State<ScheduleMode> {
                   _Header(
                     onExit: widget.onExit,
                     onClear: () => provider.clearSchedule(),
+                    currentView: _currentView,
+                    onViewChanged: (newMode) =>
+                        setState(() => _currentView = newMode),
                     onSpeak: () {
                       final sentences = <String>[];
 
-                      if (_weekView) {
+                      if (_currentView == ScheduleViewMode.nowNext) {
+                        final nowText = nowNextData.now != null
+                            ? "Now ${nowNextData.now!.label}."
+                            : "";
+                        final nextText = nowNextData.next != null
+                            ? "Next ${nowNextData.next!.label}."
+                            : "";
+                        sentences.add("$nowText $nextText".trim());
+                      } else if (_currentView == ScheduleViewMode.week) {
                         for (int d = 0; d < _kDays.length; d++) {
                           final dayName = _kDays[d];
-                          final morning = currentSchedule[(d, TimeSlot.morning)] ?? [];
-                          final afternoon = currentSchedule[(d, TimeSlot.afternoon)] ?? [];
-                          final evening = currentSchedule[(d, TimeSlot.evening)] ?? [];
+                          final morning =
+                              currentSchedule[(d, TimeSlot.morning)] ?? [];
+                          final afternoon =
+                              currentSchedule[(d, TimeSlot.afternoon)] ?? [];
+                          final evening =
+                              currentSchedule[(d, TimeSlot.evening)] ?? [];
 
                           if (morning.isNotEmpty ||
                               afternoon.isNotEmpty ||
@@ -142,9 +211,24 @@ class _ScheduleModeState extends State<ScheduleMode> {
                         }
                       } else {
                         final dayName = _kDays[_currentDayIndex];
-                        final morning = currentSchedule[(_currentDayIndex, TimeSlot.morning)] ?? [];
-                        final afternoon = currentSchedule[(_currentDayIndex, TimeSlot.afternoon)] ?? [];
-                        final evening = currentSchedule[(_currentDayIndex, TimeSlot.evening)] ?? [];
+                        final morning =
+                            currentSchedule[(
+                              _currentDayIndex,
+                              TimeSlot.morning,
+                            )] ??
+                            [];
+                        final afternoon =
+                            currentSchedule[(
+                              _currentDayIndex,
+                              TimeSlot.afternoon,
+                            )] ??
+                            [];
+                        final evening =
+                            currentSchedule[(
+                              _currentDayIndex,
+                              TimeSlot.evening,
+                            )] ??
+                            [];
 
                         sentences.add("For $dayName.");
                         if (morning.isNotEmpty) {
@@ -164,124 +248,138 @@ class _ScheduleModeState extends State<ScheduleMode> {
                         }
                       }
 
-                      if (sentences.isEmpty) {
+                      if (sentences.isEmpty ||
+                          sentences.join(' ').trim().isEmpty) {
                         provider.speak("The schedule is empty.");
                       } else {
                         provider.speak(sentences.join(' '));
                       }
                     },
-                    weekView: _weekView,
-                    onToggleView: () => setState(() => _weekView = !_weekView),
                   ),
 
                   const SizedBox(height: 16),
 
-                  // Symbol picker remains the same
-                  Container(
-                    height: 160,
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: AppTheme.surface,
-                      borderRadius: BorderRadius.circular(18),
-                      border: Border.all(color: AppTheme.border),
-                    ),
-                    child: LayoutBuilder(
-                      builder: (context, constraints) {
-                        const spacing = 8.0;
-                        final layout = _bestTileLayout(
-                          count: widget.availableSymbols.length,
-                          w: constraints.maxWidth,
-                          h: constraints.maxHeight,
-                          spacing: spacing,
-                          padding: 0,
-                        );
-                        final tileSize = layout.tileSize;
-                        final cols = layout.cols;
-                        final rows = (widget.availableSymbols.length / cols).ceil();
+                  // Symbol picker (Hidden entirely when viewing the dedicated Now/Next screen)
+                  if (_currentView != ScheduleViewMode.nowNext) ...[
+                    Container(
+                      height: 160,
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: AppTheme.surface,
+                        borderRadius: BorderRadius.circular(18),
+                        border: Border.all(color: AppTheme.border),
+                      ),
+                      child: LayoutBuilder(
+                        builder: (context, constraints) {
+                          const spacing = 8.0;
+                          final layout = _bestTileLayout(
+                            count: widget.availableSymbols.length,
+                            w: constraints.maxWidth,
+                            h: constraints.maxHeight,
+                            spacing: spacing,
+                            padding: 0,
+                          );
+                          final tileSize = layout.tileSize;
+                          final cols = layout.cols;
+                          final rows = (widget.availableSymbols.length / cols)
+                              .ceil();
 
-                        return Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: List.generate(rows, (row) {
-                            final start = row * cols;
-                            final end = (start + cols).clamp(
-                              0,
-                              widget.availableSymbols.length,
-                            );
-                            return Padding(
-                              padding: EdgeInsets.only(
-                                bottom: row < rows - 1 ? spacing : 0,
-                              ),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: List.generate(end - start, (col) {
-                                  final symbol =
-                                      widget.availableSymbols[start + col];
-                                  return Padding(
-                                    padding: EdgeInsets.only(
-                                      right: col < (end - start) - 1 ? spacing : 0,
-                                    ),
-                                    child: SizedBox(
-                                      width: tileSize,
-                                      height: tileSize,
-                                      child: Draggable<Symbol>(
-                                        data: symbol,
-                                        feedback: SizedBox(
-                                          width: tileSize,
-                                          height: tileSize,
-                                          child: Material(
-                                            color: Colors.transparent,
+                          return Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: List.generate(rows, (row) {
+                              final start = row * cols;
+                              final end = (start + cols).clamp(
+                                0,
+                                widget.availableSymbols.length,
+                              );
+                              return Padding(
+                                padding: EdgeInsets.only(
+                                  bottom: row < rows - 1 ? spacing : 0,
+                                ),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: List.generate(end - start, (col) {
+                                    final symbol =
+                                        widget.availableSymbols[start + col];
+                                    return Padding(
+                                      padding: EdgeInsets.only(
+                                        right: col < (end - start) - 1
+                                            ? spacing
+                                            : 0,
+                                      ),
+                                      child: SizedBox(
+                                        width: tileSize,
+                                        height: tileSize,
+                                        child: Draggable<Symbol>(
+                                          data: symbol,
+                                          feedback: SizedBox(
+                                            width: tileSize,
+                                            height: tileSize,
+                                            child: Material(
+                                              color: Colors.transparent,
+                                              child: SymbolTile(
+                                                symbol: symbol,
+                                                onTap: () {},
+                                              ),
+                                            ),
+                                          ),
+                                          childWhenDragging: Opacity(
+                                            opacity: 0.4,
                                             child: SymbolTile(
                                               symbol: symbol,
                                               onTap: () {},
                                             ),
                                           ),
-                                        ),
-                                        childWhenDragging: Opacity(
-                                          opacity: 0.4,
                                           child: SymbolTile(
                                             symbol: symbol,
                                             onTap: () {},
                                           ),
                                         ),
-                                        child: SymbolTile(
-                                          symbol: symbol,
-                                          onTap: () {},
-                                        ),
                                       ),
-                                    ),
-                                  );
-                                }),
-                              ),
-                            );
-                          }),
-                        );
-                      },
+                                    );
+                                  }),
+                                ),
+                              );
+                            }),
+                          );
+                        },
+                      ),
                     ),
-                  ),
-
-                  const SizedBox(height: 16),
+                    const SizedBox(height: 16),
+                  ],
 
                   Expanded(
                     child: LayoutBuilder(
                       builder: (context, constraints) {
-                        if (_weekView) {
-                          return _WeekGrid(
-                            schedule: currentSchedule,
-                            availableWidth: constraints.maxWidth,
-                            availableHeight: constraints.maxHeight,
-                            onAccept: (key, symbol) => provider.addToSchedule(key, symbol),
-                            onRemove: (key, index) => provider.removeFromSchedule(key, index),
-                          );
-                        } else {
-                          return _DayView(
-                            schedule: currentSchedule,
-                            dayIndex: _currentDayIndex,
-                            availableWidth: constraints.maxWidth,
-                            availableHeight: constraints.maxHeight,
-                            onAccept: (key, symbol) => provider.addToSchedule(key, symbol),
-                            onRemove: (key, index) => provider.removeFromSchedule(key, index),
-                            onDayChanged: (d) => setState(() => _currentDayIndex = d),
-                          );
+                        switch (_currentView) {
+                          case ScheduleViewMode.week:
+                            return _WeekGrid(
+                              schedule: currentSchedule,
+                              availableWidth: constraints.maxWidth,
+                              availableHeight: constraints.maxHeight,
+                              onAccept: (key, symbol) =>
+                                  provider.addToSchedule(key, symbol),
+                              onRemove: (key, index) =>
+                                  provider.removeFromSchedule(key, index),
+                            );
+                          case ScheduleViewMode.day:
+                            return _DayView(
+                              schedule: currentSchedule,
+                              dayIndex: _currentDayIndex,
+                              availableWidth: constraints.maxWidth,
+                              availableHeight: constraints.maxHeight,
+                              onAccept: (key, symbol) =>
+                                  provider.addToSchedule(key, symbol),
+                              onRemove: (key, index) =>
+                                  provider.removeFromSchedule(key, index),
+                              onDayChanged: (d) =>
+                                  setState(() => _currentDayIndex = d),
+                            );
+                          case ScheduleViewMode.nowNext:
+                            return NowNextDisplay(
+                              now: nowNextData.now,
+                              next: nowNextData.next,
+                            );
                         }
                       },
                     ),
@@ -296,7 +394,7 @@ class _ScheduleModeState extends State<ScheduleMode> {
   }
 }
 
-// ─── Week grid (unchanged logic, same as before) ────────────────────────────
+// ─── Week grid ───────────────────────────────────────────────────────────────
 
 class _WeekGrid extends StatelessWidget {
   final Map<SlotKey, List<Symbol>> schedule;
@@ -376,7 +474,7 @@ class _WeekGrid extends StatelessWidget {
                   return _DropCell(
                     key: ValueKey(key),
                     slotKey: key,
-                    symbols: schedule[key]!,
+                    symbols: schedule[key] ?? [],
                     cellW: cellW,
                     cellH: cellH,
                     cellPad: cellPad,
@@ -421,8 +519,7 @@ class _DayView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final slotRowHeight = (availableHeight - _headerRowHeight) / _numSlots;
-    // Each slot row is one wide cell minus the label column
-    final cellW = availableWidth - _labelColWidth - 8; // 8 = 2×cellPad
+    final cellW = availableWidth - _labelColWidth - 8;
     final cellH = slotRowHeight - 8;
 
     return Column(
@@ -459,7 +556,6 @@ class _DayView extends StatelessWidget {
           ),
         ),
 
-        // One row per time slot, full width
         ...TimeSlot.values.map((slot) {
           final key = (dayIndex, slot);
           return SizedBox(
@@ -484,7 +580,7 @@ class _DayView extends StatelessWidget {
                 _DropCell(
                   key: ValueKey(key),
                   slotKey: key,
-                  symbols: schedule[key]!,
+                  symbols: schedule[key] ?? [],
                   cellW: cellW,
                   cellH: cellH,
                   cellPad: 4,
@@ -565,8 +661,6 @@ class _DropCell extends StatelessWidget {
   }
 }
 
-// ─── Tile layout inside a cell ───────────────────────────────────────────────
-
 class _SlotCellContents extends StatelessWidget {
   final List<Symbol> symbols;
   final double cellWidth;
@@ -642,14 +736,14 @@ class _Header extends StatelessWidget {
   final VoidCallback onExit;
   final VoidCallback onClear;
   final VoidCallback? onSpeak;
-  final bool weekView;
-  final VoidCallback onToggleView;
+  final ScheduleViewMode currentView;
+  final ValueChanged<ScheduleViewMode> onViewChanged;
 
   const _Header({
     required this.onExit,
     required this.onClear,
-    required this.weekView,
-    required this.onToggleView,
+    required this.currentView,
+    required this.onViewChanged,
     this.onSpeak,
   });
 
@@ -675,7 +769,7 @@ class _Header extends StatelessWidget {
         ),
         const Spacer(),
 
-        // Day / Week toggle
+        // Unified Tri-State Segment Toggle Control
         Container(
           decoration: BoxDecoration(
             color: AppTheme.surface,
@@ -687,13 +781,18 @@ class _Header extends StatelessWidget {
             children: [
               _ToggleChip(
                 label: 'Day',
-                selected: !weekView,
-                onTap: weekView ? onToggleView : null,
+                selected: currentView == ScheduleViewMode.day,
+                onTap: () => onViewChanged(ScheduleViewMode.day),
               ),
               _ToggleChip(
                 label: 'Week',
-                selected: weekView,
-                onTap: !weekView ? onToggleView : null,
+                selected: currentView == ScheduleViewMode.week,
+                onTap: () => onViewChanged(ScheduleViewMode.week),
+              ),
+              _ToggleChip(
+                label: 'Now / Next',
+                selected: currentView == ScheduleViewMode.nowNext,
+                onTap: () => onViewChanged(ScheduleViewMode.nowNext),
               ),
             ],
           ),
