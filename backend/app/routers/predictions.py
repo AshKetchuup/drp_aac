@@ -26,7 +26,7 @@ past_predictions = [
 
 payload_mock = PredictionRequest(
     audio_base64="mock_base64_audio",
-    text="Where do you want to go this afternoon?",
+    text="What kind of pets would you like?",
     likes=["Park", "Swings", "Library", "Grandma's house", "Dogs"],
     dislikes=["Loud noises", "Dark rooms", "Nap time"]
 )
@@ -79,22 +79,24 @@ What the child said recently:
 
 RULES:
 - Suggest 4 to 7 words or short phrases the child would realistically reply with.
-- ALWAYS include the child's favourite things when they are relevant to the topic.
+- IF the child's likes are directly relevant to the topic, include them. 
+- CRITICAL: Dont OVER use the likes if not relevant. DO NOT include random likes (like "Park" or "Swings") if the topic is about something completely different (like "Pets"). Instead, suggest other things to expand the child's vocabulary and general knowledge.
 - NEVER include anything from the dislikes list.
 - Focus on specific, meaningful vocabulary (nouns, verbs, adjectives) — NOT generic words like "Yes", "No", "Please", "I want" since those are already on the child's board.
 - Use the conversation history to make smarter, contextual predictions.
-- Return ONLY a JSON array of strings. Nothing else. No numbers, no explanations, no keys.
+- Return ONLY a valid JSON array of strings. Nothing else. No numbers, no explanations, no keys.
 - NO REPEATS
 
 GOOD example:
 Someone said: "What animal do you like?"
-Child likes: Dogs, Cats
+Child likes: Dogs, Cats, Park, Swings
 Child dislikes: Spiders
-Answer: ["Dogs", "Cats", "Rabbits", "Hamster"]
+Answer: ["Dogs", "Cats", "Rabbits", "Hamster", "Fish"]
 
 BAD example (NEVER do this):
 ["1", "Dogs", "2", "Cats"] — numbers are WRONG
-{{"animals": ["Dogs"]}} — objects are WRONG"""
+{{"animals": ["Dogs"]}} — objects are WRONG
+["Dogs", "Park", "Swings"] — WRONG: "Park" and "Swings" are not animals! Do not force irrelevant likes!"""
 
     user_prompt = f"""Someone said: "{payload.text}"
 Child likes: {likes_str}
