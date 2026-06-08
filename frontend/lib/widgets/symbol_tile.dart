@@ -37,7 +37,8 @@ class SymbolTile extends StatelessWidget {
       case SymbolCategory.food:
         return AppTheme.categoryFood;
       case SymbolCategory.feeling:
-        return AppTheme.categoryFolder; // Use folder color for feelings as requested
+        return AppTheme
+            .categoryFolder; // Use folder color for feelings as requested
       case SymbolCategory.place:
         return AppTheme.categoryFolder;
       case SymbolCategory.question:
@@ -52,14 +53,15 @@ class SymbolTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final searchWord = (pictogramKeyword ?? symbol.label)
-        .split('/')
-        [0]
+        .split('/')[0]
         .replaceAll('?', '')
         .replaceAll("'", '')
         .replaceAll(' ', '_')
         .toLowerCase()
         .trim();
-    final path = searchWord == "dont_like" ? 'assets/arasaac/dislike.png' : 'assets/arasaac/$searchWord.png';
+    final path = searchWord == "dont_like"
+        ? 'assets/arasaac/dislike.png'
+        : 'assets/arasaac/$searchWord.png';
 
     return GestureDetector(
       onTap: onTap,
@@ -90,9 +92,13 @@ class SymbolTile extends StatelessWidget {
                 builder: (context, constraints) {
                   final w = constraints.maxWidth;
                   final h = constraints.maxHeight;
-                  final labelFontSize = ((w * 0.16) + labelFontSizeDelta).clamp(10.0, 18.0).toDouble();
+                  final labelFontSize = ((w * 0.16) + labelFontSizeDelta)
+                      .clamp(10.0, 18.0)
+                      .toDouble();
                   final iconSize = (h * 0.42).clamp(18.0, 56.0).toDouble();
-                  final labelBoxHeight = (h * 0.28).clamp(16.0, 30.0).toDouble();
+                  final labelBoxHeight = (h * 0.28)
+                      .clamp(16.0, 30.0)
+                      .toDouble();
 
                   final imageWidget = symbol.imageUrl != null
                       ? Image.network(
@@ -113,10 +119,12 @@ class SymbolTile extends StatelessWidget {
                             color: Colors.black54,
                           ),
                         );
-                  
+
                   return Center(
                     child: Padding(
-                      padding: EdgeInsets.all((h * 0.05).clamp(4.0, 8.0).toDouble()),
+                      padding: EdgeInsets.all(
+                        (h * 0.05).clamp(4.0, 8.0).toDouble(),
+                      ),
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         crossAxisAlignment: CrossAxisAlignment.center,
@@ -127,11 +135,14 @@ class SymbolTile extends StatelessWidget {
                               child: FittedBox(
                                 fit: BoxFit.scaleDown,
                                 child: Padding(
-                                  padding: const EdgeInsets.symmetric(horizontal: 2),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 2,
+                                  ),
                                   child: Text(
                                     symbol.label,
                                     style: TextStyle(
-                                      color: Colors.black87, // Black text on colored background
+                                      color: Colors
+                                          .black87, // Black text on colored background
                                       fontSize: labelFontSize,
                                       fontWeight: FontWeight.w600,
                                     ),
@@ -143,7 +154,9 @@ class SymbolTile extends StatelessWidget {
                               ),
                             ),
                           ),
-                          SizedBox(height: (h * 0.03).clamp(2.0, 4.0).toDouble()),
+                          SizedBox(
+                            height: (h * 0.03).clamp(2.0, 4.0).toDouble(),
+                          ),
                           Expanded(
                             child: Center(
                               child: Padding(
@@ -165,7 +178,7 @@ class SymbolTile extends StatelessWidget {
                   );
                 },
               ),
-              
+
               // If it's a folder, show a black folded corner on top right
               if (symbol.isFolder)
                 Positioned(
@@ -176,14 +189,10 @@ class SymbolTile extends StatelessWidget {
                     painter: FoldedCornerPainter(),
                   ),
                 ),
-                
+
               // If it's 'not', show a red slash
               if (symbol.id == 'not')
-                Positioned.fill(
-                  child: CustomPaint(
-                    painter: RedSlashPainter(),
-                  ),
-                ),
+                Positioned.fill(child: CustomPaint(painter: RedSlashPainter())),
             ],
           ),
         ),
@@ -198,13 +207,13 @@ class FoldedCornerPainter extends CustomPainter {
     final paint = Paint()
       ..color = Colors.black
       ..style = PaintingStyle.fill;
-      
+
     final path = Path()
       ..moveTo(0, 0)
       ..lineTo(size.width, 0)
       ..lineTo(size.width, size.height)
       ..close();
-      
+
     canvas.drawPath(path, paint);
   }
 
@@ -219,7 +228,7 @@ class RedSlashPainter extends CustomPainter {
       ..color = Colors.red
       ..strokeWidth = 4
       ..style = PaintingStyle.stroke;
-      
+
     // Draw from top-left to bottom-right
     canvas.drawLine(const Offset(0, 0), Offset(size.width, size.height), paint);
   }
@@ -232,12 +241,15 @@ class MiniSymbolTile extends StatelessWidget {
   final Symbol symbol;
   final VoidCallback? onTap;
   final VoidCallback? onRemove;
+  final bool isExpanded; // Added flag to scale dynamically
 
   const MiniSymbolTile({
     super.key,
     required this.symbol,
     this.onTap,
     this.onRemove,
+    this.isExpanded =
+        false, // Defaults to false so your existing code doesn't break
   });
 
   Color get categoryColor {
@@ -269,13 +281,45 @@ class MiniSymbolTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final searchWord = symbol.label.split('/')[0].replaceAll('?', '').replaceAll("'", "").replaceAll(" ", "_").toLowerCase().trim();
-    final path = searchWord == "dont_like" ? 'assets/arasaac/dislike.png' : 'assets/arasaac/$searchWord.png';
+    final searchWord = symbol.label
+        .split('/')[0]
+        .replaceAll('?', '')
+        .replaceAll("'", "")
+        .replaceAll(" ", "_")
+        .toLowerCase()
+        .trim();
+    final path = searchWord == "dont_like"
+        ? 'assets/arasaac/dislike.png'
+        : 'assets/arasaac/$searchWord.png';
+
+    final imageWidget = symbol.imageUrl != null
+        ? Image.network(
+            symbol.imageUrl!,
+            fit: BoxFit.contain,
+            errorBuilder: (context, error, stackTrace) => Icon(
+              symbol.icon ?? Icons.help_outline,
+              size: isExpanded ? 32 : 16, // Scale fallback icon size
+              color: Colors.black87,
+            ),
+          )
+        : Image.asset(
+            path,
+            fit: BoxFit.contain,
+            errorBuilder: (context, error, stackTrace) => Icon(
+              symbol.icon ?? Icons.help_outline,
+              size: isExpanded ? 32 : 16, // Scale fallback icon size
+              color: Colors.black87,
+            ),
+          );
 
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        // Dynamic padding matches layout requirements
+        padding: EdgeInsets.symmetric(
+          horizontal: isExpanded ? 14 : 12,
+          vertical: isExpanded ? 4 : 8,
+        ),
         decoration: BoxDecoration(
           color: categoryColor,
           borderRadius: BorderRadius.circular(6),
@@ -284,54 +328,41 @@ class MiniSymbolTile extends StatelessWidget {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Container(
-              width: 24,
-              height: 24,
+            // Container scales completely up when expanded is toggled
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 150),
+              width: isExpanded ? 40 : 24,
+              height: isExpanded ? 40 : 24,
               decoration: BoxDecoration(
                 color: Colors.white.withValues(alpha: 0.5),
                 borderRadius: BorderRadius.circular(4),
               ),
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(4),
-                child: symbol.imageUrl != null 
-                    ? Image.network(
-                        symbol.imageUrl!,
-                        fit: BoxFit.contain,
-                        errorBuilder: (context, error, stackTrace) => Icon(
-                          symbol.icon ?? Icons.help_outline,
-                          size: 16,
-                          color: Colors.black87,
-                        ),
-                      )
-                    : Image.asset(
-                        path,
-                        fit: BoxFit.contain,
-                        errorBuilder: (context, error, stackTrace) => Icon(
-                          symbol.icon ?? Icons.help_outline,
-                          size: 16,
-                          color: Colors.black87,
-                        ),
+                child: isExpanded
+                    ? imageWidget
+                    : Padding(
+                        padding: const EdgeInsets.all(2.0),
+                        child: imageWidget,
                       ),
               ),
             ),
-            const SizedBox(width: 6),
+            const SizedBox(width: 8),
             Text(
               symbol.label,
               style: TextStyle(
                 color: Colors.black87,
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
+                fontSize: isExpanded
+                    ? 16
+                    : 14, // Slightly boosted text visibility
+                fontWeight: FontWeight.w700,
               ),
             ),
             if (onRemove != null) ...[
               const SizedBox(width: 6),
               GestureDetector(
                 onTap: onRemove,
-                child: Icon(
-                  Icons.close,
-                  size: 16,
-                  color: Colors.black87,
-                ),
+                child: const Icon(Icons.close, size: 16, color: Colors.black87),
               ),
             ],
           ],
@@ -340,4 +371,3 @@ class MiniSymbolTile extends StatelessWidget {
     );
   }
 }
-

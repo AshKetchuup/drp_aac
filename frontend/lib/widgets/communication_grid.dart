@@ -19,6 +19,8 @@ class CommunicationGrid extends StatefulWidget {
   final String? activeImportedBoardPath;
   final ValueChanged<String>? onImportedBoardChange;
 
+  final ({Symbol? now, Symbol? next}) nowNextData;
+
   const CommunicationGrid({
     super.key,
     required this.onSymbolTap,
@@ -27,6 +29,7 @@ class CommunicationGrid extends StatefulWidget {
     this.importedBoardSet,
     this.activeImportedBoardPath,
     this.onImportedBoardChange,
+    required this.nowNextData,
   });
 
   @override
@@ -48,85 +51,332 @@ class _CommunicationGridState extends State<CommunicationGrid> {
     });
 
     return entries.map((entry) {
-      return _ImportedBoardPage(
-        path: entry.key,
-        label: entry.value.name,
-      );
+      return _ImportedBoardPage(path: entry.key, label: entry.value.name);
     }).toList();
   }
 
   static const List<_CategoryPage> _pages = [
     _CategoryPage(null, 'All', Icons.apps, AppTheme.textSecondary),
-    _CategoryPage('pronoun', 'Pronouns', Icons.person, AppTheme.categoryPronoun),
+    _CategoryPage(
+      'pronoun',
+      'Pronouns',
+      Icons.person,
+      AppTheme.categoryPronoun,
+    ),
     _CategoryPage('verb', 'Verbs', Icons.directions_run, AppTheme.categoryVerb),
     _CategoryPage('noun', 'Nouns', Icons.category, AppTheme.categoryNoun),
-    _CategoryPage('preposition', 'Little Words', Icons.short_text, AppTheme.primary),
-    _CategoryPage('activity', 'Activities', Icons.sports_esports, AppTheme.categoryActivity),
+    _CategoryPage(
+      'preposition',
+      'Little Words',
+      Icons.short_text,
+      AppTheme.primary,
+    ),
+    _CategoryPage(
+      'activity',
+      'Activities',
+      Icons.sports_esports,
+      AppTheme.categoryActivity,
+    ),
     _CategoryPage('feeling', 'Feelings', Icons.mood, AppTheme.secondary),
     _CategoryPage('question', 'Questions', Icons.help, AppTheme.warning),
   ];
 
   static final List<Symbol> symbols = [
     // Pronouns
-    Symbol(id: 'i', label: 'I', icon: Icons.person, category: SymbolCategory.pronoun),
-    Symbol(id: 'you', label: 'You', icon: Icons.person_outline, category: SymbolCategory.pronoun),
-    Symbol(id: 'we', label: 'We', icon: Icons.people, category: SymbolCategory.pronoun),
-    Symbol(id: 'they', label: 'They', icon: Icons.people_outline, category: SymbolCategory.pronoun),
+    Symbol(
+      id: 'i',
+      label: 'I',
+      icon: Icons.person,
+      category: SymbolCategory.pronoun,
+    ),
+    Symbol(
+      id: 'you',
+      label: 'You',
+      icon: Icons.person_outline,
+      category: SymbolCategory.pronoun,
+    ),
+    Symbol(
+      id: 'we',
+      label: 'We',
+      icon: Icons.people,
+      category: SymbolCategory.pronoun,
+    ),
+    Symbol(
+      id: 'they',
+      label: 'They',
+      icon: Icons.people_outline,
+      category: SymbolCategory.pronoun,
+    ),
 
     // Verbs
-    Symbol(id: 'want', label: 'Want', icon: Icons.favorite, category: SymbolCategory.verb),
-    Symbol(id: 'need', label: 'Need', icon: Icons.priority_high, category: SymbolCategory.verb),
-    Symbol(id: 'like', label: 'Like', icon: Icons.thumb_up, category: SymbolCategory.verb),
-    Symbol(id: 'dont_like', label: "Don't Like", icon: Icons.thumb_down, category: SymbolCategory.verb),
-    Symbol(id: 'go', label: 'Go', icon: Icons.directions_walk, category: SymbolCategory.verb),
-    Symbol(id: 'play', label: 'Play', icon: Icons.sports_esports, category: SymbolCategory.verb),
-    Symbol(id: 'eat', label: 'Eat', icon: Icons.restaurant, category: SymbolCategory.verb),
-    Symbol(id: 'drink', label: 'Drink', icon: Icons.local_drink, category: SymbolCategory.verb),
-    Symbol(id: 'see', label: 'See', icon: Icons.visibility, category: SymbolCategory.verb),
-    Symbol(id: 'help', label: 'Help', icon: Icons.help, category: SymbolCategory.verb),
+    Symbol(
+      id: 'want',
+      label: 'Want',
+      icon: Icons.favorite,
+      category: SymbolCategory.verb,
+    ),
+    Symbol(
+      id: 'need',
+      label: 'Need',
+      icon: Icons.priority_high,
+      category: SymbolCategory.verb,
+    ),
+    Symbol(
+      id: 'like',
+      label: 'Like',
+      icon: Icons.thumb_up,
+      category: SymbolCategory.verb,
+    ),
+    Symbol(
+      id: 'dont_like',
+      label: "Don't Like",
+      icon: Icons.thumb_down,
+      category: SymbolCategory.verb,
+    ),
+    Symbol(
+      id: 'go',
+      label: 'Go',
+      icon: Icons.directions_walk,
+      category: SymbolCategory.verb,
+    ),
+    Symbol(
+      id: 'play',
+      label: 'Play',
+      icon: Icons.sports_esports,
+      category: SymbolCategory.verb,
+    ),
+    Symbol(
+      id: 'eat',
+      label: 'Eat',
+      icon: Icons.restaurant,
+      category: SymbolCategory.verb,
+    ),
+    Symbol(
+      id: 'drink',
+      label: 'Drink',
+      icon: Icons.local_drink,
+      category: SymbolCategory.verb,
+    ),
+    Symbol(
+      id: 'see',
+      label: 'See',
+      icon: Icons.visibility,
+      category: SymbolCategory.verb,
+    ),
+    Symbol(
+      id: 'help',
+      label: 'Help',
+      icon: Icons.help,
+      category: SymbolCategory.verb,
+    ),
 
     // Nouns
-    Symbol(id: 'food', label: 'Food', icon: Icons.fastfood, category: SymbolCategory.noun),
-    Symbol(id: 'water', label: 'Water', icon: Icons.water_drop, category: SymbolCategory.noun),
-    Symbol(id: 'home', label: 'Home', icon: Icons.home, category: SymbolCategory.noun),
-    Symbol(id: 'school', label: 'School', icon: Icons.school, category: SymbolCategory.noun),
-    Symbol(id: 'bathroom', label: 'Bathroom', icon: Icons.wc, category: SymbolCategory.noun),
-    Symbol(id: 'outside', label: 'Outside', icon: Icons.park, category: SymbolCategory.noun),
+    Symbol(
+      id: 'food',
+      label: 'Food',
+      icon: Icons.fastfood,
+      category: SymbolCategory.noun,
+    ),
+    Symbol(
+      id: 'water',
+      label: 'Water',
+      icon: Icons.water_drop,
+      category: SymbolCategory.noun,
+    ),
+    Symbol(
+      id: 'home',
+      label: 'Home',
+      icon: Icons.home,
+      category: SymbolCategory.noun,
+    ),
+    Symbol(
+      id: 'school',
+      label: 'School',
+      icon: Icons.school,
+      category: SymbolCategory.noun,
+    ),
+    Symbol(
+      id: 'bathroom',
+      label: 'Bathroom',
+      icon: Icons.wc,
+      category: SymbolCategory.noun,
+    ),
+    Symbol(
+      id: 'outside',
+      label: 'Outside',
+      icon: Icons.park,
+      category: SymbolCategory.noun,
+    ),
 
     // Little words
-    Symbol(id: 'the', label: 'The', icon: Icons.text_fields, category: SymbolCategory.preposition),
-    Symbol(id: 'a', label: 'A', icon: Icons.text_fields, category: SymbolCategory.preposition),
-    Symbol(id: 'at', label: 'At', icon: Icons.my_location, category: SymbolCategory.preposition),
-    Symbol(id: 'that', label: 'That', icon: Icons.touch_app, category: SymbolCategory.preposition),
-    Symbol(id: 'this', label: 'This', icon: Icons.back_hand, category: SymbolCategory.preposition),
-    Symbol(id: 'to', label: 'To', icon: Icons.arrow_forward, category: SymbolCategory.preposition),
-    Symbol(id: 'in', label: 'In', icon: Icons.input, category: SymbolCategory.preposition),
-    Symbol(id: 'on', label: 'On', icon: Icons.vertical_align_top, category: SymbolCategory.preposition),
-    Symbol(id: 'and', label: 'And', icon: Icons.add, category: SymbolCategory.preposition),
-    Symbol(id: 'with', label: 'With', icon: Icons.group, category: SymbolCategory.preposition),
-    Symbol(id: 'not', label: 'Not', icon: Icons.not_interested, category: SymbolCategory.preposition),
+    Symbol(
+      id: 'the',
+      label: 'The',
+      icon: Icons.text_fields,
+      category: SymbolCategory.preposition,
+    ),
+    Symbol(
+      id: 'a',
+      label: 'A',
+      icon: Icons.text_fields,
+      category: SymbolCategory.preposition,
+    ),
+    Symbol(
+      id: 'at',
+      label: 'At',
+      icon: Icons.my_location,
+      category: SymbolCategory.preposition,
+    ),
+    Symbol(
+      id: 'that',
+      label: 'That',
+      icon: Icons.touch_app,
+      category: SymbolCategory.preposition,
+    ),
+    Symbol(
+      id: 'this',
+      label: 'This',
+      icon: Icons.back_hand,
+      category: SymbolCategory.preposition,
+    ),
+    Symbol(
+      id: 'to',
+      label: 'To',
+      icon: Icons.arrow_forward,
+      category: SymbolCategory.preposition,
+    ),
+    Symbol(
+      id: 'in',
+      label: 'In',
+      icon: Icons.input,
+      category: SymbolCategory.preposition,
+    ),
+    Symbol(
+      id: 'on',
+      label: 'On',
+      icon: Icons.vertical_align_top,
+      category: SymbolCategory.preposition,
+    ),
+    Symbol(
+      id: 'and',
+      label: 'And',
+      icon: Icons.add,
+      category: SymbolCategory.preposition,
+    ),
+    Symbol(
+      id: 'with',
+      label: 'With',
+      icon: Icons.group,
+      category: SymbolCategory.preposition,
+    ),
+    Symbol(
+      id: 'not',
+      label: 'Not',
+      icon: Icons.not_interested,
+      category: SymbolCategory.preposition,
+    ),
 
     // Activities
-    Symbol(id: 'minecraft', label: 'Minecraft', icon: Icons.grid_view, category: SymbolCategory.activity),
-    Symbol(id: 'roblox', label: 'Roblox', icon: Icons.videogame_asset, category: SymbolCategory.activity),
-    Symbol(id: 'youtube', label: 'YouTube', icon: Icons.play_circle, category: SymbolCategory.activity),
-    Symbol(id: 'tablet', label: 'Tablet', icon: Icons.tablet, category: SymbolCategory.activity),
-    Symbol(id: 'music', label: 'Music', icon: Icons.music_note, category: SymbolCategory.activity),
-    Symbol(id: 'drawing', label: 'Drawing', icon: Icons.brush, category: SymbolCategory.activity),
+    Symbol(
+      id: 'minecraft',
+      label: 'Minecraft',
+      icon: Icons.grid_view,
+      category: SymbolCategory.activity,
+    ),
+    Symbol(
+      id: 'roblox',
+      label: 'Roblox',
+      icon: Icons.videogame_asset,
+      category: SymbolCategory.activity,
+    ),
+    Symbol(
+      id: 'youtube',
+      label: 'YouTube',
+      icon: Icons.play_circle,
+      category: SymbolCategory.activity,
+    ),
+    Symbol(
+      id: 'tablet',
+      label: 'Tablet',
+      icon: Icons.tablet,
+      category: SymbolCategory.activity,
+    ),
+    Symbol(
+      id: 'music',
+      label: 'Music',
+      icon: Icons.music_note,
+      category: SymbolCategory.activity,
+    ),
+    Symbol(
+      id: 'drawing',
+      label: 'Drawing',
+      icon: Icons.brush,
+      category: SymbolCategory.activity,
+    ),
 
     // Feelings
-    Symbol(id: 'happy', label: 'Happy', icon: Icons.sentiment_very_satisfied, category: SymbolCategory.feeling),
-    Symbol(id: 'sad', label: 'Sad', icon: Icons.sentiment_dissatisfied, category: SymbolCategory.feeling),
-    Symbol(id: 'angry', label: 'Angry', icon: Icons.sentiment_very_dissatisfied, category: SymbolCategory.feeling),
-    Symbol(id: 'tired', label: 'Tired', icon: Icons.bedtime, category: SymbolCategory.feeling),
-    Symbol(id: 'scared', label: 'Scared', icon: Icons.warning, category: SymbolCategory.feeling),
-    Symbol(id: 'calm', label: 'Calm', icon: Icons.self_improvement, category: SymbolCategory.feeling),
+    Symbol(
+      id: 'happy',
+      label: 'Happy',
+      icon: Icons.sentiment_very_satisfied,
+      category: SymbolCategory.feeling,
+    ),
+    Symbol(
+      id: 'sad',
+      label: 'Sad',
+      icon: Icons.sentiment_dissatisfied,
+      category: SymbolCategory.feeling,
+    ),
+    Symbol(
+      id: 'angry',
+      label: 'Angry',
+      icon: Icons.sentiment_very_dissatisfied,
+      category: SymbolCategory.feeling,
+    ),
+    Symbol(
+      id: 'tired',
+      label: 'Tired',
+      icon: Icons.bedtime,
+      category: SymbolCategory.feeling,
+    ),
+    Symbol(
+      id: 'scared',
+      label: 'Scared',
+      icon: Icons.warning,
+      category: SymbolCategory.feeling,
+    ),
+    Symbol(
+      id: 'calm',
+      label: 'Calm',
+      icon: Icons.self_improvement,
+      category: SymbolCategory.feeling,
+    ),
 
     // Questions
-    Symbol(id: 'what', label: 'What?', icon: Icons.help_outline, category: SymbolCategory.question),
-    Symbol(id: 'where', label: 'Where?', icon: Icons.place, category: SymbolCategory.question),
-    Symbol(id: 'when', label: 'When?', icon: Icons.access_time, category: SymbolCategory.question),
-    Symbol(id: 'why', label: 'Why?', icon: Icons.psychology, category: SymbolCategory.question),
+    Symbol(
+      id: 'what',
+      label: 'What?',
+      icon: Icons.help_outline,
+      category: SymbolCategory.question,
+    ),
+    Symbol(
+      id: 'where',
+      label: 'Where?',
+      icon: Icons.place,
+      category: SymbolCategory.question,
+    ),
+    Symbol(
+      id: 'when',
+      label: 'When?',
+      icon: Icons.access_time,
+      category: SymbolCategory.question,
+    ),
+    Symbol(
+      id: 'why',
+      label: 'Why?',
+      icon: Icons.psychology,
+      category: SymbolCategory.question,
+    ),
   ];
 
   @override
@@ -195,6 +445,84 @@ class _CommunicationGridState extends State<CommunicationGrid> {
     super.dispose();
   }
 
+  // ─── REFACTORED INLINE NOW/NEXT USING EXISTING MINI_SYMBOL_TILE ───────────
+  Widget _buildInlineNowNext() {
+    final hasNow = widget.nowNextData.now != null;
+    final hasNext = widget.nowNextData.next != null;
+
+    if (!hasNow && !hasNext) return const SizedBox.shrink();
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(
+        8,
+        10,
+        16,
+        10,
+      ), // Matches category chip bounds
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment
+            .stretch, // Forces tiles to fill the vertical 64px row height
+        children: [
+          if (hasNow)
+            _buildPrefixedScheduleTile(
+              prefix: "NOW: ",
+              prefixColor: const Color(0xFF2196F3),
+              symbol: widget.nowNextData.now!,
+            ),
+          if (hasNow && hasNext)
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 8),
+              child: Center(
+                child: Icon(
+                  Icons.arrow_forward_rounded,
+                  size: 16,
+                  color: AppTheme.textSecondary,
+                ),
+              ),
+            ),
+          if (hasNext)
+            _buildPrefixedScheduleTile(
+              prefix: "NEXT: ",
+              prefixColor: const Color(0xFF4CAF50),
+              symbol: widget.nowNextData.next!,
+            ),
+        ],
+      ),
+    );
+  }
+
+  // Helper method that injects the prefix text directly in front of your MiniSymbolTile
+  Widget _buildPrefixedScheduleTile({
+    required String prefix,
+    required Color prefixColor,
+    required Symbol symbol,
+  }) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Text(
+          prefix,
+          style: TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w900,
+            color: prefixColor,
+          ),
+        ),
+        const SizedBox(width: 6),
+        IntrinsicHeight(
+          child: MiniSymbolTile(
+            symbol: symbol,
+            isExpanded:
+                true, // Tells the tile to fill out the max 64px line layout cleanly
+            onTap: () => widget.onSymbolTap(symbol),
+          ),
+        ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     if (_isImportedMode) {
@@ -203,18 +531,27 @@ class _CommunicationGridState extends State<CommunicationGrid> {
 
     final provider = Provider.of<AACProvider>(context);
     final profile = provider.currentProfile;
-    final showContextPage = provider.isListeningContext || provider.teacherPrompt != null || provider.contextSuggestions.isNotEmpty;
-    final pages = [..._pages, if (showContextPage) _CategoryPage('context', 'Context', Icons.psychology, AppTheme.primary)];
+    final showContextPage =
+        provider.isListeningContext ||
+        provider.teacherPrompt != null ||
+        provider.contextSuggestions.isNotEmpty;
+    final pages = [
+      ..._pages,
+      if (showContextPage)
+        _CategoryPage('context', 'Context', Icons.psychology, AppTheme.primary),
+    ];
 
     final displaySymbols = List<Symbol>.from(symbols);
     if (profile != null) {
-      // Inject the child's own name as a primary pronoun
-      displaySymbols.insert(0, Symbol(
-        id: 'profile_name',
-        label: profile.name,
-        icon: Icons.face_rounded,
-        category: SymbolCategory.pronoun,
-      ));
+      displaySymbols.insert(
+        0,
+        Symbol(
+          id: 'profile_name',
+          label: profile.name,
+          icon: Icons.face_rounded,
+          category: SymbolCategory.pronoun,
+        ),
+      );
 
       if (profile.likes.isNotEmpty) {
         for (final like in profile.likes) {
@@ -245,64 +582,89 @@ class _CommunicationGridState extends State<CommunicationGrid> {
 
     return Column(
       children: [
+        // ─── TOP BAR ROW: CHIPS (LEFT) + NOW/NEXT (RIGHT) ────────────────────
         SizedBox(
           height: 64,
-          child: ListView.separated(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-            scrollDirection: Axis.horizontal,
-            itemCount: pages.length,
-            separatorBuilder: (_, _) => const SizedBox(width: 8),
-            itemBuilder: (context, index) {
-              final page = pages[index];
-              final isActive = index == _currentPage;
-
-              return GestureDetector(
-                onTap: () => _goToPage(index),
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 180),
-                  padding: const EdgeInsets.symmetric(horizontal: 14),
-                  decoration: BoxDecoration(
-                    color: isActive ? page.color.withValues(alpha: 0.18) : AppTheme.surface,
-                    borderRadius: BorderRadius.circular(14),
-                    border: Border.all(
-                      color: isActive ? page.color : AppTheme.border,
-                    ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment
+                .stretch, // Makes components fill container height completely
+            children: [
+              Expanded(
+                child: ListView.separated(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 10,
                   ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        page.icon,
-                        size: 18,
-                        color: isActive ? page.color : AppTheme.textSecondary,
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        page.label,
-                        style: TextStyle(
-                          color: isActive ? page.color : AppTheme.textSecondary,
-                          fontSize: 14,
-                          fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
-                        ),
-                      ),
-                      if (page.categoryId == 'context') ...[
-                        const SizedBox(width: 6),
-                        GestureDetector(
-                          onTap: () => _closeContextPage(context),
-                          child: Icon(
-                            Icons.close,
-                            size: 16,
-                            color: isActive ? page.color : AppTheme.textSecondary,
+                  scrollDirection: Axis.horizontal,
+                  itemCount: pages.length,
+                  separatorBuilder: (_, _) => const SizedBox(width: 8),
+                  itemBuilder: (context, index) {
+                    final page = pages[index];
+                    final isActive = index == _currentPage;
+
+                    return GestureDetector(
+                      onTap: () => _goToPage(index),
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 180),
+                        padding: const EdgeInsets.symmetric(horizontal: 14),
+                        decoration: BoxDecoration(
+                          color: isActive
+                              ? page.color.withOpacity(0.18)
+                              : AppTheme.surface,
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(
+                            color: isActive ? page.color : AppTheme.border,
                           ),
                         ),
-                      ],
-                    ],
-                  ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              page.icon,
+                              size: 18,
+                              color: isActive
+                                  ? page.color
+                                  : AppTheme.textSecondary,
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              page.label,
+                              style: TextStyle(
+                                color: isActive
+                                    ? page.color
+                                    : AppTheme.textSecondary,
+                                fontSize: 14,
+                                fontWeight: isActive
+                                    ? FontWeight.w700
+                                    : FontWeight.w500,
+                              ),
+                            ),
+                            if (page.categoryId == 'context') ...[
+                              const SizedBox(width: 6),
+                              GestureDetector(
+                                onTap: () => _closeContextPage(context),
+                                child: Icon(
+                                  Icons.close,
+                                  size: 16,
+                                  color: isActive
+                                      ? page.color
+                                      : AppTheme.textSecondary,
+                                ),
+                              ),
+                            ],
+                          ],
+                        ),
+                      ),
+                    );
+                  },
                 ),
-              );
-            },
+              ),
+              _buildInlineNowNext(), // Inline element displays here stretched vertically
+            ],
           ),
         ),
+
+        // ─── NATIVE CORE COHESIVE LAYOUT BUILDER SCREEN WINDOW ───────────────
         Expanded(
           child: PageView.builder(
             controller: _pageController,
@@ -324,7 +686,10 @@ class _CommunicationGridState extends State<CommunicationGrid> {
                 );
               }
 
-              final pageSymbols = _symbolsForCategory(displaySymbols, page.categoryId);
+              final pageSymbols = _symbolsForCategory(
+                displaySymbols,
+                page.categoryId,
+              );
 
               return Padding(
                 padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
@@ -334,7 +699,10 @@ class _CommunicationGridState extends State<CommunicationGrid> {
                       return const SizedBox.shrink();
                     }
 
-                    final metrics = _fitGridMetrics(constraints.biggest, pageSymbols.length);
+                    final metrics = _fitGridMetrics(
+                      constraints.biggest,
+                      pageSymbols.length,
+                    );
 
                     return GridView.builder(
                       physics: const NeverScrollableScrollPhysics(),
@@ -371,53 +739,73 @@ class _CommunicationGridState extends State<CommunicationGrid> {
 
     return Column(
       children: [
+        // ─── IMPORTED MODE HEADER ROW WITH INLINE RETENTION ──────────────────
         SizedBox(
           height: 64,
-          child: ListView.separated(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-            scrollDirection: Axis.horizontal,
-            itemCount: pages.length,
-            separatorBuilder: (_, _) => const SizedBox(width: 8),
-            itemBuilder: (context, index) {
-              final page = pages[index];
-              final isActive = index == _currentPage;
-
-              return GestureDetector(
-                onTap: () => _goToImportedPage(index),
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 180),
-                  padding: const EdgeInsets.symmetric(horizontal: 14),
-                  decoration: BoxDecoration(
-                    color: isActive
-                        ? AppTheme.primary.withValues(alpha: 0.18)
-                        : AppTheme.surface,
-                    borderRadius: BorderRadius.circular(14),
-                    border: Border.all(
-                      color: isActive ? AppTheme.primary : AppTheme.border,
-                    ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Expanded(
+                child: ListView.separated(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 10,
                   ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        Icons.dashboard_customize,
-                        size: 18,
-                        color: isActive ? AppTheme.primary : AppTheme.textSecondary,
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        page.label,
-                        style: TextStyle(
-                          color: isActive ? AppTheme.primary : AppTheme.textSecondary,
-                          fontSize: 14,
-                          fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
+                  scrollDirection: Axis.horizontal,
+                  itemCount: pages.length,
+                  separatorBuilder: (_, _) => const SizedBox(width: 8),
+                  itemBuilder: (context, index) {
+                    final page = pages[index];
+                    final isActive = index == _currentPage;
+
+                    return GestureDetector(
+                      onTap: () => _goToImportedPage(index),
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 180),
+                        padding: const EdgeInsets.symmetric(horizontal: 14),
+                        decoration: BoxDecoration(
+                          color: isActive
+                              ? AppTheme.primary.withOpacity(0.18)
+                              : AppTheme.surface,
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(
+                            color: isActive
+                                ? AppTheme.primary
+                                : AppTheme.border,
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.dashboard_customize,
+                              size: 18,
+                              color: isActive
+                                  ? AppTheme.primary
+                                  : AppTheme.textSecondary,
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              page.label,
+                              style: TextStyle(
+                                color: isActive
+                                    ? AppTheme.primary
+                                    : AppTheme.textSecondary,
+                                fontSize: 14,
+                                fontWeight: isActive
+                                    ? FontWeight.w700
+                                    : FontWeight.w500,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                    ],
-                  ),
+                    );
+                  },
                 ),
-              );
-            },
+              ),
+              _buildInlineNowNext(),
+            ],
           ),
         ),
         Expanded(
@@ -448,30 +836,30 @@ class _CommunicationGridState extends State<CommunicationGrid> {
     );
   }
 
-void _goToImportedPage(int index) {
-  final boardSet = widget.importedBoardSet;
-  if (boardSet == null) return;
+  void _goToImportedPage(int index) {
+    final boardSet = widget.importedBoardSet;
+    if (boardSet == null) return;
 
-  final pages = _importedPagesFor(boardSet);
+    final pages = _importedPagesFor(boardSet);
 
-  if (index == _currentPage || index < 0 || index >= pages.length) {
-    return;
+    if (index == _currentPage || index < 0 || index >= pages.length) {
+      return;
+    }
+
+    setState(() {
+      _currentPage = index;
+    });
+
+    widget.onImportedBoardChange?.call(pages[index].path);
+
+    if (_pageController.hasClients) {
+      _pageController.animateToPage(
+        index,
+        duration: const Duration(milliseconds: 220),
+        curve: Curves.easeOut,
+      );
+    }
   }
-
-  setState(() {
-    _currentPage = index;
-  });
-
-  widget.onImportedBoardChange?.call(pages[index].path);
-
-  if (_pageController.hasClients) {
-    _pageController.animateToPage(
-      index,
-      duration: const Duration(milliseconds: 220),
-      curve: Curves.easeOut,
-    );
-  }
-}
 
   void _handleImportedPageChanged(int index) {
     final boardSet = widget.importedBoardSet;
@@ -653,10 +1041,7 @@ class _ImportedBoardPage {
   final String path;
   final String label;
 
-  const _ImportedBoardPage({
-    required this.path,
-    required this.label,
-  });
+  const _ImportedBoardPage({required this.path, required this.label});
 }
 
 class _ContextSuggestionsPage extends StatelessWidget {
@@ -695,7 +1080,9 @@ class _ContextSuggestionsPage extends StatelessWidget {
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    teacherPrompt != null ? '"$teacherPrompt"' : 'Context suggestions',
+                    teacherPrompt != null
+                        ? '"$teacherPrompt"'
+                        : 'Context suggestions',
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
@@ -720,51 +1107,52 @@ class _ContextSuggestionsPage extends StatelessWidget {
               child: isLoading
                   ? const Center(child: CircularProgressIndicator())
                   : visibleSuggestions.isEmpty
-                      ? const Center(
-                          child: Text(
-                            'No suggestions available.',
-                            style: TextStyle(color: AppTheme.textSecondary),
-                          ),
-                        )
-                      : LayoutBuilder(
-                          builder: (context, constraints) {
-                            final crossAxisCount = constraints.maxWidth > 900
-                                ? 4
-                                : constraints.maxWidth > 600
-                                    ? 3
-                                    : 2;
-                            return GridView.builder(
-                              physics: const NeverScrollableScrollPhysics(),
-                              padding: EdgeInsets.zero,
-                              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  ? const Center(
+                      child: Text(
+                        'No suggestions available.',
+                        style: TextStyle(color: AppTheme.textSecondary),
+                      ),
+                    )
+                  : LayoutBuilder(
+                      builder: (context, constraints) {
+                        final crossAxisCount = constraints.maxWidth > 900
+                            ? 4
+                            : constraints.maxWidth > 600
+                            ? 3
+                            : 2;
+                        return GridView.builder(
+                          physics: const NeverScrollableScrollPhysics(),
+                          padding: EdgeInsets.zero,
+                          gridDelegate:
+                              SliverGridDelegateWithFixedCrossAxisCount(
                                 crossAxisCount: crossAxisCount,
                                 mainAxisSpacing: 10,
                                 crossAxisSpacing: 10,
                                 childAspectRatio: 1,
                               ),
-                              itemCount: visibleSuggestions.length,
-                              itemBuilder: (context, index) {
-                                final suggestion = visibleSuggestions[index];
-                                return SymbolTile(
-                                  symbol: Symbol(
+                          itemCount: visibleSuggestions.length,
+                          itemBuilder: (context, index) {
+                            final suggestion = visibleSuggestions[index];
+                            return SymbolTile(
+                              symbol: Symbol(
+                                id: 'context_$index',
+                                label: suggestion,
+                                category: SymbolCategory.noun,
+                              ),
+                              onTap: () {
+                                onSuggestionTap(
+                                  Symbol(
                                     id: 'context_$index',
                                     label: suggestion,
                                     category: SymbolCategory.noun,
                                   ),
-                                  onTap: () {
-                                    onSuggestionTap(
-                                      Symbol(
-                                        id: 'context_$index',
-                                        label: suggestion,
-                                        category: SymbolCategory.noun,
-                                      ),
-                                    );
-                                  },
                                 );
                               },
                             );
                           },
-                        ),
+                        );
+                      },
+                    ),
             ),
           ),
         ],
@@ -785,7 +1173,6 @@ class _GridMetrics {
   });
 }
 
-
 class _ImportedBoardPageView extends StatelessWidget {
   final ImportedBoard board;
   final Map<String, List<int>> packagedFiles;
@@ -803,61 +1190,56 @@ class _ImportedBoardPageView extends StatelessWidget {
     final orderedIds = board.grid.order.expand((row) => row).toList();
     final imageResolver = ImportedImageResolver();
 
-  return LayoutBuilder(
-    builder: (context, constraints) {
-      final columns = board.grid.columns <= 0 ? 1 : board.grid.columns;
-      final rows = board.grid.rows <= 0 ? 1 : board.grid.rows;
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final columns = board.grid.columns <= 0 ? 1 : board.grid.columns;
+        final rows = board.grid.rows <= 0 ? 1 : board.grid.rows;
 
-      const spacing = 10.0;
+        const spacing = 10.0;
 
-      final cellWidth =
-          (constraints.maxWidth - ((columns - 1) * spacing)) / columns;
+        final cellWidth =
+            (constraints.maxWidth - ((columns - 1) * spacing)) / columns;
+        final cellHeight =
+            (constraints.maxHeight - ((rows - 1) * spacing)) / rows;
+        final aspectRatio = cellHeight > 0 ? cellWidth / cellHeight : 1.0;
 
-      final cellHeight =
-          (constraints.maxHeight - ((rows - 1) * spacing)) / rows;
+        return GridView.builder(
+          physics: const NeverScrollableScrollPhysics(),
+          padding: EdgeInsets.zero,
+          itemCount: orderedIds.length,
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: columns,
+            mainAxisSpacing: spacing,
+            crossAxisSpacing: spacing,
+            childAspectRatio: aspectRatio,
+          ),
+          itemBuilder: (context, index) {
+            final buttonId = orderedIds[index];
 
-      final aspectRatio =
-          cellHeight > 0 ? cellWidth / cellHeight : 1.0;
+            if (buttonId == null) {
+              return const SizedBox.shrink();
+            }
 
-      return GridView.builder(
-        physics: const NeverScrollableScrollPhysics(),
-        padding: EdgeInsets.zero,
-        itemCount: orderedIds.length,
-        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: columns,
-          mainAxisSpacing: spacing,
-          crossAxisSpacing: spacing,
-          childAspectRatio: aspectRatio,
-        ),
-        itemBuilder: (context, index) {
-          final buttonId = orderedIds[index];
+            final button = buttonMap[buttonId];
+            if (button == null) {
+              return const SizedBox.shrink();
+            }
 
-          if (buttonId == null) {
-            return const SizedBox.shrink();
-          }
+            final image = button.imageId != null
+                ? board.imagesById[button.imageId]
+                : null;
+            final resolvedImage = imageResolver.resolve(image, packagedFiles);
 
-          final button = buttonMap[buttonId];
-          if (button == null) {
-            return const SizedBox.shrink();
-          }
-
-          final image = button.imageId != null
-              ? board.imagesById[button.imageId]
-              : null;
-
-          final resolvedImage =
-              imageResolver.resolve(image, packagedFiles);
-
-          return _ImportedBoardTile(
-            button: button,
-            imageBytes: resolvedImage?.bytes,
-            imageUrl: resolvedImage?.url,
-            onTap: () => onButtonTap(button),
-          );
-        },
-      );
-    },
-  );
+            return _ImportedBoardTile(
+              button: button,
+              imageBytes: resolvedImage?.bytes,
+              imageUrl: resolvedImage?.url,
+              onTap: () => onButtonTap(button),
+            );
+          },
+        );
+      },
+    );
   }
 }
 
@@ -907,20 +1289,20 @@ class _ImportedBoardTile extends StatelessWidget {
                         ),
                       )
                     : hasUrl
-                        ? Image.network(
-                            imageUrl!,
-                            fit: BoxFit.contain,
-                            errorBuilder: (_, _, _) => const Icon(
-                              Icons.image_outlined,
-                              color: AppTheme.textSecondary,
-                              size: 32,
-                            ),
-                          )
-                        : const Icon(
-                            Icons.image_outlined,
-                            color: AppTheme.textSecondary,
-                            size: 32,
-                          ),
+                    ? Image.network(
+                        imageUrl!,
+                        fit: BoxFit.contain,
+                        errorBuilder: (_, _, _) => const Icon(
+                          Icons.image_outlined,
+                          color: AppTheme.textSecondary,
+                          size: 32,
+                        ),
+                      )
+                    : const Icon(
+                        Icons.image_outlined,
+                        color: AppTheme.textSecondary,
+                        size: 32,
+                      ),
               ),
               const SizedBox(height: 8),
               Text(
@@ -937,6 +1319,54 @@ class _ImportedBoardTile extends StatelessWidget {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _InlineMiniTile extends StatelessWidget {
+  final String prefix;
+  final Color prefixColor;
+  final Symbol symbol;
+  final IconData iconData;
+  final VoidCallback onTap;
+
+  const _InlineMiniTile({
+    required this.prefix,
+    required this.prefixColor,
+    required this.symbol,
+    required this.iconData,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Text(
+            prefix,
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w900,
+              color: prefixColor,
+            ),
+          ),
+          Icon(iconData, size: 18, color: AppTheme.textPrimary),
+          const SizedBox(width: 5),
+          Text(
+            symbol.label,
+            style: const TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w700,
+              color: AppTheme.textPrimary,
+            ),
+          ),
+        ],
       ),
     );
   }
