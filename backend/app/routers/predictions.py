@@ -26,7 +26,7 @@ past_predictions = [
 
 payload_mock = PredictionRequest(
     audio_base64="mock_base64_audio",
-    text="What are you scared of?",
+    text="Where do you want to go this afternoon?",
     likes=["Park", "Swings", "Library", "Grandma's house", "Dogs"],
     dislikes=["Loud noises", "Dark rooms", "Nap time"]
 )
@@ -78,7 +78,7 @@ What the child said recently:
 {history_str}
 
 RULES:
-- Suggest 3 to 6 words or short phrases the child would realistically reply with.
+- Suggest 4 to 7 words or short phrases the child would realistically reply with.
 - ALWAYS include the child's favourite things when they are relevant to the topic.
 - NEVER include anything from the dislikes list.
 - Focus on specific, meaningful vocabulary (nouns, verbs, adjectives) — NOT generic words like "Yes", "No", "Please", "I want" since those are already on the child's board.

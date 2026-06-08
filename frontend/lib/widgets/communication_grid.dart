@@ -7,6 +7,7 @@ import 'package:provider/provider.dart';
 
 import '../models/models.dart';
 import '../providers/aac_provider.dart';
+import '../services/arasaac_service.dart';
 import '../theme/app_theme.dart';
 import 'symbol_tile.dart';
 
@@ -659,7 +660,7 @@ class _ImportedBoardPage {
   });
 }
 
-class _ContextSuggestionsPage extends StatelessWidget {
+class _ContextSuggestionsPage extends StatefulWidget {
   final String? teacherPrompt;
   final bool isLoading;
   final List<String> suggestions;
@@ -675,8 +676,44 @@ class _ContextSuggestionsPage extends StatelessWidget {
   });
 
   @override
+  State<_ContextSuggestionsPage> createState() => _ContextSuggestionsPageState();
+}
+
+class _ContextSuggestionsPageState extends State<_ContextSuggestionsPage> {
+  final ArasaacService _arasaacService = ArasaacService();
+  final Map<String, String?> _imageUrls = {};
+
+  @override
+  void didUpdateWidget(covariant _ContextSuggestionsPage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.suggestions != widget.suggestions) {
+      _fetchImages();
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchImages();
+  }
+
+  void _fetchImages() {
+    for (final suggestion in widget.suggestions) {
+      if (!_imageUrls.containsKey(suggestion)) {
+        _arasaacService.getPictogramUrl(suggestion).then((url) {
+          if (mounted) {
+            setState(() {
+              _imageUrls[suggestion] = url;
+            });
+          }
+        });
+      }
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final visibleSuggestions = isLoading ? const <String>[] : suggestions;
+    final visibleSuggestions = widget.isLoading ? const <String>[] : widget.suggestions;
 
     return Container(
       decoration: BoxDecoration(
@@ -695,7 +732,7 @@ class _ContextSuggestionsPage extends StatelessWidget {
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    teacherPrompt != null ? '"$teacherPrompt"' : 'Context suggestions',
+                    widget.teacherPrompt != null ? '"${widget.teacherPrompt}"' : 'Context suggestions',
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
@@ -706,7 +743,7 @@ class _ContextSuggestionsPage extends StatelessWidget {
                   ),
                 ),
                 TextButton.icon(
-                  onPressed: onClose,
+                  onPressed: widget.onClose,
                   icon: const Icon(Icons.close, size: 18),
                   label: const Text('Close'),
                 ),
@@ -717,7 +754,7 @@ class _ContextSuggestionsPage extends StatelessWidget {
           Expanded(
             child: Padding(
               padding: const EdgeInsets.all(16),
-              child: isLoading
+              child: widget.isLoading
                   ? const Center(child: CircularProgressIndicator())
                   : visibleSuggestions.isEmpty
                       ? const Center(
@@ -745,21 +782,16 @@ class _ContextSuggestionsPage extends StatelessWidget {
                               itemCount: visibleSuggestions.length,
                               itemBuilder: (context, index) {
                                 final suggestion = visibleSuggestions[index];
+                                final imageUrl = _imageUrls[suggestion];
+                                final symbol = Symbol(
+                                  id: 'context_$index',
+                                  label: suggestion,
+                                  category: SymbolCategory.noun,
+                                  imageUrl: imageUrl,
+                                );
                                 return SymbolTile(
-                                  symbol: Symbol(
-                                    id: 'context_$index',
-                                    label: suggestion,
-                                    category: SymbolCategory.noun,
-                                  ),
-                                  onTap: () {
-                                    onSuggestionTap(
-                                      Symbol(
-                                        id: 'context_$index',
-                                        label: suggestion,
-                                        category: SymbolCategory.noun,
-                                      ),
-                                    );
-                                  },
+                                  symbol: symbol,
+                                  onTap: () => widget.onSuggestionTap(symbol),
                                 );
                               },
                             );
