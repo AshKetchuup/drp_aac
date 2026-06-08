@@ -97,62 +97,12 @@ class _ScheduleModeState extends State<ScheduleMode> {
     });
   }
 
-  TimeSlot _getCurrentTimeSlot() {
-    final hour = DateTime.now().hour;
-    if (hour >= 5 && hour <= 12) return TimeSlot.morning;
-    if (hour >= 13 && hour <= 17) return TimeSlot.afternoon;
-    return TimeSlot.evening;
-  }
-
-  ({Symbol? now, Symbol? next}) _calculateNowNext(
-    Map<SlotKey, List<Symbol>> schedule,
-    int dayIndex,
-  ) {
-    final currentSlot = _getCurrentTimeSlot();
-    final currentList = schedule[(dayIndex, currentSlot)] ?? [];
-
-    Symbol? nowSymbol;
-    Symbol? nextSymbol;
-
-    if (currentList.isNotEmpty) {
-      nowSymbol = currentList[0];
-      nextSymbol = (currentList.length > 1)
-          ? currentList[1]
-          : _getNextSlotFirstSymbol(schedule, dayIndex, currentSlot);
-    } else {
-      // If current time slot is empty, check upcoming slot for "now", and look further ahead for "next"
-      nowSymbol = _getNextSlotFirstSymbol(schedule, dayIndex, currentSlot);
-      if (nowSymbol != null) {
-        if (currentSlot == TimeSlot.morning) {
-          nextSymbol = schedule[(dayIndex, TimeSlot.evening)]?.firstOrNull;
-        }
-      }
-    }
-
-    return (now: nowSymbol, next: nextSymbol);
-  }
-
-  Symbol? _getNextSlotFirstSymbol(
-    Map<SlotKey, List<Symbol>> schedule,
-    int day,
-    TimeSlot current,
-  ) {
-    if (current == TimeSlot.morning)
-      return schedule[(day, TimeSlot.afternoon)]?.firstOrNull;
-    if (current == TimeSlot.afternoon)
-      return schedule[(day, TimeSlot.evening)]?.firstOrNull;
-    return null;
-  }
-
   @override
   Widget build(BuildContext context) {
     return Consumer<AACProvider>(
       builder: (context, provider, child) {
         final currentSchedule = provider.schedule;
-        final nowNextData = _calculateNowNext(
-          currentSchedule,
-          _currentDayIndex,
-        );
+        final nowNextData = provider.calculateNowNext();
 
         return Material(
           color: AppTheme.background,
