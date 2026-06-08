@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:file_picker/file_picker.dart';
 import 'dart:io';
+import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:frontend/services/obf/obf_parser.dart';
 import 'package:frontend/services/obf/obz_parser.dart';
@@ -18,8 +19,37 @@ class AACProvider extends ChangeNotifier {
   ImportedBoardSet? get importedBoardSet => _importedBoardSet;
   String? get activeImportedBoardPath => _activeImportedBoardPath;
 
+  // Settings State
+  double _voicePitch = 1.0;
+  double _voiceRate = 0.4;
+  int? _gridColumns; // null = Auto
+  ThemeMode _themeMode = ThemeMode.dark;
+
+  double get voicePitch => _voicePitch;
+  double get voiceRate => _voiceRate;
+  int? get gridColumns => _gridColumns;
+  ThemeMode get themeMode => _themeMode;
+
   AACProvider() {
     _initTts();
+  }
+
+  void updateVoiceSettings(double pitch, double rate) {
+    _voicePitch = pitch;
+    _voiceRate = rate;
+    _flutterTts.setPitch(_voicePitch);
+    _flutterTts.setSpeechRate(_voiceRate);
+    notifyListeners();
+  }
+
+  void updateGridColumns(int? columns) {
+    _gridColumns = columns;
+    notifyListeners();
+  }
+
+  void updateThemeMode(ThemeMode mode) {
+    _themeMode = mode;
+    notifyListeners();
   }
 
   void setImportedBoardSet(ImportedBoardSet boardSet) {
@@ -43,28 +73,27 @@ class AACProvider extends ChangeNotifier {
     final result = await FilePicker.platform.pickFiles(
       type: FileType.custom,
       allowedExtensions: ['obf', 'obz'],
+      withData: true,
     );
 
     if (result == null) return;
 
-    final file = File(result.files.single.path!);
+    final file = result.files.single;
 
-    if (file.path.toLowerCase().endsWith('.obz')) {
-      final boardSet = await ObzParser().parseObzFile(file);
-
+    if (file.extension?.toLowerCase() == 'obz') {
+      final boardSet = ObzParser().parseObzBytes(file.bytes!);
       _importedBoardSet = boardSet;
       _activeImportedBoardPath = boardSet.rootPath;
     } else {
-      final text = await file.readAsString();
-      final board = ObfParser().parseObfString(text);
+      final jsonText = utf8.decode(file.bytes!);
+      final board = ObfParser().parseObfString(jsonText);
 
       _importedBoardSet = ImportedBoardSet(
-        rootPath: 'root',
-        boardsByPath: {'root': board},
+        rootPath: 'board.obf',
+        boardsByPath: {'board.obf': board},
         filesByPath: {},
       );
-
-      _activeImportedBoardPath = 'root';
+      _activeImportedBoardPath = 'board.obf';
     }
 
     notifyListeners();
@@ -72,9 +101,9 @@ class AACProvider extends ChangeNotifier {
 
   Future<void> _initTts() async {
     await _flutterTts.setLanguage('en-GN');
-    await _flutterTts.setSpeechRate(0.4);
+    await _flutterTts.setSpeechRate(_voiceRate);
     await _flutterTts.setVolume(1.0);
-    await _flutterTts.setPitch(1.0);
+    await _flutterTts.setPitch(_voicePitch);
   }
 
   Future<void> speak(String text) async {

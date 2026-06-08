@@ -615,6 +615,20 @@ void _goToImportedPage(int index) {
 
   _GridMetrics _fitGridMetrics(Size size, int itemCount) {
     const spacing = 10.0;
+    
+    final provider = context.read<AACProvider>();
+    if (provider.gridColumns != null) {
+      final columns = provider.gridColumns!;
+      final rows = (itemCount / columns).ceil();
+      final cellWidth = (size.width - (spacing * (columns - 1))) / columns;
+      final cellHeight = (size.height - (spacing * (rows - 1))) / rows;
+      
+      return _GridMetrics(
+        crossAxisCount: columns,
+        childAspectRatio: (cellWidth > 0 && cellHeight > 0) ? cellWidth / cellHeight : 1.0,
+        spacing: spacing,
+      );
+    }
 
     var bestColumns = 1;
     var bestAspectRatio = 1.0;

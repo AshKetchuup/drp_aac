@@ -7,6 +7,7 @@ import 'profile_setup_screen.dart';
 import 'calming_mode_screen.dart';
 import 'now_next_screen.dart';
 import '../widgets/scheduler.dart';
+import '../theme/app_theme.dart';
 
 class DashboardScreen extends StatelessWidget {
   const DashboardScreen({super.key});
@@ -70,7 +71,14 @@ class DashboardScreen extends StatelessWidget {
                   // Settings button
                   GestureDetector(
                     onTap: () {
-                      // TODO: settings
+                      showModalBottomSheet(
+                        context: context,
+                        backgroundColor: AppTheme.surface,
+                        shape: const RoundedRectangleBorder(
+                          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+                        ),
+                        builder: (context) => SettingsSheet(),
+                      );
                     },
                     child: Container(
                       padding: const EdgeInsets.all(12),
