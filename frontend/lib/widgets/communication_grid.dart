@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 import 'dart:typed_data';
+import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:frontend/services/obf/imported_image_resolver.dart';
@@ -243,6 +244,9 @@ class _CommunicationGridState extends State<CommunicationGrid> {
         }
       }
     }
+
+    // Add custom symbols created from context suggestions
+    displaySymbols.addAll(provider.customSymbols);
 
     return Column(
       children: [
@@ -682,6 +686,7 @@ class _ContextSuggestionsPage extends StatefulWidget {
 class _ContextSuggestionsPageState extends State<_ContextSuggestionsPage> {
   final ArasaacService _arasaacService = ArasaacService();
   final Map<String, String?> _imageUrls = {};
+  final Map<String, IconData?> _icons = {};
 
   @override
   void didUpdateWidget(covariant _ContextSuggestionsPage oldWidget) {
@@ -698,15 +703,33 @@ class _ContextSuggestionsPageState extends State<_ContextSuggestionsPage> {
   }
 
   void _fetchImages() {
+    final provider = context.read<AACProvider>();
+    final allSymbols = [
+      ..._CommunicationGridState.symbols,
+      ...provider.customSymbols,
+    ];
+
     for (final suggestion in widget.suggestions) {
-      if (!_imageUrls.containsKey(suggestion)) {
-        _arasaacService.getPictogramUrl(suggestion).then((url) {
+      if (!_imageUrls.containsKey(suggestion) && !_icons.containsKey(suggestion)) {
+        final localMatch = allSymbols.where((s) => s.label.toLowerCase() == suggestion.toLowerCase()).firstOrNull;
+
+        if (localMatch != null && (localMatch.imageUrl != null || localMatch.icon != null)) {
           if (mounted) {
             setState(() {
-              _imageUrls[suggestion] = url;
+              _imageUrls[suggestion] = localMatch.imageUrl;
+              _icons[suggestion] = localMatch.icon;
             });
           }
-        });
+        } else {
+          _arasaacService.getPictogramUrl(suggestion).then((url) {
+            if (mounted) {
+              setState(() {
+                _imageUrls[suggestion] = url;
+                _icons[suggestion] = null;
+              });
+            }
+          });
+        }
       }
     }
   }
@@ -783,11 +806,13 @@ class _ContextSuggestionsPageState extends State<_ContextSuggestionsPage> {
                               itemBuilder: (context, index) {
                                 final suggestion = visibleSuggestions[index];
                                 final imageUrl = _imageUrls[suggestion];
+                                final icon = _icons[suggestion];
                                 final symbol = Symbol(
                                   id: 'context_$index',
                                   label: suggestion,
                                   category: SymbolCategory.noun,
                                   imageUrl: imageUrl,
+                                  icon: icon,
                                 );
                                 return SymbolTile(
                                   symbol: symbol,

@@ -92,6 +92,7 @@ class AACProvider extends ChangeNotifier {
     createdAt: DateTime.now(),
   );
   final List<Symbol> _sentenceBuilder = [];
+  final List<Symbol> _customSymbols = [];
   String? _currentEmotion;
   bool _isProfileSetupComplete = true;
 
@@ -103,6 +104,7 @@ class AACProvider extends ChangeNotifier {
 
   UserProfile? get currentProfile => _currentProfile;
   List<Symbol> get sentenceBuilder => _sentenceBuilder;
+  List<Symbol> get customSymbols => _customSymbols;
   String? get currentEmotion => _currentEmotion;
   bool get isProfileSetupComplete => _isProfileSetupComplete;
 
@@ -112,6 +114,19 @@ class AACProvider extends ChangeNotifier {
   List<String> get contextSuggestions => _contextSuggestions;
 
   String get currentSentence => _sentenceBuilder.map((s) => s.label).join(' ');
+
+  void addCustomSymbol(Symbol symbol) {
+    // Avoid duplicates by checking label
+    if (!_customSymbols.any((s) => s.label.toLowerCase() == symbol.label.toLowerCase())) {
+      _customSymbols.add(symbol);
+      notifyListeners();
+    }
+  }
+
+  void removeCustomSymbol(String id) {
+    _customSymbols.removeWhere((s) => s.id == id);
+    notifyListeners();
+  }
 
   void setProfile(UserProfile profile) {
     _currentProfile = profile;
