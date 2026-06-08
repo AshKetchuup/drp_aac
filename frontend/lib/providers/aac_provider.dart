@@ -9,18 +9,54 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_tts/flutter_tts.dart';
 import '../models/models.dart';
+import '../widgets/scheduler.dart';
+import '../repositories/schedule_repository.dart';
+import '../repositories/local_schedule_repository.dart';
 
 class AACProvider extends ChangeNotifier {
+  final ScheduleRepository _scheduleRepo;
+
+  AACProvider({ScheduleRepository? scheduleRepo})
+    : _scheduleRepo = scheduleRepo ?? LocalScheduleRepository() {
+    _initTts();
+  }
+
+  Map<SlotKey, List<Symbol>> schedule = {};
+  bool _scheduleLoaded = false;
+
+  Future<void> loadSchedule() async {
+    if (_scheduleLoaded) return;
+    schedule = await _scheduleRepo.load();
+    _scheduleLoaded = true;
+    notifyListeners();
+  }
+
+  Future<void> addToSchedule(SlotKey key, Symbol symbol) async {
+    schedule[key]!.add(symbol);
+    notifyListeners();
+    await _scheduleRepo.save(schedule);
+  }
+
+  Future<void> removeFromSchedule(SlotKey key, int index) async {
+    schedule[key]!.removeAt(index);
+    notifyListeners();
+    await _scheduleRepo.save(schedule);
+  }
+
+  Future<void> clearSchedule() async {
+    for (final key in schedule.keys) {
+      schedule[key]!.clear();
+    }
+    notifyListeners();
+    await _scheduleRepo.clear();
+  }
+
   final FlutterTts _flutterTts = FlutterTts();
   ImportedBoardSet? _importedBoardSet;
   String? _activeImportedBoardPath;
 
   ImportedBoardSet? get importedBoardSet => _importedBoardSet;
   String? get activeImportedBoardPath => _activeImportedBoardPath;
-
-  AACProvider() {
-    _initTts();
-  }
 
   void setImportedBoardSet(ImportedBoardSet boardSet) {
     _importedBoardSet = boardSet;
@@ -175,7 +211,9 @@ class AACProvider extends ChangeNotifier {
         }
 
         if (micStatus.isPermanentlyDenied) {
-          print("Microphone permission permanently denied. Opening settings...");
+          print(
+            "Microphone permission permanently denied. Opening settings...",
+          );
           openAppSettings();
           return;
         }
@@ -209,7 +247,7 @@ class AACProvider extends ChangeNotifier {
         notifyListeners();
       },
       listenFor: const Duration(minutes: 10), // Effectively unlimited
-      pauseFor: const Duration(minutes: 10),  // Don't auto-stop on silence
+      pauseFor: const Duration(minutes: 10), // Don't auto-stop on silence
     );
   }
 
@@ -251,7 +289,12 @@ class AACProvider extends ChangeNotifier {
         final data = jsonDecode(response.body);
         _contextSuggestions = List<String>.from(data['predictions'] ?? []);
       } else {
-        _contextSuggestions = ["Pizza", "Apple", "Sandwich", "Pear"]; // Fallback
+        _contextSuggestions = [
+          "Pizza",
+          "Apple",
+          "Sandwich",
+          "Pear",
+        ]; // Fallback
       }
     } catch (e) {
       debugPrint('Error fetching predictions: $e');
