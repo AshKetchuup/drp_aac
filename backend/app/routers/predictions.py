@@ -3,7 +3,7 @@ import sys
 import os
 
 # Add the backend directory to sys.path to allow running this file directly
-#sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
 
 from fastapi import APIRouter, HTTPException
 from app.schemas import PredictionRequest, PredictionResponse
@@ -26,7 +26,7 @@ past_predictions = [
 
 payload_mock = PredictionRequest(
     audio_base64="mock_base64_audio",
-    text="What kind of pets would you like?",
+    text="What are your favourite harry potter characters?",
     likes=["Park", "Swings", "Library", "Grandma's house", "Dogs"],
     dislikes=["Loud noises", "Dark rooms", "Nap time"]
 )
@@ -112,8 +112,8 @@ Answer:"""
         format='json',
         keep_alive=-1,  # CRITICAL FOR SPEED: Keeps model loaded in RAM permanently
         options={
-            'num_predict': 80, # We only need a few words, stop generating sooner
-            'num_ctx': 512,
+            'num_predict': 256, # Increased to prevent cutting off long JSON arrays
+            'num_ctx': 1024,
             'temperature': 0.7,
         }
     )
