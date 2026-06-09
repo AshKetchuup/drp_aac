@@ -10,8 +10,84 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_tts/flutter_tts.dart';
 import '../models/models.dart';
+import '../widgets/scheduler.dart';
+import '../repositories/schedule_repository.dart';
+import '../repositories/local_schedule_repository.dart';
 
 class AACProvider extends ChangeNotifier {
+  final ScheduleRepository _scheduleRepo;
+
+  AACProvider({ScheduleRepository? scheduleRepo})
+    : _scheduleRepo = scheduleRepo ?? LocalScheduleRepository() {
+    _initTts();
+  }
+
+  ({Symbol? now, Symbol? next}) calculateNowNext() {
+    final hour = DateTime.now().hour;
+    
+    // Determine current slot
+    TimeSlot currentSlot = TimeSlot.evening;
+    if (hour >= 5 && hour < 12) currentSlot = TimeSlot.morning;
+    if (hour >= 12 && hour < 18) currentSlot = TimeSlot.afternoon;
+
+    // Get current weekday index (0 = Monday, 6 = Sunday)
+    final dayIndex = DateTime.now().weekday - 1;
+    final currentList = schedule[(dayIndex, currentSlot)] ?? [];
+
+    Symbol? nowSymbol;
+    Symbol? nextSymbol;
+
+    if (currentList.isNotEmpty) {
+      nowSymbol = currentList[0];
+      nextSymbol = currentList.length > 1 
+          ? currentList[1] 
+          : _getNextSlotFirstSymbol(dayIndex, currentSlot);
+    } else {
+      nowSymbol = _getNextSlotFirstSymbol(dayIndex, currentSlot);
+      if (nowSymbol != null && currentSlot == TimeSlot.morning) {
+        nextSymbol = schedule[(dayIndex, TimeSlot.afternoon)]?.firstOrNull; 
+      }
+    }
+    return (now: nowSymbol, next: nextSymbol);
+  }
+
+  // Private helper used internally by the provider calculator
+  Symbol? _getNextSlotFirstSymbol(int day, TimeSlot current) {
+    if (current == TimeSlot.morning) return schedule[(day, TimeSlot.afternoon)]?.firstOrNull;
+    if (current == TimeSlot.afternoon) return schedule[(day, TimeSlot.evening)]?.firstOrNull;
+    return null;
+  }
+
+  Map<SlotKey, List<Symbol>> schedule = {};
+  bool _scheduleLoaded = false;
+
+  Future<void> loadSchedule() async {
+    if (_scheduleLoaded) return;
+    schedule = await _scheduleRepo.load();
+    _scheduleLoaded = true;
+    notifyListeners();
+  }
+
+  Future<void> addToSchedule(SlotKey key, Symbol symbol) async {
+    schedule[key]!.add(symbol);
+    notifyListeners();
+    await _scheduleRepo.save(schedule);
+  }
+
+  Future<void> removeFromSchedule(SlotKey key, int index) async {
+    schedule[key]!.removeAt(index);
+    notifyListeners();
+    await _scheduleRepo.save(schedule);
+  }
+
+  Future<void> clearSchedule() async {
+    for (final key in schedule.keys) {
+      schedule[key]!.clear();
+    }
+    notifyListeners();
+    await _scheduleRepo.clear();
+  }
+
   final FlutterTts _flutterTts = FlutterTts();
   ImportedBoardSet? _importedBoardSet;
   String? _activeImportedBoardPath;
@@ -19,37 +95,8 @@ class AACProvider extends ChangeNotifier {
   ImportedBoardSet? get importedBoardSet => _importedBoardSet;
   String? get activeImportedBoardPath => _activeImportedBoardPath;
 
-  // Settings State
-  double _voicePitch = 1.0;
-  double _voiceRate = 0.4;
-  int? _gridColumns; // null = Auto
-  ThemeMode _themeMode = ThemeMode.dark;
-
-  double get voicePitch => _voicePitch;
-  double get voiceRate => _voiceRate;
-  int? get gridColumns => _gridColumns;
-  ThemeMode get themeMode => _themeMode;
-
   AACProvider() {
     _initTts();
-  }
-
-  void updateVoiceSettings(double pitch, double rate) {
-    _voicePitch = pitch;
-    _voiceRate = rate;
-    _flutterTts.setPitch(_voicePitch);
-    _flutterTts.setSpeechRate(_voiceRate);
-    notifyListeners();
-  }
-
-  void updateGridColumns(int? columns) {
-    _gridColumns = columns;
-    notifyListeners();
-  }
-
-  void updateThemeMode(ThemeMode mode) {
-    _themeMode = mode;
-    notifyListeners();
   }
 
   void setImportedBoardSet(ImportedBoardSet boardSet) {
@@ -219,7 +266,9 @@ class AACProvider extends ChangeNotifier {
         }
 
         if (micStatus.isPermanentlyDenied) {
-          print("Microphone permission permanently denied. Opening settings...");
+          print(
+            "Microphone permission permanently denied. Opening settings...",
+          );
           openAppSettings();
           return;
         }
@@ -253,7 +302,7 @@ class AACProvider extends ChangeNotifier {
         notifyListeners();
       },
       listenFor: const Duration(minutes: 10), // Effectively unlimited
-      pauseFor: const Duration(minutes: 10),  // Don't auto-stop on silence
+      pauseFor: const Duration(minutes: 10), // Don't auto-stop on silence
     );
   }
 
@@ -295,7 +344,12 @@ class AACProvider extends ChangeNotifier {
         final data = jsonDecode(response.body);
         _contextSuggestions = List<String>.from(data['predictions'] ?? []);
       } else {
-        _contextSuggestions = ["Pizza", "Apple", "Sandwich", "Pear"]; // Fallback
+        _contextSuggestions = [
+          "Pizza",
+          "Apple",
+          "Sandwich",
+          "Pear",
+        ]; // Fallback
       }
     } catch (e) {
       debugPrint('Error fetching predictions: $e');

@@ -53,6 +53,24 @@ class Symbol {
       isFolder: isFolder ?? this.isFolder,
     );
   }
+
+  // Add to your Symbol class:
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'label': label,
+    'category': category.name,
+    'icon': icon?.codePoint,
+  };
+
+  factory Symbol.fromJson(Map<String, dynamic> json) => Symbol(
+    id: json['id'] as String,
+    label: json['label'] as String,
+    category: SymbolCategory.values.byName(json['category'] as String),
+    icon: json['icon'] != null
+        // ignore: non_const_argument_for_const_parameter
+        ? IconData(json['icon'] as int, fontFamily: 'MaterialIcons')
+        : null,
+  );
 }
 
 class UserProfile {
