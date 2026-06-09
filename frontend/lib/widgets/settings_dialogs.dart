@@ -1,0 +1,171 @@
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../providers/aac_provider.dart';
+import '../theme/app_theme.dart';
+
+class VoiceSettingsDialog extends StatefulWidget {
+  const VoiceSettingsDialog({super.key});
+
+  @override
+  State<VoiceSettingsDialog> createState() => _VoiceSettingsDialogState();
+}
+
+class _VoiceSettingsDialogState extends State<VoiceSettingsDialog> {
+  late double _pitch;
+  late double _rate;
+
+  @override
+  void initState() {
+    super.initState();
+    final provider = context.read<AACProvider>();
+    _pitch = provider.voicePitch;
+    _rate = provider.voiceRate;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      backgroundColor: AppTheme.surface,
+      title: const Text('Voice Settings', style: TextStyle(color: AppTheme.textPrimary)),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('Pitch: ${_pitch.toStringAsFixed(1)}', style: const TextStyle(color: AppTheme.textSecondary)),
+          Slider(
+            value: _pitch,
+            min: 0.5,
+            max: 2.0,
+            activeColor: AppTheme.primary,
+            onChanged: (val) => setState(() => _pitch = val),
+            onChangeEnd: (val) {
+              context.read<AACProvider>().updateVoiceSettings(_pitch, _rate);
+              context.read<AACProvider>().speak("Hello, this is my new voice.");
+            },
+          ),
+          const SizedBox(height: 16),
+          Text('Speed: ${_rate.toStringAsFixed(2)}', style: const TextStyle(color: AppTheme.textSecondary)),
+          Slider(
+            value: _rate,
+            min: 0.1,
+            max: 1.0,
+            activeColor: AppTheme.primary,
+            onChanged: (val) => setState(() => _rate = val),
+            onChangeEnd: (val) {
+              context.read<AACProvider>().updateVoiceSettings(_pitch, _rate);
+              context.read<AACProvider>().speak("Hello, this is my new speed.");
+            },
+          ),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Done', style: TextStyle(color: AppTheme.primary)),
+        ),
+      ],
+    );
+  }
+}
+
+class GridLayoutDialog extends StatelessWidget {
+  const GridLayoutDialog({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final provider = context.watch<AACProvider>();
+    final currentCols = provider.gridColumns;
+
+    return AlertDialog(
+      backgroundColor: AppTheme.surface,
+      title: const Text('Grid Layout', style: TextStyle(color: AppTheme.textPrimary)),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          RadioListTile<int?>(
+            title: const Text('Auto (Responsive)', style: TextStyle(color: AppTheme.textPrimary)),
+            value: null,
+            groupValue: currentCols,
+            activeColor: AppTheme.primary,
+            onChanged: (val) {
+              provider.updateGridColumns(val);
+              Navigator.pop(context);
+            },
+          ),
+          ...[2, 3, 4, 5, 6].map((cols) => RadioListTile<int?>(
+                title: Text('$cols Columns', style: const TextStyle(color: AppTheme.textPrimary)),
+                value: cols,
+                groupValue: currentCols,
+                activeColor: AppTheme.primary,
+                onChanged: (val) {
+                  provider.updateGridColumns(val);
+                  Navigator.pop(context);
+                },
+              )),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Cancel', style: TextStyle(color: AppTheme.primary)),
+        ),
+      ],
+    );
+  }
+}
+
+class AppearanceDialog extends StatelessWidget {
+  const AppearanceDialog({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final provider = context.watch<AACProvider>();
+    final currentMode = provider.themeMode;
+
+    return AlertDialog(
+      backgroundColor: AppTheme.surface,
+      title: const Text('Appearance', style: TextStyle(color: AppTheme.textPrimary)),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          RadioListTile<ThemeMode>(
+            title: const Text('System Default', style: TextStyle(color: AppTheme.textPrimary)),
+            value: ThemeMode.system,
+            groupValue: currentMode,
+            activeColor: AppTheme.primary,
+            onChanged: (val) {
+              provider.updateThemeMode(val!);
+              Navigator.pop(context);
+            },
+          ),
+          RadioListTile<ThemeMode>(
+            title: const Text('Light Mode', style: TextStyle(color: AppTheme.textPrimary)),
+            value: ThemeMode.light,
+            groupValue: currentMode,
+            activeColor: AppTheme.primary,
+            onChanged: (val) {
+              provider.updateThemeMode(val!);
+              Navigator.pop(context);
+            },
+          ),
+          RadioListTile<ThemeMode>(
+            title: const Text('Dark Mode', style: TextStyle(color: AppTheme.textPrimary)),
+            value: ThemeMode.dark,
+            groupValue: currentMode,
+            activeColor: AppTheme.primary,
+            onChanged: (val) {
+              provider.updateThemeMode(val!);
+              Navigator.pop(context);
+            },
+          ),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Cancel', style: TextStyle(color: AppTheme.primary)),
+        ),
+      ],
+    );
+  }
+}

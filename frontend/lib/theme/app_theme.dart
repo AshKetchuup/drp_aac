@@ -34,7 +34,84 @@ class AppTheme {
   static const Color emotionCalm = Color(0xFF22C55E);
   static const Color emotionTired = Color(0xFF6B7280);
 
-  static ThemeData get theme => ThemeData(
+  static ThemeData getTheme(ThemeMode mode) {
+    if (mode == ThemeMode.light) {
+      return ThemeData(
+        useMaterial3: true,
+        brightness: Brightness.light,
+        scaffoldBackgroundColor: const Color(0xFFF8FAFC),
+        colorScheme: const ColorScheme.light(
+          primary: primary,
+          secondary: secondary,
+          surface: Colors.white,
+          error: error,
+        ),
+        appBarTheme: const AppBarTheme(
+          backgroundColor: Color(0xFFF8FAFC),
+          elevation: 0,
+          centerTitle: false,
+          titleTextStyle: TextStyle(
+            color: Color(0xFF0F172A),
+            fontSize: 20,
+            fontWeight: FontWeight.w600,
+          ),
+          iconTheme: IconThemeData(color: Color(0xFF0F172A)),
+        ),
+        cardTheme: CardThemeData(
+          color: Colors.white,
+          elevation: 0,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+            side: const BorderSide(color: Color(0xFFE2E8F0), width: 1),
+          ),
+        ),
+        textTheme: const TextTheme(
+          displayLarge: TextStyle(color: Color(0xFF0F172A), fontSize: 32, fontWeight: FontWeight.bold),
+          bodyLarge: TextStyle(color: Color(0xFF0F172A), fontSize: 16),
+          bodyMedium: TextStyle(color: Color(0xFF475569), fontSize: 14),
+        ),
+      );
+    }
+
+    if (mode == ThemeMode.system) { // we use system for High Contrast since flutter doesn't have a built-in high contrast ThemeMode enum
+      return ThemeData(
+        useMaterial3: true,
+        brightness: Brightness.dark,
+        scaffoldBackgroundColor: Colors.black,
+        colorScheme: const ColorScheme.dark(
+          primary: Colors.yellow,
+          secondary: Colors.cyan,
+          surface: Colors.black,
+          error: Colors.red,
+        ),
+        appBarTheme: const AppBarTheme(
+          backgroundColor: Colors.black,
+          elevation: 0,
+          centerTitle: false,
+          titleTextStyle: TextStyle(
+            color: Colors.white,
+            fontSize: 20,
+            fontWeight: FontWeight.w900,
+          ),
+        ),
+        cardTheme: CardThemeData(
+          color: Colors.black,
+          elevation: 0,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+            side: const BorderSide(color: Colors.white, width: 3),
+          ),
+        ),
+        textTheme: const TextTheme(
+          displayLarge: TextStyle(color: Colors.white, fontSize: 32, fontWeight: FontWeight.bold),
+          bodyLarge: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+          bodyMedium: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold),
+        ),
+      );
+    }
+
+    // Default Dark
+    return ThemeData(
         useMaterial3: true,
         brightness: Brightness.dark,
         scaffoldBackgroundColor: background,
@@ -150,4 +227,5 @@ class AppTheme {
           ),
         ),
       );
+  }
 }
