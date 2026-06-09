@@ -59,18 +59,38 @@ class Symbol {
     'id': id,
     'label': label,
     'category': category.name,
-    'icon': icon?.codePoint,
+    // Store it as a predictable string name instead of a codePoint integer
+    'icon_name': id,
   };
 
-  factory Symbol.fromJson(Map<String, dynamic> json) => Symbol(
-    id: json['id'] as String,
-    label: json['label'] as String,
-    category: SymbolCategory.values.byName(json['category'] as String),
-    icon: json['icon'] != null
-        // ignore: non_const_argument_for_const_parameter
-        ? IconData(json['icon'] as int, fontFamily: 'MaterialIcons')
-        : null,
-  );
+  factory Symbol.fromJson(Map<String, dynamic> json) {
+    return Symbol(
+      id: json['id'] as String,
+      label: json['label'] as String,
+      category: SymbolCategory.values.byName(json['category'] as String),
+      // Look up the IconData directly using the static mapping system
+      icon: _getIconDataFromName(json['icon_name'] as String),
+    );
+  }
+
+  static IconData? _getIconDataFromName(String name) {
+    switch (name.toLowerCase()) {
+      case 'home':
+        return Icons.home;
+      case 'school':
+        return Icons.school;
+      case 'break':
+        return Icons.chair;
+      case 'restaurant':
+        return Icons.restaurant;
+      case 'outside':
+        return Icons.park;
+      case 'tablet':
+        return Icons.tablet;
+      default:
+        return null; // Let your UI fallback logic take care of the rest
+    }
+  }
 }
 
 class UserProfile {
@@ -214,12 +234,7 @@ class ImportedImage {
   final String? path;
   final String? url;
 
-  const ImportedImage({
-    required this.id,
-    this.dataUri,
-    this.path,
-    this.url,
-  });
+  const ImportedImage({required this.id, this.dataUri, this.path, this.url});
 }
 
 class ImportedBoardSet {
@@ -243,10 +258,7 @@ class ResolvedImportedImage {
   final Uint8List? bytes;
   final String? url;
 
-  const ResolvedImportedImage({
-    this.bytes,
-    this.url,
-  });
+  const ResolvedImportedImage({this.bytes, this.url});
 
   bool get hasBytes => bytes != null && bytes!.isNotEmpty;
   bool get hasUrl => url != null && url!.isNotEmpty;
