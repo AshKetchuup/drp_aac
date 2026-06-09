@@ -8,8 +8,8 @@ ollama serve &
 sleep 5
 
 # Pull the specific model you are using in predictions.py
-echo "Pulling qwen2.5:1.5b model..."
-ollama pull qwen2.5:1.5b
+echo "Pulling llama3.2 model..."
+ollama pull llama3.2
 
 # Start the FastAPI server
 echo "Starting FastAPI server..."
