@@ -112,7 +112,7 @@ class AACProvider extends ChangeNotifier {
   }
 
   Future<void> importBoard() async {
-    final result = await FilePicker.platform.pickFiles(
+    final result = await FilePicker.pickFiles(
       type: FileType.custom,
       allowedExtensions: ['obf', 'obz'],
     );

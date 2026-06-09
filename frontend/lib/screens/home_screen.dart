@@ -108,7 +108,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _importBoard() async {
-    final result = await FilePicker.platform.pickFiles(
+    final result = await FilePicker.pickFiles(
       type: FileType.custom,
       allowedExtensions: ['obf', 'obz'],
       withData: true,
