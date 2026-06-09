@@ -17,6 +17,35 @@ import '../repositories/local_schedule_repository.dart';
 class AACProvider extends ChangeNotifier {
   final ScheduleRepository _scheduleRepo;
 
+  // Settings State
+  double _voicePitch = 1.0;
+  double _voiceRate = 0.4;
+  int? _gridColumns; // null = Auto
+  ThemeMode _themeMode = ThemeMode.dark;
+
+  double get voicePitch => _voicePitch;
+  double get voiceRate => _voiceRate;
+  int? get gridColumns => _gridColumns;
+  ThemeMode get themeMode => _themeMode;
+
+  void updateVoiceSettings(double pitch, double rate) {
+    _voicePitch = pitch;
+    _voiceRate = rate;
+    _flutterTts.setPitch(_voicePitch);
+    _flutterTts.setSpeechRate(_voiceRate);
+    notifyListeners();
+  }
+
+  void updateGridColumns(int? columns) {
+    _gridColumns = columns;
+    notifyListeners();
+  }
+
+  void updateThemeMode(ThemeMode mode) {
+    _themeMode = mode;
+    notifyListeners();
+  }
+
   AACProvider({ScheduleRepository? scheduleRepo})
     : _scheduleRepo = scheduleRepo ?? LocalScheduleRepository() {
     _initTts();
@@ -95,9 +124,7 @@ class AACProvider extends ChangeNotifier {
   ImportedBoardSet? get importedBoardSet => _importedBoardSet;
   String? get activeImportedBoardPath => _activeImportedBoardPath;
 
-  AACProvider() {
-    _initTts();
-  }
+
 
   void setImportedBoardSet(ImportedBoardSet boardSet) {
     _importedBoardSet = boardSet;

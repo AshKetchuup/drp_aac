@@ -1154,8 +1154,8 @@ class _ContextSuggestionsPageState extends State<_ContextSuggestionsPage> {
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    teacherPrompt != null
-                        ? '"$teacherPrompt"'
+                    widget.teacherPrompt != null
+                        ? '"${widget.teacherPrompt}"'
                         : 'Context suggestions',
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
@@ -1207,21 +1207,18 @@ class _ContextSuggestionsPageState extends State<_ContextSuggestionsPage> {
                           itemCount: visibleSuggestions.length,
                           itemBuilder: (context, index) {
                             final suggestion = visibleSuggestions[index];
+                            final imageUrl = _imageUrls[suggestion];
+                            final icon = _icons[suggestion];
+                            final symbol = Symbol(
+                              id: 'context_$index',
+                              label: suggestion,
+                              category: SymbolCategory.noun,
+                              imageUrl: imageUrl,
+                              icon: icon,
+                            );
                             return SymbolTile(
-                              symbol: Symbol(
-                                id: 'context_$index',
-                                label: suggestion,
-                                category: SymbolCategory.noun,
-                              ),
-                              onTap: () {
-                                onSuggestionTap(
-                                  Symbol(
-                                    id: 'context_$index',
-                                    label: suggestion,
-                                    category: SymbolCategory.noun,
-                                  ),
-                                );
-                              },
+                              symbol: symbol,
+                              onTap: () => widget.onSuggestionTap(symbol),
                             );
                           },
                         );
