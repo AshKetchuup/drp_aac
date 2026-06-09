@@ -104,7 +104,7 @@ Child dislikes: {dislikes_str}
 Answer:"""
 
     response = ollama.chat(
-        model='llama3.2', # Extremely smart 3B model (smarter than Qwen 1.5b)
+        model='llama3.2:1b', # Extremely smart 1B model
         messages=[
             {'role': 'system', 'content': system_prompt},
             {'role': 'user', 'content': user_prompt}
