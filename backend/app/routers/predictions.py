@@ -26,7 +26,7 @@ past_predictions = [
 
 payload_mock = PredictionRequest(
     audio_base64="mock_base64_audio",
-    text="What are your favourite harry potter characters?",
+    text="What is your favourite Operating system?",
     likes=["Park", "Swings", "Library", "Grandma's house", "Dogs"],
     dislikes=["Loud noises", "Dark rooms", "Nap time"]
 )
@@ -78,7 +78,9 @@ What the child said recently:
 {history_str}
 
 RULES:
-- Suggest 4 to 7 words or short phrases the child would realistically reply with.
+- IMPORTANT: SUGGEST ATLEAST 4 to 10 words or short phrases the child would realistically reply with.
+- IMPORTANT: Include the words from MOST RELEVANT to LEAST RELEVANT. 
+- INCLUDE THE PROPER NOUNS WITHIN THE SENTENCE, that are not already in the AAC board.
 - IF the child's likes are directly relevant to the topic, include them. 
 - CRITICAL: Dont OVER use the likes if not relevant. DO NOT include random likes (like "Park" or "Swings") if the topic is about something completely different (like "Pets"). Instead, suggest other things to expand the child's vocabulary and general knowledge.
 - NEVER include anything from the dislikes list.
@@ -104,7 +106,7 @@ Child dislikes: {dislikes_str}
 Answer:"""
 
     response = ollama.chat(
-        model='llama3.2:1b', # Extremely smart 1B model
+        model='qwen2.5:1.5b', # Extremely smart 1B model
         messages=[
             {'role': 'system', 'content': system_prompt},
             {'role': 'user', 'content': user_prompt}
@@ -133,13 +135,24 @@ Answer:"""
     else:
         raw_list = [parsed]
         
-    # Fully flatten any nested lists and convert to strings
+    # Fully flatten any nested lists, split comma-separated strings, and convert to strings
     suggestions_list = []
     for item in raw_list:
+        val = ""
         if isinstance(item, list) and len(item) > 0:
-            suggestions_list.append(str(item[0]))
+            val = str(item[0])
         else:
-            suggestions_list.append(str(item))
+            val = str(item)
+            
+        # The small models sometimes return ["word1, word2"] instead of ["word1", "word2"]
+        # Split by comma to fix this if it happens.
+        for split_val in val.split(','):
+            cleaned = split_val.strip()
+            # Remove leading '#' if the model added it randomly
+            if cleaned.startswith('#'):
+                cleaned = cleaned[1:].strip()
+            if cleaned:
+                suggestions_list.append(cleaned)
         
     return suggestions_list[:8]
 
