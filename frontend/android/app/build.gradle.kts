@@ -5,7 +5,7 @@ plugins {
 }
 
 android {
-    namespace = "com.drp_aac"
+    namespace = "com.example.frontend"
     compileSdk = 36
     ndkVersion = flutter.ndkVersion
 
@@ -16,8 +16,8 @@ android {
 
     defaultConfig {
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
-        applicationId = "com.drp_aac"
-        manifestPlaceholders["appAuthRedirectScheme"] = "com.drp_aac"
+        applicationId = "com.example.frontend"
+        manifestPlaceholders["appAuthRedirectScheme"] = "com.example.frontend"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion
