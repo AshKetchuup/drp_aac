@@ -1195,7 +1195,7 @@ class _ContextSuggestionsPageState extends State<_ContextSuggestionsPage> {
               padding: const EdgeInsets.all(16),
               child: widget.isLoading
                   ? const Center(child: CircularProgressIndicator())
-                  : authRequired
+                  : widget.authRequired
                   ? Center(
                       child: Column(
                         mainAxisSize: MainAxisSize.min,

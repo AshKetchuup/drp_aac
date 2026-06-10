@@ -324,7 +324,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           MaterialPageRoute(
                             builder: (_) => NowNextMode(
                               onExit: () => Navigator.pop(context),
-                              availableSymbols: DashboardScreen._scheduleSymbols,
+                              availableSymbols: DashboardScreen.scheduleSymbols,
                             ),
                           ),
                         );
@@ -341,7 +341,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           MaterialPageRoute(
                             builder: (_) => ScheduleMode(
                               onExit: () => Navigator.pop(context),
-                              availableSymbols: DashboardScreen._scheduleSymbols,
+                              availableSymbols: DashboardScreen.scheduleSymbols,
                             ),
                           ),
                         );

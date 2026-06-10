@@ -108,20 +108,6 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Future<void> _importBoard() async {
-    final result = await FilePicker.pickFiles(
-      type: FileType.custom,
-      allowedExtensions: ['obf', 'obz'],
-      withData: true,
-    );
-
-    if (result == null) return;
-
-    final file = result.files.single;
-
-    try {
-      final provider =
-          Provider.of<AACProvider>(context, listen: false);
 
 
   @override
