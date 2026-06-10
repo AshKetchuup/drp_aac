@@ -13,18 +13,25 @@ class AppTheme {
   static const Color error = Color(0xFFEF4444);
   static const Color warning = Color(0xFFFACC15);
 
-  // Category Colors (Grid for iPad style)
-  static const Color categoryPronoun = Color(0xFFFDFD96); // Yellow (People)
-  static const Color categoryVerb = Color(0xFFB5EAD7); // Green (Actions)
-  static const Color categoryNoun = Color(0xFFF97316); // Orange
-  static const Color categoryAdjective = Color(0xFFAEC6CF); // Blue (Describe)
-  static const Color categoryQuestion = Color(0xFFD8BFD8); // Purple (Questions)
-  static const Color categoryPreposition = Color(0xFFF4F4F4); // White (Little words)
-  static const Color categoryFolder = Color(0xFF40E0D0); // Teal (Topics/Folders)
-  
-  // Legacy mappings for backwards compatibility
-  static const Color categoryActivity = categoryFolder; 
-  static const Color categoryFood = categoryFolder;
+  // ─── Colourful Semantics palette ──────────────────────────────────────────
+  // The clinical colour convention (Bryan). These are the SAME hex values as
+  // the Fill-in-the-Blanks minigame's SemanticType, so the communication
+  // boards and the games speak one shared colour language.
+  static const Color categoryPronoun = Color(0xFFF97316); // Orange — Who? (subject)
+  static const Color categoryVerb = Color(0xFFFACC15); // Yellow — Doing? (action)
+  static const Color categoryNoun = Color(0xFF22C55E); // Green — What? (object)
+  static const Color categoryPlace = Color(0xFF3B82F6); // Blue — Where? (place)
+  static const Color categoryAdjective = Color(0xFFF4F4F4); // White — What kind? (describe)
+
+  // Categories that share a Colourful Semantics role point at the same colour.
+  static const Color categoryFood = categoryNoun; // food is an object → green
+  static const Color categoryActivity = categoryVerb; // activities are actions → yellow
+  static const Color categoryFeeling = categoryAdjective; // feelings describe → white
+  static const Color categoryPreposition = categoryPlace; // location words → blue
+
+  // Outside the core 5-role scheme — kept visually distinct, not CS colours.
+  static const Color categoryQuestion = Color(0xFFD8BFD8); // Purple — question words
+  static const Color categoryFolder = Color(0xFF40E0D0); // Teal — topics / folders
 
   // Emotion Colors
   static const Color emotionHappy = Color(0xFFFACC15);

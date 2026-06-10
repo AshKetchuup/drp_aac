@@ -3,6 +3,7 @@ import 'package:file_picker/file_picker.dart';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart' show rootBundle;
 import 'package:frontend/services/obf/obf_parser.dart';
 import 'package:frontend/services/obf/obz_parser.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
@@ -49,6 +50,9 @@ class AACProvider extends ChangeNotifier {
   AACProvider({ScheduleRepository? scheduleRepo})
     : _scheduleRepo = scheduleRepo ?? LocalScheduleRepository() {
     _initTts();
+    // Preload the bundled starter board so it's the first board ready to use,
+    // without taking over the rich home view.
+    loadDefaultBoardSet();
   }
 
   ({Symbol? now, Symbol? next}) calculateNowNext() {
@@ -123,6 +127,38 @@ class AACProvider extends ChangeNotifier {
 
   ImportedBoardSet? get importedBoardSet => _importedBoardSet;
   String? get activeImportedBoardPath => _activeImportedBoardPath;
+
+  /// The bundled starter board (`assets/boards/default_board.obz`), preloaded at
+  /// startup so it is the first board available to switch to. It is intentionally
+  /// NOT auto-activated: the rich hardcoded home board stays the default view so
+  /// no features (profile, smart suggestions, Now/Next) are lost. Call
+  /// [activateDefaultBoard] to make it the active imported board.
+  ImportedBoardSet? _defaultBoardSet;
+  ImportedBoardSet? get defaultBoardSet => _defaultBoardSet;
+  static const String _defaultBoardAsset = 'assets/boards/default_board.obz';
+
+  /// Loads and parses the bundled default board into [defaultBoardSet] without
+  /// activating it. Safe to call more than once; the asset is only parsed once.
+  Future<void> loadDefaultBoardSet() async {
+    if (_defaultBoardSet != null) return;
+    try {
+      final data = await rootBundle.load(_defaultBoardAsset);
+      _defaultBoardSet = ObzParser().parseObzBytes(data.buffer.asUint8List());
+      notifyListeners();
+    } catch (e) {
+      debugPrint('Failed to load bundled default board: $e');
+    }
+  }
+
+  /// Switches the grid to the bundled default board, loading it first if needed.
+  Future<void> activateDefaultBoard() async {
+    await loadDefaultBoardSet();
+    final boardSet = _defaultBoardSet;
+    if (boardSet == null) return;
+    _importedBoardSet = boardSet;
+    _activeImportedBoardPath = boardSet.rootPath;
+    notifyListeners();
+  }
 
 
 

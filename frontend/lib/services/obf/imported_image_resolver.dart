@@ -12,11 +12,13 @@ class ImportedImageResolver {
       return null;
     }
 
+    final isSvg = _isSvg(image);
+
     final dataUri = image.dataUri;
     if (dataUri != null && dataUri.startsWith('data:')) {
       final bytes = _decodeDataUri(dataUri);
       if (bytes != null && bytes.isNotEmpty) {
-        return ResolvedImportedImage(bytes: bytes);
+        return ResolvedImportedImage(bytes: bytes, isSvg: isSvg);
       }
     }
 
@@ -24,16 +26,47 @@ class ImportedImageResolver {
     if (path != null && path.isNotEmpty) {
       final packaged = packagedFiles[path];
       if (packaged != null && packaged.isNotEmpty) {
-        return ResolvedImportedImage(bytes: Uint8List.fromList(packaged));
+        return ResolvedImportedImage(
+          bytes: Uint8List.fromList(packaged),
+          isSvg: isSvg,
+        );
       }
     }
 
     final url = image.url;
     if (url != null && url.isNotEmpty) {
-      return ResolvedImportedImage(url: url);
+      return ResolvedImportedImage(url: url, isSvg: isSvg);
     }
 
     return null;
+  }
+
+  /// Detects SVG sources so the UI can pick an SVG decoder. Many OBF libraries
+  /// (e.g. Mulberry in CommuniKate) ship the bulk of their symbols as SVG, and
+  /// Flutter's raster [Image] widget throws on them. Checks the declared
+  /// `content_type` first, then falls back to the data-URI mime and the file
+  /// extension on the path/url.
+  bool _isSvg(ImportedImage image) {
+    final contentType = image.contentType?.toLowerCase();
+    if (contentType != null && contentType.contains('svg')) {
+      return true;
+    }
+
+    final dataUri = image.dataUri?.toLowerCase();
+    if (dataUri != null && dataUri.startsWith('data:image/svg')) {
+      return true;
+    }
+
+    for (final candidate in [image.path, image.url]) {
+      if (candidate == null) continue;
+      // Strip any query string before checking the extension.
+      final withoutQuery = candidate.toLowerCase().split('?').first;
+      if (withoutQuery.endsWith('.svg')) {
+        return true;
+      }
+    }
+
+    return false;
   }
 
   Uint8List? _decodeDataUri(String dataUri) {

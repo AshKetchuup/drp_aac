@@ -6,6 +6,7 @@ import 'home_screen.dart';
 import 'profile_setup_screen.dart';
 import 'calming_mode_screen.dart';
 import 'now_next_screen.dart';
+import 'fill_blanks_game_screen.dart';
 import '../widgets/scheduler.dart';
 import '../theme/app_theme.dart';
 
@@ -352,43 +353,96 @@ class MinigamesPlaceholder extends StatelessWidget {
           ),
         ),
       ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              width: 120,
-              height: 120,
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [Color(0xFFF97316), Color(0xFFEA580C)],
+      body: ListView(
+        padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
+        children: [
+          _MinigameTile(
+            title: 'Fill in the Blanks',
+            subtitle: 'Pick the word that completes the sentence',
+            icon: Icons.text_fields_rounded,
+            // Colourful Semantics "Doing?" yellow — matches the game itself.
+            gradient: const [Color(0xFFFACC15), Color(0xFFCA8A04)],
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const FillBlanksGameScreen(),
                 ),
-                borderRadius: BorderRadius.circular(28),
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// A single launchable minigame entry in the [MinigamesPlaceholder] hub.
+class _MinigameTile extends StatelessWidget {
+  final String title;
+  final String subtitle;
+  final IconData icon;
+  final List<Color> gradient;
+  final VoidCallback onTap;
+
+  const _MinigameTile({
+    required this.title,
+    required this.subtitle,
+    required this.icon,
+    required this.gradient,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      margin: const EdgeInsets.only(bottom: 16),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(20),
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            children: [
+              Container(
+                width: 64,
+                height: 64,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(colors: gradient),
+                  borderRadius: BorderRadius.circular(18),
+                ),
+                child: Icon(icon, size: 32, color: Colors.white),
               ),
-              child: const Icon(
-                Icons.sports_esports_rounded,
-                size: 56,
-                color: Colors.white,
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: const TextStyle(
+                        color: Color(0xFF1E293B),
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      subtitle,
+                      style: const TextStyle(
+                        color: Color(0xFF64748B),
+                        fontSize: 14,
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
-            const SizedBox(height: 24),
-            const Text(
-              'Minigames',
-              style: TextStyle(
-                color: Color(0xFF1E293B),
-                fontSize: 28,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 8),
-            const Text(
-              'Coming soon!',
-              style: TextStyle(
-                color: Color(0xFF64748B),
-                fontSize: 16,
-              ),
-            ),
-          ],
+              const Icon(Icons.chevron_right_rounded, color: Color(0xFF94A3B8)),
+            ],
+          ),
         ),
       ),
     );

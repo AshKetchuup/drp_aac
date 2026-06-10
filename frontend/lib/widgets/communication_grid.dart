@@ -3,7 +3,9 @@ import 'dart:typed_data';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:frontend/services/obf/imported_image_resolver.dart';
+import 'package:frontend/services/obf/obf_color.dart';
 import 'package:provider/provider.dart';
 
 import '../models/models.dart';
@@ -71,7 +73,7 @@ class _CommunicationGridState extends State<CommunicationGrid> {
       'preposition',
       'Little Words',
       Icons.short_text,
-      AppTheme.primary,
+      AppTheme.categoryPreposition,
     ),
     _CategoryPage(
       'activity',
@@ -79,8 +81,8 @@ class _CommunicationGridState extends State<CommunicationGrid> {
       Icons.sports_esports,
       AppTheme.categoryActivity,
     ),
-    _CategoryPage('feeling', 'Feelings', Icons.mood, AppTheme.secondary),
-    _CategoryPage('question', 'Questions', Icons.help, AppTheme.warning),
+    _CategoryPage('feeling', 'Feelings', Icons.mood, AppTheme.categoryFeeling),
+    _CategoryPage('question', 'Questions', Icons.help, AppTheme.categoryQuestion),
   ];
 
   static final List<Symbol> symbols = [
@@ -1305,6 +1307,7 @@ class _ImportedBoardPageView extends StatelessWidget {
               button: button,
               imageBytes: resolvedImage?.bytes,
               imageUrl: resolvedImage?.url,
+              isSvg: resolvedImage?.isSvg ?? false,
               onTap: () => onButtonTap(button),
             );
           },
@@ -1318,6 +1321,7 @@ class _ImportedBoardTile extends StatelessWidget {
   final ImportedButton button;
   final Uint8List? imageBytes;
   final String? imageUrl;
+  final bool isSvg;
   final VoidCallback onTap;
 
   const _ImportedBoardTile({
@@ -1325,64 +1329,45 @@ class _ImportedBoardTile extends StatelessWidget {
     required this.onTap,
     this.imageBytes,
     this.imageUrl,
+    this.isSvg = false,
   });
 
   @override
   Widget build(BuildContext context) {
-    final hasBytes = imageBytes != null && imageBytes!.isNotEmpty;
-    final hasUrl = imageUrl != null && imageUrl!.isNotEmpty;
+    // Honour the OBF author's colours where given; otherwise fall back to the
+    // app's default tile styling. Imported boards are intentionally NOT painted
+    // with the Colourful Semantics palette — that stays exclusive to the
+    // default board.
+    final backgroundColor = button.backgroundColor ?? AppTheme.surface;
+    final borderColor = button.borderColor ?? AppTheme.border;
+    // Pick a legible label/icon colour for whatever background we ended up with.
+    final foregroundColor = obfForegroundColor(backgroundColor);
 
     return Material(
-      color: AppTheme.surface,
+      color: backgroundColor,
       borderRadius: BorderRadius.circular(16),
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(16),
         child: Container(
           decoration: BoxDecoration(
-            color: AppTheme.surface,
+            color: backgroundColor,
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: AppTheme.border),
+            border: Border.all(color: borderColor),
           ),
           padding: const EdgeInsets.all(10),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Expanded(
-                child: hasBytes
-                    ? Image.memory(
-                        imageBytes!,
-                        fit: BoxFit.contain,
-                        errorBuilder: (_, _, _) => const Icon(
-                          Icons.image_outlined,
-                          color: AppTheme.textSecondary,
-                          size: 32,
-                        ),
-                      )
-                    : hasUrl
-                    ? Image.network(
-                        imageUrl!,
-                        fit: BoxFit.contain,
-                        errorBuilder: (_, _, _) => const Icon(
-                          Icons.image_outlined,
-                          color: AppTheme.textSecondary,
-                          size: 32,
-                        ),
-                      )
-                    : const Icon(
-                        Icons.image_outlined,
-                        color: AppTheme.textSecondary,
-                        size: 32,
-                      ),
-              ),
+              Expanded(child: _buildImage(foregroundColor)),
               const SizedBox(height: 8),
               Text(
                 button.label,
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
                 textAlign: TextAlign.center,
-                style: const TextStyle(
-                  color: AppTheme.textPrimary,
+                style: TextStyle(
+                  color: foregroundColor,
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
                 ),
@@ -1392,6 +1377,52 @@ class _ImportedBoardTile extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  /// Builds the button's picture, choosing a decoder by source type. SVG must
+  /// go through [SvgPicture] — the raster [Image] widget throws on SVG, which
+  /// is why many imported symbols (CommuniKate ships most of its as SVG) were
+  /// falling back to the placeholder icon. Both byte and URL sources are
+  /// supported for each format.
+  Widget _buildImage(Color foregroundColor) {
+    final hasBytes = imageBytes != null && imageBytes!.isNotEmpty;
+    final hasUrl = imageUrl != null && imageUrl!.isNotEmpty;
+
+    final fallback = Icon(
+      Icons.image_outlined,
+      color: foregroundColor,
+      size: 32,
+    );
+
+    if (hasBytes) {
+      return isSvg
+          ? SvgPicture.memory(
+              imageBytes!,
+              fit: BoxFit.contain,
+              placeholderBuilder: (_) => fallback,
+            )
+          : Image.memory(
+              imageBytes!,
+              fit: BoxFit.contain,
+              errorBuilder: (_, _, _) => fallback,
+            );
+    }
+
+    if (hasUrl) {
+      return isSvg
+          ? SvgPicture.network(
+              imageUrl!,
+              fit: BoxFit.contain,
+              placeholderBuilder: (_) => fallback,
+            )
+          : Image.network(
+              imageUrl!,
+              fit: BoxFit.contain,
+              errorBuilder: (_, _, _) => fallback,
+            );
+    }
+
+    return fallback;
   }
 }
 
