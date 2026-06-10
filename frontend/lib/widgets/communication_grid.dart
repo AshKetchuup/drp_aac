@@ -1,12 +1,16 @@
 import 'dart:math' as math;
 import 'dart:typed_data';
+import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:frontend/services/obf/imported_image_resolver.dart';
+import 'package:frontend/services/obf/obf_color.dart';
 import 'package:provider/provider.dart';
 
 import '../models/models.dart';
 import '../providers/aac_provider.dart';
+import '../services/arasaac_service.dart';
 import '../theme/app_theme.dart';
 import 'symbol_tile.dart';
 
@@ -17,9 +21,9 @@ class CommunicationGrid extends StatefulWidget {
 
   final ImportedBoardSet? importedBoardSet;
   final String? activeImportedBoardPath;
-  final ValueChanged<String>? onImportedBoardChange;
-
+  final void Function(String)? onImportedBoardChange;
   final ({Symbol? now, Symbol? next}) nowNextData;
+  final VoidCallback? onNowNextTap;
 
   const CommunicationGrid({
     super.key,
@@ -30,6 +34,7 @@ class CommunicationGrid extends StatefulWidget {
     this.activeImportedBoardPath,
     this.onImportedBoardChange,
     required this.nowNextData,
+    this.onNowNextTap,
   });
 
   @override
@@ -69,7 +74,7 @@ class _CommunicationGridState extends State<CommunicationGrid> {
       'preposition',
       'Little Words',
       Icons.short_text,
-      AppTheme.primary,
+      AppTheme.categoryPreposition,
     ),
     _CategoryPage(
       'activity',
@@ -77,8 +82,8 @@ class _CommunicationGridState extends State<CommunicationGrid> {
       Icons.sports_esports,
       AppTheme.categoryActivity,
     ),
-    _CategoryPage('feeling', 'Feelings', Icons.mood, AppTheme.secondary),
-    _CategoryPage('question', 'Questions', Icons.help, AppTheme.warning),
+    _CategoryPage('feeling', 'Feelings', Icons.mood, AppTheme.categoryFeeling),
+    _CategoryPage('question', 'Questions', Icons.help, AppTheme.categoryQuestion),
   ];
 
   static final List<Symbol> symbols = [
@@ -452,42 +457,52 @@ class _CommunicationGridState extends State<CommunicationGrid> {
 
     if (!hasNow && !hasNext) return const SizedBox.shrink();
 
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(
-        8,
-        10,
-        16,
-        10,
-      ), // Matches category chip bounds
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment
-            .stretch, // Forces tiles to fill the vertical 64px row height
-        children: [
-          if (hasNow)
-            _buildPrefixedScheduleTile(
-              prefix: "NOW: ",
-              prefixColor: const Color(0xFF2196F3),
-              symbol: widget.nowNextData.now!,
-            ),
-          if (hasNow && hasNext)
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 8),
-              child: Center(
-                child: Icon(
-                  Icons.arrow_forward_rounded,
-                  size: 16,
-                  color: AppTheme.textSecondary,
+    return GestureDetector(
+      onTap: widget.onNowNextTap,
+      child: Container(
+        margin: const EdgeInsets.fromLTRB(8, 10, 16, 10),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        decoration: BoxDecoration(
+          color: AppTheme.secondary.withValues(alpha: 0.15), // Sky blue tint for contrast
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppTheme.secondary.withValues(alpha: 0.6), width: 2), // Prominent border
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.1),
+              blurRadius: 4,
+              offset: const Offset(0, 2),
+            )
+          ],
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.center, // Center vertically
+          children: [
+            if (hasNow)
+              _buildPrefixedScheduleTile(
+                prefix: "NOW: ",
+                prefixColor: const Color(0xFF2196F3),
+                symbol: widget.nowNextData.now!,
+              ),
+            if (hasNow && hasNext)
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 12),
+                child: Center(
+                  child: Icon(
+                    Icons.arrow_forward_rounded,
+                    size: 20,
+                    color: AppTheme.textSecondary,
+                  ),
                 ),
               ),
-            ),
-          if (hasNext)
-            _buildPrefixedScheduleTile(
-              prefix: "NEXT: ",
-              prefixColor: const Color(0xFF4CAF50),
-              symbol: widget.nowNextData.next!,
-            ),
-        ],
+            if (hasNext)
+              _buildPrefixedScheduleTile(
+                prefix: "NEXT: ",
+                prefixColor: const Color(0xFF4CAF50),
+                symbol: widget.nowNextData.next!,
+              ),
+          ],
+        ),
       ),
     );
   }
@@ -505,17 +520,17 @@ class _CommunicationGridState extends State<CommunicationGrid> {
         Text(
           prefix,
           style: TextStyle(
-            fontSize: 12,
+            fontSize: 14,
             fontWeight: FontWeight.w900,
             color: prefixColor,
           ),
         ),
-        const SizedBox(width: 6),
+        const SizedBox(width: 8),
         IntrinsicHeight(
           child: MiniSymbolTile(
             symbol: symbol,
-            isExpanded:
-                true, // Tells the tile to fill out the max 64px line layout cleanly
+            isExpanded: true,
+            iconSize: 26, // Smaller actual icons as requested
             onTap: () => widget.onSymbolTap(symbol),
           ),
         ),
@@ -580,14 +595,16 @@ class _CommunicationGridState extends State<CommunicationGrid> {
       }
     }
 
+    // Add custom symbols created from context suggestions
+    displaySymbols.addAll(provider.customSymbols);
+
     return Column(
       children: [
         // ─── TOP BAR ROW: CHIPS (LEFT) + NOW/NEXT (RIGHT) ────────────────────
         SizedBox(
-          height: 64,
+          height: 96,
           child: Row(
-            crossAxisAlignment: CrossAxisAlignment
-                .stretch, // Makes components fill container height completely
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Expanded(
                 child: ListView.separated(
@@ -742,9 +759,9 @@ class _CommunicationGridState extends State<CommunicationGrid> {
       children: [
         // ─── IMPORTED MODE HEADER ROW WITH INLINE RETENTION ──────────────────
         SizedBox(
-          height: 64,
+          height: 96, // Expanded height so the Now/Next box is larger and readable
           child: Row(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
+            crossAxisAlignment: CrossAxisAlignment.center, // Prevent chips from stretching vertically too much
             children: [
               Expanded(
                 child: ListView.separated(
@@ -999,6 +1016,20 @@ class _CommunicationGridState extends State<CommunicationGrid> {
 
   _GridMetrics _fitGridMetrics(Size size, int itemCount) {
     const spacing = 10.0;
+    
+    final provider = context.read<AACProvider>();
+    if (provider.gridColumns != null) {
+      final columns = provider.gridColumns!;
+      final rows = (itemCount / columns).ceil();
+      final cellWidth = (size.width - (spacing * (columns - 1))) / columns;
+      final cellHeight = (size.height - (spacing * (rows - 1))) / rows;
+      
+      return _GridMetrics(
+        crossAxisCount: columns,
+        childAspectRatio: (cellWidth > 0 && cellHeight > 0) ? cellWidth / cellHeight : 1.0,
+        spacing: spacing,
+      );
+    }
 
     var bestColumns = 1;
     var bestAspectRatio = 1.0;
@@ -1045,7 +1076,7 @@ class _ImportedBoardPage {
   const _ImportedBoardPage({required this.path, required this.label});
 }
 
-class _ContextSuggestionsPage extends StatelessWidget {
+class _ContextSuggestionsPage extends StatefulWidget {
   final String? teacherPrompt;
   final bool isLoading;
   final List<String> suggestions;
@@ -1063,8 +1094,63 @@ class _ContextSuggestionsPage extends StatelessWidget {
   });
 
   @override
+  State<_ContextSuggestionsPage> createState() => _ContextSuggestionsPageState();
+}
+
+class _ContextSuggestionsPageState extends State<_ContextSuggestionsPage> {
+  final ArasaacService _arasaacService = ArasaacService();
+  final Map<String, String?> _imageUrls = {};
+  final Map<String, IconData?> _icons = {};
+
+  @override
+  void didUpdateWidget(covariant _ContextSuggestionsPage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.suggestions != widget.suggestions) {
+      _fetchImages();
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchImages();
+  }
+
+  void _fetchImages() {
+    final provider = context.read<AACProvider>();
+    final allSymbols = [
+      ..._CommunicationGridState.symbols,
+      ...provider.customSymbols,
+    ];
+
+    for (final suggestion in widget.suggestions) {
+      if (!_imageUrls.containsKey(suggestion) && !_icons.containsKey(suggestion)) {
+        final localMatch = allSymbols.where((s) => s.label.toLowerCase() == suggestion.toLowerCase()).firstOrNull;
+
+        if (localMatch != null && (localMatch.imageUrl != null || localMatch.icon != null)) {
+          if (mounted) {
+            setState(() {
+              _imageUrls[suggestion] = localMatch.imageUrl;
+              _icons[suggestion] = localMatch.icon;
+            });
+          }
+        } else {
+          _arasaacService.getPictogramUrl(suggestion).then((url) {
+            if (mounted) {
+              setState(() {
+                _imageUrls[suggestion] = url;
+                _icons[suggestion] = null;
+              });
+            }
+          });
+        }
+      }
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final visibleSuggestions = isLoading ? const <String>[] : suggestions;
+    final visibleSuggestions = widget.isLoading ? const <String>[] : widget.suggestions;
 
     return Container(
       decoration: BoxDecoration(
@@ -1083,8 +1169,8 @@ class _ContextSuggestionsPage extends StatelessWidget {
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    teacherPrompt != null
-                        ? '"$teacherPrompt"'
+                    widget.teacherPrompt != null
+                        ? '"${widget.teacherPrompt}"'
                         : 'Context suggestions',
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
@@ -1096,7 +1182,7 @@ class _ContextSuggestionsPage extends StatelessWidget {
                   ),
                 ),
                 TextButton.icon(
-                  onPressed: onClose,
+                  onPressed: widget.onClose,
                   icon: const Icon(Icons.close, size: 18),
                   label: const Text('Close'),
                 ),
@@ -1107,7 +1193,7 @@ class _ContextSuggestionsPage extends StatelessWidget {
           Expanded(
             child: Padding(
               padding: const EdgeInsets.all(16),
-              child: isLoading
+              child: widget.isLoading
                   ? const Center(child: CircularProgressIndicator())
                   : authRequired
                   ? Center(
@@ -1162,21 +1248,18 @@ class _ContextSuggestionsPage extends StatelessWidget {
                           itemCount: visibleSuggestions.length,
                           itemBuilder: (context, index) {
                             final suggestion = visibleSuggestions[index];
+                            final imageUrl = _imageUrls[suggestion];
+                            final icon = _icons[suggestion];
+                            final symbol = Symbol(
+                              id: 'context_$index',
+                              label: suggestion,
+                              category: SymbolCategory.noun,
+                              imageUrl: imageUrl,
+                              icon: icon,
+                            );
                             return SymbolTile(
-                              symbol: Symbol(
-                                id: 'context_$index',
-                                label: suggestion,
-                                category: SymbolCategory.noun,
-                              ),
-                              onTap: () {
-                                onSuggestionTap(
-                                  Symbol(
-                                    id: 'context_$index',
-                                    label: suggestion,
-                                    category: SymbolCategory.noun,
-                                  ),
-                                );
-                              },
+                              symbol: symbol,
+                              onTap: () => widget.onSuggestionTap(symbol),
                             );
                           },
                         );
@@ -1263,6 +1346,7 @@ class _ImportedBoardPageView extends StatelessWidget {
               button: button,
               imageBytes: resolvedImage?.bytes,
               imageUrl: resolvedImage?.url,
+              isSvg: resolvedImage?.isSvg ?? false,
               onTap: () => onButtonTap(button),
             );
           },
@@ -1276,6 +1360,7 @@ class _ImportedBoardTile extends StatelessWidget {
   final ImportedButton button;
   final Uint8List? imageBytes;
   final String? imageUrl;
+  final bool isSvg;
   final VoidCallback onTap;
 
   const _ImportedBoardTile({
@@ -1283,64 +1368,45 @@ class _ImportedBoardTile extends StatelessWidget {
     required this.onTap,
     this.imageBytes,
     this.imageUrl,
+    this.isSvg = false,
   });
 
   @override
   Widget build(BuildContext context) {
-    final hasBytes = imageBytes != null && imageBytes!.isNotEmpty;
-    final hasUrl = imageUrl != null && imageUrl!.isNotEmpty;
+    // Honour the OBF author's colours where given; otherwise fall back to the
+    // app's default tile styling. Imported boards are intentionally NOT painted
+    // with the Colourful Semantics palette — that stays exclusive to the
+    // default board.
+    final backgroundColor = button.backgroundColor ?? AppTheme.surface;
+    final borderColor = button.borderColor ?? AppTheme.border;
+    // Pick a legible label/icon colour for whatever background we ended up with.
+    final foregroundColor = obfForegroundColor(backgroundColor);
 
     return Material(
-      color: AppTheme.surface,
+      color: backgroundColor,
       borderRadius: BorderRadius.circular(16),
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(16),
         child: Container(
           decoration: BoxDecoration(
-            color: AppTheme.surface,
+            color: backgroundColor,
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: AppTheme.border),
+            border: Border.all(color: borderColor),
           ),
           padding: const EdgeInsets.all(10),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Expanded(
-                child: hasBytes
-                    ? Image.memory(
-                        imageBytes!,
-                        fit: BoxFit.contain,
-                        errorBuilder: (_, _, _) => const Icon(
-                          Icons.image_outlined,
-                          color: AppTheme.textSecondary,
-                          size: 32,
-                        ),
-                      )
-                    : hasUrl
-                    ? Image.network(
-                        imageUrl!,
-                        fit: BoxFit.contain,
-                        errorBuilder: (_, _, _) => const Icon(
-                          Icons.image_outlined,
-                          color: AppTheme.textSecondary,
-                          size: 32,
-                        ),
-                      )
-                    : const Icon(
-                        Icons.image_outlined,
-                        color: AppTheme.textSecondary,
-                        size: 32,
-                      ),
-              ),
+              Expanded(child: _buildImage(foregroundColor)),
               const SizedBox(height: 8),
               Text(
                 button.label,
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
                 textAlign: TextAlign.center,
-                style: const TextStyle(
-                  color: AppTheme.textPrimary,
+                style: TextStyle(
+                  color: foregroundColor,
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
                 ),
@@ -1350,6 +1416,52 @@ class _ImportedBoardTile extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  /// Builds the button's picture, choosing a decoder by source type. SVG must
+  /// go through [SvgPicture] — the raster [Image] widget throws on SVG, which
+  /// is why many imported symbols (CommuniKate ships most of its as SVG) were
+  /// falling back to the placeholder icon. Both byte and URL sources are
+  /// supported for each format.
+  Widget _buildImage(Color foregroundColor) {
+    final hasBytes = imageBytes != null && imageBytes!.isNotEmpty;
+    final hasUrl = imageUrl != null && imageUrl!.isNotEmpty;
+
+    final fallback = Icon(
+      Icons.image_outlined,
+      color: foregroundColor,
+      size: 32,
+    );
+
+    if (hasBytes) {
+      return isSvg
+          ? SvgPicture.memory(
+              imageBytes!,
+              fit: BoxFit.contain,
+              placeholderBuilder: (_) => fallback,
+            )
+          : Image.memory(
+              imageBytes!,
+              fit: BoxFit.contain,
+              errorBuilder: (_, _, _) => fallback,
+            );
+    }
+
+    if (hasUrl) {
+      return isSvg
+          ? SvgPicture.network(
+              imageUrl!,
+              fit: BoxFit.contain,
+              placeholderBuilder: (_) => fallback,
+            )
+          : Image.network(
+              imageUrl!,
+              fit: BoxFit.contain,
+              errorBuilder: (_, _, _) => fallback,
+            );
+    }
+
+    return fallback;
   }
 }
 

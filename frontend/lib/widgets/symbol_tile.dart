@@ -2,6 +2,36 @@ import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import '../models/models.dart';
 
+/// Maps a symbol's part of speech to its Colourful Semantics colour. Single
+/// source of truth shared by [SymbolTile] and [MiniSymbolTile] so the
+/// sentence rail and the grid never drift apart.
+Color colourfulSemanticsColor(SymbolCategory category) {
+  switch (category) {
+    case SymbolCategory.pronoun:
+      return AppTheme.categoryPronoun; // Orange — Who?
+    case SymbolCategory.verb:
+      return AppTheme.categoryVerb; // Yellow — Doing?
+    case SymbolCategory.activity:
+      return AppTheme.categoryActivity; // Yellow — Doing?
+    case SymbolCategory.noun:
+      return AppTheme.categoryNoun; // Green — What?
+    case SymbolCategory.food:
+      return AppTheme.categoryFood; // Green — What?
+    case SymbolCategory.place:
+      return AppTheme.categoryPlace; // Blue — Where?
+    case SymbolCategory.preposition:
+      return AppTheme.categoryPreposition; // Blue — Where?
+    case SymbolCategory.adjective:
+      return AppTheme.categoryAdjective; // White — What kind?
+    case SymbolCategory.feeling:
+      return AppTheme.categoryFeeling; // White — What kind?
+    case SymbolCategory.question:
+      return AppTheme.categoryQuestion; // Purple — not a core CS role
+    case SymbolCategory.folder:
+      return AppTheme.categoryFolder; // Teal — organisational, not CS
+  }
+}
+
 class SymbolTile extends StatelessWidget {
   final Symbol symbol;
   final VoidCallback onTap;
@@ -10,6 +40,8 @@ class SymbolTile extends StatelessWidget {
   final String? pictogramKeyword;
   final int labelMaxLines;
   final double labelFontSizeDelta;
+
+  final Color? overrideBackgroundColor;
 
   const SymbolTile({
     super.key,
@@ -20,35 +52,10 @@ class SymbolTile extends StatelessWidget {
     this.pictogramKeyword,
     this.labelMaxLines = 1,
     this.labelFontSizeDelta = 0,
+    this.overrideBackgroundColor,
   });
 
-  Color get categoryColor {
-    switch (symbol.category) {
-      case SymbolCategory.pronoun:
-        return AppTheme.categoryPronoun;
-      case SymbolCategory.verb:
-        return AppTheme.categoryVerb;
-      case SymbolCategory.noun:
-        return AppTheme.categoryNoun;
-      case SymbolCategory.adjective:
-        return AppTheme.categoryAdjective;
-      case SymbolCategory.activity:
-        return AppTheme.categoryActivity;
-      case SymbolCategory.food:
-        return AppTheme.categoryFood;
-      case SymbolCategory.feeling:
-        return AppTheme
-            .categoryFolder; // Use folder color for feelings as requested
-      case SymbolCategory.place:
-        return AppTheme.categoryFolder;
-      case SymbolCategory.question:
-        return AppTheme.categoryQuestion;
-      case SymbolCategory.preposition:
-        return AppTheme.categoryPreposition;
-      case SymbolCategory.folder:
-        return AppTheme.categoryFolder;
-    }
-  }
+  Color get categoryColor => overrideBackgroundColor ?? colourfulSemanticsColor(symbol.category);
 
   @override
   Widget build(BuildContext context) {
@@ -242,42 +249,18 @@ class MiniSymbolTile extends StatelessWidget {
   final VoidCallback? onTap;
   final VoidCallback? onRemove;
   final bool isExpanded; // Added flag to scale dynamically
+  final double? iconSize; // Override icon size directly
 
   const MiniSymbolTile({
     super.key,
     required this.symbol,
     this.onTap,
     this.onRemove,
-    this.isExpanded =
-        false, // Defaults to false so your existing code doesn't break
+    this.isExpanded = false, // Defaults to false so your existing code doesn't break
+    this.iconSize,
   });
 
-  Color get categoryColor {
-    switch (symbol.category) {
-      case SymbolCategory.pronoun:
-        return AppTheme.categoryPronoun;
-      case SymbolCategory.verb:
-        return AppTheme.categoryVerb;
-      case SymbolCategory.noun:
-        return AppTheme.categoryNoun;
-      case SymbolCategory.adjective:
-        return AppTheme.categoryAdjective;
-      case SymbolCategory.activity:
-        return AppTheme.categoryActivity;
-      case SymbolCategory.food:
-        return AppTheme.categoryFood;
-      case SymbolCategory.feeling:
-        return AppTheme.categoryFolder;
-      case SymbolCategory.place:
-        return AppTheme.categoryFolder;
-      case SymbolCategory.question:
-        return AppTheme.categoryQuestion;
-      case SymbolCategory.preposition:
-        return AppTheme.categoryPreposition;
-      case SymbolCategory.folder:
-        return AppTheme.categoryFolder;
-    }
-  }
+  Color get categoryColor => colourfulSemanticsColor(symbol.category);
 
   @override
   Widget build(BuildContext context) {
@@ -312,6 +295,8 @@ class MiniSymbolTile extends StatelessWidget {
             ),
           );
 
+    final double finalIconSize = iconSize ?? (isExpanded ? 40 : 24);
+
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -331,15 +316,15 @@ class MiniSymbolTile extends StatelessWidget {
             // Container scales completely up when expanded is toggled
             AnimatedContainer(
               duration: const Duration(milliseconds: 150),
-              width: isExpanded ? 40 : 24,
-              height: isExpanded ? 40 : 24,
+              width: finalIconSize,
+              height: finalIconSize,
               decoration: BoxDecoration(
                 color: Colors.white.withValues(alpha: 0.5),
                 borderRadius: BorderRadius.circular(4),
               ),
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(4),
-                child: isExpanded
+                child: isExpanded || iconSize != null
                     ? imageWidget
                     : Padding(
                         padding: const EdgeInsets.all(2.0),
@@ -352,9 +337,9 @@ class MiniSymbolTile extends StatelessWidget {
               symbol.label,
               style: TextStyle(
                 color: Colors.black87,
-                fontSize: isExpanded
-                    ? 16
-                    : 14, // Slightly boosted text visibility
+                fontSize: iconSize != null 
+                    ? (iconSize! * 0.45).clamp(12.0, 18.0) // Scale text with custom icon size
+                    : (isExpanded ? 16 : 14), // Slightly boosted text visibility
                 fontWeight: FontWeight.w700,
               ),
             ),

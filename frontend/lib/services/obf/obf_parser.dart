@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:frontend/models/models.dart';
+import 'package:frontend/services/obf/obf_color.dart';
 
 class ObfParser {
   ImportedBoard parseObfString(String jsonString, {String? sourcePath}) {
@@ -79,6 +80,11 @@ class ObfParser {
       linkedBoardPath: _asString(loadBoardMap?['path']),
       linkedBoardId: _asString(loadBoardMap?['id']),
       linkedBoardName: _asString(loadBoardMap?['name']),
+      // Respect the colours the OBF author baked in, since imported boards are
+      // not designed around Colourful Semantics. Falls back to null (→ default
+      // tile styling) when absent or unparseable.
+      backgroundColor: parseObfColor(_asString(json['background_color'])),
+      borderColor: parseObfColor(_asString(json['border_color'])),
     );
   }
 
@@ -88,6 +94,7 @@ class ObfParser {
       dataUri: _asString(json['data']),
       path: _asString(json['path']),
       url: _asString(json['url']),
+      contentType: _asString(json['content_type']),
     );
   }
 

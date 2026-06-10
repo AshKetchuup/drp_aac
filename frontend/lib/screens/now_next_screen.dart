@@ -158,6 +158,7 @@ class _NowNextInteractiveBoard extends StatelessWidget {
                       children: [
                         Expanded(
                           child: DragTarget<Symbol>(
+                            onWillAcceptWithDetails: (d) => d.data != null,
                             onAcceptWithDetails: (d) => onNowChanged(d.data),
                             builder: (context, candidateData, _) {
                               return GestureDetector(
@@ -174,6 +175,7 @@ class _NowNextInteractiveBoard extends StatelessWidget {
                         const SizedBox(width: 76),
                         Expanded(
                           child: DragTarget<Symbol>(
+                            onWillAcceptWithDetails: (d) => d.data != null,
                             onAcceptWithDetails: (d) => onNextChanged(d.data),
                             builder: (context, candidateData, _) {
                               return GestureDetector(
@@ -353,6 +355,7 @@ class _SentenceDropBox extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return DragTarget<Symbol>(
+      onWillAcceptWithDetails: (d) => d.data != null,
       onAcceptWithDetails: (details) {
         onAccept(details.data);
       },

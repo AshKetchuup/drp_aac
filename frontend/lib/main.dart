@@ -36,11 +36,16 @@ class SpeakEasyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
       create: (_) => AACProvider(),
-      child: MaterialApp(
-        title: 'SpeakEasy AAC',
-        debugShowCheckedModeBanner: false,
-        theme: AppTheme.theme,
-        home: const AppShell(),
+      child: Consumer<AACProvider>(
+        builder: (context, provider, _) {
+          return MaterialApp(
+            title: 'SpeakEasy AAC',
+            debugShowCheckedModeBanner: false,
+            themeMode: ThemeMode.light, // Let AppTheme.getTheme handle the actual colors based on mode instead of letting flutter switch theme based on OS
+            theme: AppTheme.getTheme(provider.themeMode),
+            home: const AppShell(),
+          );
+        },
       ),
     );
   }

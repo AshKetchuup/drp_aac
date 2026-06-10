@@ -12,9 +12,10 @@ import '../widgets/sentence_rail.dart';
 import '../widgets/communication_grid.dart';
 import '../widgets/smart_suggestions.dart';
 import '../widgets/emotions_bar.dart';
+import '../widgets/settings_dialogs.dart';
 import 'calming_mode_screen.dart';
 import 'dashboard_screen.dart';
-
+import '../widgets/scheduler.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -103,7 +104,7 @@ class _HomeScreenState extends State<HomeScreen> {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
-      builder: (context) => _SettingsSheet(),
+      builder: (context) => SettingsSheet(),
     );
   }
 
@@ -122,35 +123,6 @@ class _HomeScreenState extends State<HomeScreen> {
       final provider =
           Provider.of<AACProvider>(context, listen: false);
 
-      if (file.extension?.toLowerCase() == 'obz') {
-        final boardSet =
-            ObzParser().parseObzBytes(file.bytes!);
-
-        provider.setImportedBoardSet(boardSet);
-      } else {
-        final jsonText = utf8.decode(file.bytes!);
-
-        final board =
-            ObfParser().parseObfString(jsonText);
-
-        provider.setImportedBoardSet(
-          ImportedBoardSet(
-            rootPath: 'board.obf',
-            boardsByPath: {
-              'board.obf': board,
-            },
-            filesByPath: {},
-          ),
-        );
-      }
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Failed to import board: $e'),
-        ),
-      );
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -275,17 +247,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                           ),
                           const SizedBox(width: 16),
-                          GestureDetector(
-                            onTap: _importBoard,
-                            child: Row(
-                              children: const [
-                                Icon(Icons.upload_file),
-                                SizedBox(width: 4),
-                                Text('Import Board'),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(width: 16),
+
                           GestureDetector(
                             onTap: _openSettings,
                             child: Icon(
@@ -322,6 +284,18 @@ class _HomeScreenState extends State<HomeScreen> {
                     },
 
                     nowNextData: provider.calculateNowNext(),
+                    onNowNextTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => ScheduleMode(
+                            onExit: () => Navigator.pop(context),
+                            availableSymbols: DashboardScreen.scheduleSymbols,
+                            initialView: ScheduleViewMode.nowNext,
+                          ),
+                        ),
+                      );
+                    },
                   ),
                 ),
               ],
@@ -333,7 +307,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 }
 
-class _SettingsSheet extends StatelessWidget {
+class SettingsSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Consumer<AACProvider>(
@@ -373,37 +347,67 @@ class _SettingsSheet extends StatelessWidget {
                 child: SingleChildScrollView(
                   child: Column(
                     children: [
-                      _SettingsTile(
+                      SettingsTile(
                         icon: Icons.person_outline,
                         label: 'Edit Profile',
                         onTap: () {},
                       ),
-                      _SettingsTile(
+                      SettingsTile(
                         icon: Icons.volume_up_outlined,
                         label: 'Voice Settings',
-                        onTap: () {},
+                        onTap: () {
+                          Navigator.pop(context);
+                          showDialog(
+                            context: context,
+                            builder: (_) => const VoiceSettingsDialog(),
+                          );
+                        },
                       ),
-                      _SettingsTile(
+                      SettingsTile(
                         icon: Icons.grid_view_outlined,
                         label: 'Grid Layout',
-                        onTap: () {},
+                        onTap: () {
+                          Navigator.pop(context);
+                          showDialog(
+                            context: context,
+                            builder: (_) => const GridLayoutDialog(),
+                          );
+                        },
                       ),
-                      _SettingsTile(
+                      SettingsTile(
                         icon: Icons.color_lens_outlined,
                         label: 'Appearance',
-                        onTap: () {},
+                        onTap: () {
+                          Navigator.pop(context);
+                          showDialog(
+                            context: context,
+                            builder: (_) => const AppearanceDialog(),
+                          );
+                        },
                       ),
-                      _SettingsTile(
+                      SettingsTile(
                         icon: Icons.cloud_outlined,
                         label: 'Backup & Sync',
                         onTap: () {},
                       ),
-                      _SettingsTile(
+                      SettingsTile(
                         icon: Icons.help_outline,
                         label: 'Help & Support',
                         onTap: () {},
                       ),
-                      _SettingsTile(
+                      SettingsTile(
+                        icon: Icons.dashboard_outlined,
+                        label: 'Load Default Board',
+                        onTap: () async {
+                          Navigator.pop(context);
+                          try {
+                            await provider.activateDefaultBoard();
+                          } catch (e) {
+                            debugPrint('Error loading default board: $e');
+                          }
+                        },
+                      ),
+                      SettingsTile(
                         icon: Icons.file_upload_outlined,
                         label: 'Import OBF/OBZ Board',
                         onTap: () async {
@@ -416,10 +420,11 @@ class _SettingsSheet extends StatelessWidget {
                         },
                       ),
                       if (provider.importedBoardSet != null)
-                        _SettingsTile(
+                        SettingsTile(
                           icon: Icons.clear_all_outlined,
                           label: 'Clear Imported Board',
                           onTap: () {
+                            provider.clearImportedBoardSet();
                             Navigator.pop(context);
                           },
                         ),
@@ -454,12 +459,13 @@ class _SettingsSheet extends StatelessWidget {
   }
 }
 
-class _SettingsTile extends StatelessWidget {
+class SettingsTile extends StatelessWidget {
   final IconData icon;
   final String label;
   final VoidCallback onTap;
 
-  const _SettingsTile({
+  const SettingsTile({
+    super.key,
     required this.icon,
     required this.label,
     required this.onTap,

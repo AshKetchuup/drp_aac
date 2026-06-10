@@ -13,18 +13,25 @@ class AppTheme {
   static const Color error = Color(0xFFEF4444);
   static const Color warning = Color(0xFFFACC15);
 
-  // Category Colors (Grid for iPad style)
-  static const Color categoryPronoun = Color(0xFFFDFD96); // Yellow (People)
-  static const Color categoryVerb = Color(0xFFB5EAD7); // Green (Actions)
-  static const Color categoryNoun = Color(0xFFF97316); // Orange
-  static const Color categoryAdjective = Color(0xFFAEC6CF); // Blue (Describe)
-  static const Color categoryQuestion = Color(0xFFD8BFD8); // Purple (Questions)
-  static const Color categoryPreposition = Color(0xFFF4F4F4); // White (Little words)
-  static const Color categoryFolder = Color(0xFF40E0D0); // Teal (Topics/Folders)
-  
-  // Legacy mappings for backwards compatibility
-  static const Color categoryActivity = categoryFolder; 
-  static const Color categoryFood = categoryFolder;
+  // ─── Colourful Semantics palette ──────────────────────────────────────────
+  // The clinical colour convention (Bryan). These are the SAME hex values as
+  // the Fill-in-the-Blanks minigame's SemanticType, so the communication
+  // boards and the games speak one shared colour language.
+  static const Color categoryPronoun = Color(0xFFF97316); // Orange — Who? (subject)
+  static const Color categoryVerb = Color(0xFFFACC15); // Yellow — Doing? (action)
+  static const Color categoryNoun = Color(0xFF22C55E); // Green — What? (object)
+  static const Color categoryPlace = Color(0xFF3B82F6); // Blue — Where? (place)
+  static const Color categoryAdjective = Color(0xFFF4F4F4); // White — What kind? (describe)
+
+  // Categories that share a Colourful Semantics role point at the same colour.
+  static const Color categoryFood = categoryNoun; // food is an object → green
+  static const Color categoryActivity = categoryVerb; // activities are actions → yellow
+  static const Color categoryFeeling = categoryAdjective; // feelings describe → white
+  static const Color categoryPreposition = categoryPlace; // location words → blue
+
+  // Outside the core 5-role scheme — kept visually distinct, not CS colours.
+  static const Color categoryQuestion = Color(0xFFD8BFD8); // Purple — question words
+  static const Color categoryFolder = Color(0xFF40E0D0); // Teal — topics / folders
 
   // Emotion Colors
   static const Color emotionHappy = Color(0xFFFACC15);
@@ -34,7 +41,84 @@ class AppTheme {
   static const Color emotionCalm = Color(0xFF22C55E);
   static const Color emotionTired = Color(0xFF6B7280);
 
-  static ThemeData get theme => ThemeData(
+  static ThemeData getTheme(ThemeMode mode) {
+    if (mode == ThemeMode.light) {
+      return ThemeData(
+        useMaterial3: true,
+        brightness: Brightness.light,
+        scaffoldBackgroundColor: const Color(0xFFF8FAFC),
+        colorScheme: const ColorScheme.light(
+          primary: primary,
+          secondary: secondary,
+          surface: Colors.white,
+          error: error,
+        ),
+        appBarTheme: const AppBarTheme(
+          backgroundColor: Color(0xFFF8FAFC),
+          elevation: 0,
+          centerTitle: false,
+          titleTextStyle: TextStyle(
+            color: Color(0xFF0F172A),
+            fontSize: 20,
+            fontWeight: FontWeight.w600,
+          ),
+          iconTheme: IconThemeData(color: Color(0xFF0F172A)),
+        ),
+        cardTheme: CardThemeData(
+          color: Colors.white,
+          elevation: 0,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+            side: const BorderSide(color: Color(0xFFE2E8F0), width: 1),
+          ),
+        ),
+        textTheme: const TextTheme(
+          displayLarge: TextStyle(color: Color(0xFF0F172A), fontSize: 32, fontWeight: FontWeight.bold),
+          bodyLarge: TextStyle(color: Color(0xFF0F172A), fontSize: 16),
+          bodyMedium: TextStyle(color: Color(0xFF475569), fontSize: 14),
+        ),
+      );
+    }
+
+    if (mode == ThemeMode.system) { // we use system for High Contrast since flutter doesn't have a built-in high contrast ThemeMode enum
+      return ThemeData(
+        useMaterial3: true,
+        brightness: Brightness.dark,
+        scaffoldBackgroundColor: Colors.black,
+        colorScheme: const ColorScheme.dark(
+          primary: Colors.yellow,
+          secondary: Colors.cyan,
+          surface: Colors.black,
+          error: Colors.red,
+        ),
+        appBarTheme: const AppBarTheme(
+          backgroundColor: Colors.black,
+          elevation: 0,
+          centerTitle: false,
+          titleTextStyle: TextStyle(
+            color: Colors.white,
+            fontSize: 20,
+            fontWeight: FontWeight.w900,
+          ),
+        ),
+        cardTheme: CardThemeData(
+          color: Colors.black,
+          elevation: 0,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+            side: const BorderSide(color: Colors.white, width: 3),
+          ),
+        ),
+        textTheme: const TextTheme(
+          displayLarge: TextStyle(color: Colors.white, fontSize: 32, fontWeight: FontWeight.bold),
+          bodyLarge: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+          bodyMedium: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold),
+        ),
+      );
+    }
+
+    // Default Dark
+    return ThemeData(
         useMaterial3: true,
         brightness: Brightness.dark,
         scaffoldBackgroundColor: background,
@@ -150,4 +234,5 @@ class AppTheme {
           ),
         ),
       );
+  }
 }

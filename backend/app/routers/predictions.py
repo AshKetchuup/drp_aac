@@ -9,21 +9,21 @@ router = APIRouter(prefix="/api/context", tags=["predictions"])
 
 past_predictions = [
     {
-        "text": "I want juice",
-        "response": ["Juice", "please"]
+        "text": "What do you want for snack?",
+        "response": ["Apple", "Crackers", "Juice box", "Yogurt"]
     },
     {
-        "text": "I like sandwitches",
-        "response": ["Me too", "Yes"]
+        "text": "What are your favourite subjects?",
+        "response": ["Maths", "English"]
     },
     
 ]
 
 payload_mock = PredictionRequest(
     audio_base64="mock_base64_audio",
-    text="What do you want to play with today?",
-    likes=["Legos", "Dinosaurs", "Pizza", "Cycling", "Lentil soup", "Mom"],
-    dislikes=["Rainy days", "Beets", "Oranges"]
+    text="What is your favourite Operating system?",
+    likes=["Park", "Swings", "Library", "Grandma's house", "Dogs"],
+    dislikes=["Loud noises", "Dark rooms", "Nap time"]
 )
 
 @router.post("/predict", response_model=PredictionResponse)
@@ -63,46 +63,54 @@ def generate_suggestions(payload):
     if not history_str:
         history_str = "No recent history."
         
-    system_prompt = f"""You are the predictive engine for a non-verbal child's AAC (communication) app. 
-Your job is to predict 3 to 6 single words or short phrases the child might want to communicate next.
+    system_prompt = f"""You are a speech therapist/SEND teacher helping a non-verbal child communicate using an AAC app.
+Your task: given what someone just said to the child, predict the words the child most likely wants to say back.
 
-Child's Profile:
-- Likes: {likes_str}
-- Dislikes: {dislikes_str}
+The child's favourite things: {likes_str}
+Things the child dislikes: {dislikes_str}
 
-Recent Communication History:
+What the child said recently:
 {history_str}
 
-CRITICAL RULES:
-1. FRINGE VOCABULARY: Provide specific, subject-related words the child needs for this specific topic (e.g. names, specific nouns, descriptive adjectives). DO NOT provide basic core words (like "Yes", "No", "I want") because they already have those on their board.
-2. Bias your suggestions toward the child's 'Likes' when appropriate.
-3. Output ONLY a valid JSON array of strings. No explanation.
-4. You may need to include subject related words from the child that gets said in the context.
+RULES:
+- IMPORTANT: SUGGEST ATLEAST 4 to 10 words or short phrases the child would realistically reply with.
+- IMPORTANT: Include the words from MOST RELEVANT to LEAST RELEVANT. 
+- INCLUDE THE PROPER NOUNS WITHIN THE SENTENCE, that are not already in the AAC board.
+- IF the child's likes are directly relevant to the topic, include them. 
+- CRITICAL: Dont OVER use the likes if not relevant. DO NOT include random likes (like "Park" or "Swings") if the topic is about something completely different (like "Pets"). Instead, suggest other things to expand the child's vocabulary and general knowledge.
+- NEVER include anything from the dislikes list.
+- Focus on specific, meaningful vocabulary (nouns, verbs, adjectives) — NOT generic words like "Yes", "No", "Please", "I want" since those are already on the child's board.
+- Use the conversation history to make smarter, contextual predictions.
+- Return ONLY a valid JSON array of strings. Nothing else. No numbers, no explanations, no keys.
+- NO REPEATS
 
-EXAMPLES:
-Context: "Who is the GOAT of football?"
-Output: ["Messi", "Ronaldo", "Pele", "Maradona"]
+GOOD example:
+Someone said: "What animal do you like?"
+Child likes: Dogs, Cats, Park, Swings
+Child dislikes: Spiders
+Answer: ["Dogs", "Cats", "Rabbits", "Hamster", "Fish"]
 
-Context: "What do you want to play with?"
-Likes: legos, cars
-Dislikes: dolls
-Output: ["Red car", "Lego batman", "Race track", "Build tower"]"""
+BAD example (NEVER do this):
+["1", "Dogs", "2", "Cats"] — numbers are WRONG
+{{"animals": ["Dogs"]}} — objects are WRONG
+["Dogs", "Park", "Swings"] — WRONG: "Park" and "Swings" are not animals! Do not force irrelevant likes!"""
 
-    user_prompt = f"""Someone just said this to the child: "{payload.text}"
-
-IMPORTANT: The child likes: {likes_str}. The child dislikes: {dislikes_str}.
-Provide AT LEAST 3 subject-specific, DISTINCT, advanced words related to this topic. Output JSON array only."""
+    user_prompt = f"""Someone said: "{payload.text}"
+Child likes: {likes_str}
+Child dislikes: {dislikes_str}
+Answer:"""
 
     response = ollama.chat(
-        model='qwen2.5:1.5b', 
+        model='qwen2.5:1.5b', # Extremely smart 1B model
         messages=[
             {'role': 'system', 'content': system_prompt},
             {'role': 'user', 'content': user_prompt}
         ],
         format='json',
+        keep_alive=-1,  # CRITICAL FOR SPEED: Keeps model loaded in RAM permanently
         options={
-            'num_predict': 80,
-            'num_ctx': 512,
+            'num_predict': 256, # Increased to prevent cutting off long JSON arrays
+            'num_ctx': 1024,
             'temperature': 0.7,
         }
     )
@@ -122,15 +130,26 @@ Provide AT LEAST 3 subject-specific, DISTINCT, advanced words related to this to
     else:
         raw_list = [parsed]
         
-    # Fully flatten any nested lists and convert to strings
+    # Fully flatten any nested lists, split comma-separated strings, and convert to strings
     suggestions_list = []
     for item in raw_list:
+        val = ""
         if isinstance(item, list) and len(item) > 0:
-            suggestions_list.append(str(item[0]))
+            val = str(item[0])
         else:
-            suggestions_list.append(str(item))
+            val = str(item)
+            
+        # The small models sometimes return ["word1, word2"] instead of ["word1", "word2"]
+        # Split by comma to fix this if it happens.
+        for split_val in val.split(','):
+            cleaned = split_val.strip()
+            # Remove leading '#' if the model added it randomly
+            if cleaned.startswith('#'):
+                cleaned = cleaned[1:].strip()
+            if cleaned:
+                suggestions_list.append(cleaned)
         
-    return suggestions_list[:5]
+    return suggestions_list[:8]
 
 
 if __name__ == '__main__':

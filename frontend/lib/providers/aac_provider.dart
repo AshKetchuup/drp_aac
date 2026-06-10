@@ -1,7 +1,9 @@
 import 'dart:convert';
 import 'package:file_picker/file_picker.dart';
 import 'dart:io';
+import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart' show rootBundle;
 import 'package:frontend/services/obf/obf_parser.dart';
 import 'package:frontend/services/obf/obz_parser.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
@@ -17,9 +19,41 @@ import '../services/auth_service.dart';
 class AACProvider extends ChangeNotifier {
   final ScheduleRepository _scheduleRepo;
 
+  // Settings State
+  double _voicePitch = 1.0;
+  double _voiceRate = 0.4;
+  int? _gridColumns; // null = Auto
+  ThemeMode _themeMode = ThemeMode.dark;
+
+  double get voicePitch => _voicePitch;
+  double get voiceRate => _voiceRate;
+  int? get gridColumns => _gridColumns;
+  ThemeMode get themeMode => _themeMode;
+
+  void updateVoiceSettings(double pitch, double rate) {
+    _voicePitch = pitch;
+    _voiceRate = rate;
+    _flutterTts.setPitch(_voicePitch);
+    _flutterTts.setSpeechRate(_voiceRate);
+    notifyListeners();
+  }
+
+  void updateGridColumns(int? columns) {
+    _gridColumns = columns;
+    notifyListeners();
+  }
+
+  void updateThemeMode(ThemeMode mode) {
+    _themeMode = mode;
+    notifyListeners();
+  }
+
   AACProvider({ScheduleRepository? scheduleRepo})
     : _scheduleRepo = scheduleRepo ?? LocalScheduleRepository() {
     _initTts();
+    // Preload the bundled starter board so it's the first board ready to use,
+    // without taking over the rich home view.
+    loadDefaultBoardSet();
   }
 
   ({Symbol? now, Symbol? next}) calculateNowNext() {
@@ -69,6 +103,9 @@ class AACProvider extends ChangeNotifier {
   }
 
   Future<void> addToSchedule(SlotKey key, Symbol symbol) async {
+    if (schedule[key] == null) {
+      schedule[key] = [];
+    }
     schedule[key]!.add(symbol);
     notifyListeners();
     await _scheduleRepo.save(schedule);
@@ -95,6 +132,40 @@ class AACProvider extends ChangeNotifier {
   ImportedBoardSet? get importedBoardSet => _importedBoardSet;
   String? get activeImportedBoardPath => _activeImportedBoardPath;
 
+  /// The bundled starter board (`assets/boards/default_board.obz`), preloaded at
+  /// startup so it is the first board available to switch to. It is intentionally
+  /// NOT auto-activated: the rich hardcoded home board stays the default view so
+  /// no features (profile, smart suggestions, Now/Next) are lost. Call
+  /// [activateDefaultBoard] to make it the active imported board.
+  ImportedBoardSet? _defaultBoardSet;
+  ImportedBoardSet? get defaultBoardSet => _defaultBoardSet;
+  static const String _defaultBoardAsset = 'assets/boards/default_board.obz';
+
+  /// Loads and parses the bundled default board into [defaultBoardSet] without
+  /// activating it. Safe to call more than once; the asset is only parsed once.
+  Future<void> loadDefaultBoardSet() async {
+    if (_defaultBoardSet != null) return;
+    try {
+      final data = await rootBundle.load(_defaultBoardAsset);
+      _defaultBoardSet = ObzParser().parseObzBytes(data.buffer.asUint8List());
+      notifyListeners();
+    } catch (e) {
+      debugPrint('Failed to load bundled default board: $e');
+    }
+  }
+
+  /// Switches the grid to the bundled default board, loading it first if needed.
+  Future<void> activateDefaultBoard() async {
+    await loadDefaultBoardSet();
+    final boardSet = _defaultBoardSet;
+    if (boardSet == null) return;
+    _importedBoardSet = boardSet;
+    _activeImportedBoardPath = boardSet.rootPath;
+    notifyListeners();
+  }
+
+
+
   void setImportedBoardSet(ImportedBoardSet boardSet) {
     _importedBoardSet = boardSet;
     _activeImportedBoardPath = boardSet.rootPath;
@@ -116,28 +187,27 @@ class AACProvider extends ChangeNotifier {
     final result = await FilePicker.pickFiles(
       type: FileType.custom,
       allowedExtensions: ['obf', 'obz'],
+      withData: true,
     );
 
     if (result == null) return;
 
-    final file = File(result.files.single.path!);
+    final file = result.files.single;
 
-    if (file.path.toLowerCase().endsWith('.obz')) {
-      final boardSet = await ObzParser().parseObzFile(file);
-
+    if (file.extension?.toLowerCase() == 'obz') {
+      final boardSet = ObzParser().parseObzBytes(file.bytes!);
       _importedBoardSet = boardSet;
       _activeImportedBoardPath = boardSet.rootPath;
     } else {
-      final text = await file.readAsString();
-      final board = ObfParser().parseObfString(text);
+      final jsonText = utf8.decode(file.bytes!);
+      final board = ObfParser().parseObfString(jsonText);
 
       _importedBoardSet = ImportedBoardSet(
-        rootPath: 'root',
-        boardsByPath: {'root': board},
+        rootPath: 'board.obf',
+        boardsByPath: {'board.obf': board},
         filesByPath: {},
       );
-
-      _activeImportedBoardPath = 'root';
+      _activeImportedBoardPath = 'board.obf';
     }
 
     notifyListeners();
@@ -145,9 +215,9 @@ class AACProvider extends ChangeNotifier {
 
   Future<void> _initTts() async {
     await _flutterTts.setLanguage('en-GN');
-    await _flutterTts.setSpeechRate(0.4);
+    await _flutterTts.setSpeechRate(_voiceRate);
     await _flutterTts.setVolume(1.0);
-    await _flutterTts.setPitch(1.0);
+    await _flutterTts.setPitch(_voicePitch);
   }
 
   Future<void> speak(String text) async {
@@ -165,6 +235,7 @@ class AACProvider extends ChangeNotifier {
     createdAt: DateTime.now(),
   );
   final List<Symbol> _sentenceBuilder = [];
+  final List<Symbol> _customSymbols = [];
   String? _currentEmotion;
   bool _isProfileSetupComplete = true;
 
@@ -177,6 +248,7 @@ class AACProvider extends ChangeNotifier {
 
   UserProfile? get currentProfile => _currentProfile;
   List<Symbol> get sentenceBuilder => _sentenceBuilder;
+  List<Symbol> get customSymbols => _customSymbols;
   String? get currentEmotion => _currentEmotion;
   bool get isProfileSetupComplete => _isProfileSetupComplete;
 
@@ -187,6 +259,19 @@ class AACProvider extends ChangeNotifier {
   bool get authRequired => _authRequired;
 
   String get currentSentence => _sentenceBuilder.map((s) => s.label).join(' ');
+
+  void addCustomSymbol(Symbol symbol) {
+    // Avoid duplicates by checking label
+    if (!_customSymbols.any((s) => s.label.toLowerCase() == symbol.label.toLowerCase())) {
+      _customSymbols.add(symbol);
+      notifyListeners();
+    }
+  }
+
+  void removeCustomSymbol(String id) {
+    _customSymbols.removeWhere((s) => s.id == id);
+    notifyListeners();
+  }
 
   void setProfile(UserProfile profile) {
     _currentProfile = profile;
