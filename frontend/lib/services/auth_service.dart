@@ -22,7 +22,7 @@ class AuthService {
       'http://localhost:3000/callback';
 
   static const String issuer =
-      'https://authentik.ismailmehmood.co.uk/application/o/drp-aac';
+      'https://authentik.ismailmehmood.co.uk/application/o/drp-aac/';
 
   static const List<String> scopes = [
     'openid',
@@ -50,7 +50,7 @@ class AuthService {
       AuthorizationTokenRequest(
         clientId,
         redirectUrl,
-        discoveryUrl: '$issuer/.well-known/openid-configuration',
+        discoveryUrl: '$issuer.well-known/openid-configuration',
         scopes: scopes,
         promptValues: const ['login'],
       ),
@@ -72,7 +72,7 @@ class AuthService {
   // ------------------------------------------------------------
   Future<bool> _loginLinux() async {
     final discoveryResponse = await http.get(
-      Uri.parse('$issuer/.well-known/openid-configuration'),
+      Uri.parse('$issuer.well-known/openid-configuration'),
     );
 
     if (discoveryResponse.statusCode != 200) {
