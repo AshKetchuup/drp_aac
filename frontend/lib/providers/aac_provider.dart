@@ -14,6 +14,7 @@ import '../models/models.dart';
 import '../widgets/scheduler.dart';
 import '../repositories/schedule_repository.dart';
 import '../repositories/local_schedule_repository.dart';
+import '../services/auth_service.dart';
 
 class AACProvider extends ChangeNotifier {
   final ScheduleRepository _scheduleRepo;
@@ -183,7 +184,7 @@ class AACProvider extends ChangeNotifier {
   }
 
   Future<void> importBoard() async {
-    final result = await FilePicker.platform.pickFiles(
+    final result = await FilePicker.pickFiles(
       type: FileType.custom,
       allowedExtensions: ['obf', 'obz'],
       withData: true,
@@ -243,6 +244,7 @@ class AACProvider extends ChangeNotifier {
   bool _isLoadingSuggestions = false;
   String? _teacherPrompt;
   List<String> _contextSuggestions = [];
+  bool _authRequired = false;
 
   UserProfile? get currentProfile => _currentProfile;
   List<Symbol> get sentenceBuilder => _sentenceBuilder;
@@ -254,6 +256,7 @@ class AACProvider extends ChangeNotifier {
   bool get isLoadingSuggestions => _isLoadingSuggestions;
   String? get teacherPrompt => _teacherPrompt;
   List<String> get contextSuggestions => _contextSuggestions;
+  bool get authRequired => _authRequired;
 
   String get currentSentence => _sentenceBuilder.map((s) => s.label).join(' ');
 
@@ -385,6 +388,7 @@ class AACProvider extends ChangeNotifier {
 
   Future<void> fetchSuggestions() async {
     _isLoadingSuggestions = true;
+    _authRequired = false; // Reset auth flag
     notifyListeners();
 
     try {
@@ -395,9 +399,19 @@ class AACProvider extends ChangeNotifier {
       //   apiUrl = 'http://10.0.2.2:8000/api/context/predict'; // Special IP for Android Emulator host
       // }
 
+      // Read stored access token from secure storage
+      final token = await AuthService().getAccessToken();
+
+      final headers = <String, String>{
+        'Content-Type': 'application/json',
+      };
+      if (token != null) {
+        headers['Authorization'] = 'Bearer $token';
+      }
+
       final response = await http.post(
         Uri.parse(apiUrl),
-        headers: {'Content-Type': 'application/json'},
+        headers: headers,
         body: jsonEncode({
           'audio_base64': 'bW9jayBhdWRpbyBkYXRh',
           'text': _teacherPrompt ?? '',
@@ -409,6 +423,10 @@ class AACProvider extends ChangeNotifier {
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         _contextSuggestions = List<String>.from(data['predictions'] ?? []);
+      } else if (response.statusCode == 401 || response.statusCode == 403) {
+        // User is not authenticated — signal to the UI
+        _authRequired = true;
+        _contextSuggestions = [];
       } else {
         _contextSuggestions = [
           "Pizza",
