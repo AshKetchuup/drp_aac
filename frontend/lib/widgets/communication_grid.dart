@@ -71,7 +71,7 @@ class _CommunicationGridState extends State<CommunicationGrid> {
       'preposition',
       'Little Words',
       Icons.short_text,
-      AppTheme.primary,
+      AppTheme.categoryPreposition,
     ),
     _CategoryPage(
       'activity',
@@ -79,8 +79,8 @@ class _CommunicationGridState extends State<CommunicationGrid> {
       Icons.sports_esports,
       AppTheme.categoryActivity,
     ),
-    _CategoryPage('feeling', 'Feelings', Icons.mood, AppTheme.secondary),
-    _CategoryPage('question', 'Questions', Icons.help, AppTheme.warning),
+    _CategoryPage('feeling', 'Feelings', Icons.mood, AppTheme.categoryFeeling),
+    _CategoryPage('question', 'Questions', Icons.help, AppTheme.categoryQuestion),
   ];
 
   static final List<Symbol> symbols = [

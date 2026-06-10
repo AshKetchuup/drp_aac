@@ -2,6 +2,36 @@ import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import '../models/models.dart';
 
+/// Maps a symbol's part of speech to its Colourful Semantics colour. Single
+/// source of truth shared by [SymbolTile] and [MiniSymbolTile] so the
+/// sentence rail and the grid never drift apart.
+Color colourfulSemanticsColor(SymbolCategory category) {
+  switch (category) {
+    case SymbolCategory.pronoun:
+      return AppTheme.categoryPronoun; // Orange — Who?
+    case SymbolCategory.verb:
+      return AppTheme.categoryVerb; // Yellow — Doing?
+    case SymbolCategory.activity:
+      return AppTheme.categoryActivity; // Yellow — Doing?
+    case SymbolCategory.noun:
+      return AppTheme.categoryNoun; // Green — What?
+    case SymbolCategory.food:
+      return AppTheme.categoryFood; // Green — What?
+    case SymbolCategory.place:
+      return AppTheme.categoryPlace; // Blue — Where?
+    case SymbolCategory.preposition:
+      return AppTheme.categoryPreposition; // Blue — Where?
+    case SymbolCategory.adjective:
+      return AppTheme.categoryAdjective; // White — What kind?
+    case SymbolCategory.feeling:
+      return AppTheme.categoryFeeling; // White — What kind?
+    case SymbolCategory.question:
+      return AppTheme.categoryQuestion; // Purple — not a core CS role
+    case SymbolCategory.folder:
+      return AppTheme.categoryFolder; // Teal — organisational, not CS
+  }
+}
+
 class SymbolTile extends StatelessWidget {
   final Symbol symbol;
   final VoidCallback onTap;
@@ -22,33 +52,7 @@ class SymbolTile extends StatelessWidget {
     this.labelFontSizeDelta = 0,
   });
 
-  Color get categoryColor {
-    switch (symbol.category) {
-      case SymbolCategory.pronoun:
-        return AppTheme.categoryPronoun;
-      case SymbolCategory.verb:
-        return AppTheme.categoryVerb;
-      case SymbolCategory.noun:
-        return AppTheme.categoryNoun;
-      case SymbolCategory.adjective:
-        return AppTheme.categoryAdjective;
-      case SymbolCategory.activity:
-        return AppTheme.categoryActivity;
-      case SymbolCategory.food:
-        return AppTheme.categoryFood;
-      case SymbolCategory.feeling:
-        return AppTheme
-            .categoryFolder; // Use folder color for feelings as requested
-      case SymbolCategory.place:
-        return AppTheme.categoryFolder;
-      case SymbolCategory.question:
-        return AppTheme.categoryQuestion;
-      case SymbolCategory.preposition:
-        return AppTheme.categoryPreposition;
-      case SymbolCategory.folder:
-        return AppTheme.categoryFolder;
-    }
-  }
+  Color get categoryColor => colourfulSemanticsColor(symbol.category);
 
   @override
   Widget build(BuildContext context) {
@@ -252,32 +256,7 @@ class MiniSymbolTile extends StatelessWidget {
         false, // Defaults to false so your existing code doesn't break
   });
 
-  Color get categoryColor {
-    switch (symbol.category) {
-      case SymbolCategory.pronoun:
-        return AppTheme.categoryPronoun;
-      case SymbolCategory.verb:
-        return AppTheme.categoryVerb;
-      case SymbolCategory.noun:
-        return AppTheme.categoryNoun;
-      case SymbolCategory.adjective:
-        return AppTheme.categoryAdjective;
-      case SymbolCategory.activity:
-        return AppTheme.categoryActivity;
-      case SymbolCategory.food:
-        return AppTheme.categoryFood;
-      case SymbolCategory.feeling:
-        return AppTheme.categoryFolder;
-      case SymbolCategory.place:
-        return AppTheme.categoryFolder;
-      case SymbolCategory.question:
-        return AppTheme.categoryQuestion;
-      case SymbolCategory.preposition:
-        return AppTheme.categoryPreposition;
-      case SymbolCategory.folder:
-        return AppTheme.categoryFolder;
-    }
-  }
+  Color get categoryColor => colourfulSemanticsColor(symbol.category);
 
   @override
   Widget build(BuildContext context) {
