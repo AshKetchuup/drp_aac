@@ -87,50 +87,6 @@ class DebriefMode extends StatelessWidget {
     _CalmingSymbol('Inside', 'inside', SymbolCategory.activity, Icons.pool),
   ];
 
-  static final List<_CalmingSymbol> _specificPhrases = [
-    _CalmingSymbol(
-      'Too many people',
-      'crowd',
-      SymbolCategory.feeling,
-      Icons.groups,
-    ),
-    _CalmingSymbol(
-      'Too much noise',
-      'loud',
-      SymbolCategory.feeling,
-      Icons.volume_off,
-    ),
-    _CalmingSymbol('Needed a break', 'rest', SymbolCategory.verb, Icons.spa),
-    _CalmingSymbol(
-      'Didn\'t understand',
-      'confused',
-      SymbolCategory.feeling,
-      Icons.help_outline,
-    ),
-  ];
-
-  static final List<_CalmingSymbol> _simpleTiles = [
-    _CalmingSymbol(
-      'I am okay',
-      'okay',
-      SymbolCategory.question,
-      Icons.check_circle,
-    ),
-    _CalmingSymbol(
-      'I am sorry',
-      'sorry',
-      SymbolCategory.feeling,
-      Icons.favorite_border,
-    ),
-    _CalmingSymbol(
-      'Thank you',
-      'thanks',
-      SymbolCategory.question,
-      Icons.thumb_up,
-    ),
-    _CalmingSymbol('All done', 'finish', SymbolCategory.verb, Icons.done_all),
-  ];
-
   static final List<_EmotionChip> _emotions = [
     _EmotionChip('😊', 'Happy'),
     _EmotionChip('😢', 'Sad'),
@@ -412,68 +368,6 @@ class _VerticalTileColumn extends StatelessWidget {
               ),
             ),
           ],
-        ],
-      ),
-    );
-  }
-}
-
-class _TilePanel extends StatelessWidget {
-  final String title;
-  final List<_CalmingSymbol> tiles;
-  final Function(Symbol) onTap;
-  const _TilePanel({
-    required this.title,
-    required this.tiles,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(10),
-      decoration: BoxDecoration(
-        color: AppTheme.surface,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: AppTheme.border),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.only(bottom: 8),
-            child: Text(
-              title,
-              style: const TextStyle(
-                color: AppTheme.textPrimary,
-                fontSize: 20,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-          ),
-          Expanded(
-            child: GridView.builder(
-              physics: const NeverScrollableScrollPhysics(),
-              padding: EdgeInsets.zero,
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                mainAxisSpacing: 8,
-                crossAxisSpacing: 8,
-                childAspectRatio: 0.88,
-              ),
-              itemCount: tiles.length,
-              itemBuilder: (context, index) {
-                final tile = tiles[index];
-                return SymbolTile(
-                  symbol: tile.symbol,
-                  onTap: () => onTap(tile.symbol),
-                  pictogramKeyword: tile.pictogramKeyword,
-                  labelMaxLines: 2,
-                  labelFontSizeDelta: -4,
-                );
-              },
-            ),
-          ),
         ],
       ),
     );

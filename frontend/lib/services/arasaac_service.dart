@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 
 class ArasaacService {
@@ -31,7 +32,7 @@ class ArasaacService {
       }
     } catch (e) {
       // Failed to fetch or no internet connection
-      print('Failed to fetch ARASAAC pictogram for "$searchWord": $e');
+      debugPrint('Failed to fetch ARASAAC pictogram for "$searchWord": $e');
     }
 
     // Cache null to avoid repeated failing network requests

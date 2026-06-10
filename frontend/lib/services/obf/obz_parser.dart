@@ -30,12 +30,7 @@ class ObzParser {
 
       final path = entry.name;
       final content = entry.content;
-
-      if (content is List<int>) {
-        filesByPath[path] = List<int>.from(content);
-      } else {
-        throw FormatException('Unexpected file content type for "$path".');
-      }
+      filesByPath[path] = List<int>.from(content);
     }
 
     final manifestBytes = filesByPath['manifest.json'];

@@ -79,30 +79,27 @@ class GridLayoutDialog extends StatelessWidget {
     return AlertDialog(
       backgroundColor: AppTheme.surface,
       title: const Text('Grid Layout', style: TextStyle(color: AppTheme.textPrimary)),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          RadioListTile<int?>(
-            title: const Text('Auto (Responsive)', style: TextStyle(color: AppTheme.textPrimary)),
-            value: null,
-            groupValue: currentCols,
-            activeColor: AppTheme.primary,
-            onChanged: (val) {
-              provider.updateGridColumns(val);
-              Navigator.pop(context);
-            },
-          ),
-          ...[2, 3, 4, 5, 6].map((cols) => RadioListTile<int?>(
-                title: Text('$cols Columns', style: const TextStyle(color: AppTheme.textPrimary)),
-                value: cols,
-                groupValue: currentCols,
-                activeColor: AppTheme.primary,
-                onChanged: (val) {
-                  provider.updateGridColumns(val);
-                  Navigator.pop(context);
-                },
-              )),
-        ],
+      content: RadioGroup<int?>(
+        groupValue: currentCols,
+        onChanged: (val) {
+          provider.updateGridColumns(val);
+          Navigator.pop(context);
+        },
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            RadioListTile<int?>(
+              title: const Text('Auto (Responsive)', style: TextStyle(color: AppTheme.textPrimary)),
+              value: null,
+              activeColor: AppTheme.primary,
+            ),
+            ...[2, 3, 4, 5, 6].map((cols) => RadioListTile<int?>(
+                  title: Text('$cols Columns', style: const TextStyle(color: AppTheme.textPrimary)),
+                  value: cols,
+                  activeColor: AppTheme.primary,
+                )),
+          ],
+        ),
       ),
       actions: [
         TextButton(
@@ -125,40 +122,32 @@ class AppearanceDialog extends StatelessWidget {
     return AlertDialog(
       backgroundColor: AppTheme.surface,
       title: const Text('Appearance', style: TextStyle(color: AppTheme.textPrimary)),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          RadioListTile<ThemeMode>(
-            title: const Text('System Default', style: TextStyle(color: AppTheme.textPrimary)),
-            value: ThemeMode.system,
-            groupValue: currentMode,
-            activeColor: AppTheme.primary,
-            onChanged: (val) {
-              provider.updateThemeMode(val!);
-              Navigator.pop(context);
-            },
-          ),
-          RadioListTile<ThemeMode>(
-            title: const Text('Light Mode', style: TextStyle(color: AppTheme.textPrimary)),
-            value: ThemeMode.light,
-            groupValue: currentMode,
-            activeColor: AppTheme.primary,
-            onChanged: (val) {
-              provider.updateThemeMode(val!);
-              Navigator.pop(context);
-            },
-          ),
-          RadioListTile<ThemeMode>(
-            title: const Text('Dark Mode', style: TextStyle(color: AppTheme.textPrimary)),
-            value: ThemeMode.dark,
-            groupValue: currentMode,
-            activeColor: AppTheme.primary,
-            onChanged: (val) {
-              provider.updateThemeMode(val!);
-              Navigator.pop(context);
-            },
-          ),
-        ],
+      content: RadioGroup<ThemeMode>(
+        groupValue: currentMode,
+        onChanged: (val) {
+          provider.updateThemeMode(val!);
+          Navigator.pop(context);
+        },
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            RadioListTile<ThemeMode>(
+              title: const Text('System Default', style: TextStyle(color: AppTheme.textPrimary)),
+              value: ThemeMode.system,
+              activeColor: AppTheme.primary,
+            ),
+            RadioListTile<ThemeMode>(
+              title: const Text('Light Mode', style: TextStyle(color: AppTheme.textPrimary)),
+              value: ThemeMode.light,
+              activeColor: AppTheme.primary,
+            ),
+            RadioListTile<ThemeMode>(
+              title: const Text('Dark Mode', style: TextStyle(color: AppTheme.textPrimary)),
+              value: ThemeMode.dark,
+              activeColor: AppTheme.primary,
+            ),
+          ],
+        ),
       ),
       actions: [
         TextButton(

@@ -1,5 +1,4 @@
-import base64
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, Depends
 from app.schemas import PredictionRequest, PredictionResponse
 from app.auth import get_current_user
 import ollama
@@ -20,7 +19,6 @@ past_predictions = [
 ]
 
 payload_mock = PredictionRequest(
-    audio_base64="mock_base64_audio",
     text="What is your favourite Operating system?",
     likes=["Park", "Swings", "Library", "Grandma's house", "Dogs"],
     dislikes=["Loud noises", "Dark rooms", "Nap time"]
@@ -28,14 +26,6 @@ payload_mock = PredictionRequest(
 
 @router.post("/predict", response_model=PredictionResponse)
 def predict_words(payload: PredictionRequest, user: dict = Depends(get_current_user)):
-    try:
-        if payload.audio_base64:
-            decoded_bytes = base64.b64decode(payload.audio_base64)
-            decoded_bytes.decode("utf-8")
-    except Exception:
-        raise HTTPException(status_code=400, detail="Invalid base64 input")
-    
-
     predictions = generate_suggestions(payload)
     print("predictions", predictions)
     

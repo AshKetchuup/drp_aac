@@ -1,10 +1,6 @@
-import os
 import time
 import statistics
 from fastapi.testclient import TestClient
-
-# Set TESTING to true so Firebase uses AnonymousCredentials
-os.environ["TESTING"] = "true"
 
 from app.main import app
 
@@ -17,7 +13,6 @@ TEST_SCENARIOS = [
     {
         "description": "Lunch time",
         "payload": {
-            "audio_base64": "",
             "text": "It's time for lunch, what do you want to eat?",
             "likes": ["pizza", "apple", "sandwich"],
             "dislikes": ["pasta"]
@@ -27,7 +22,6 @@ TEST_SCENARIOS = [
     {
         "description": "Play time",
         "payload": {
-            "audio_base64": "",
             "text": "What do you want to play with today?",
             "likes": ["Legos", "Dinosaurs"],
             "dislikes": []
@@ -37,7 +31,6 @@ TEST_SCENARIOS = [
     {
         "description": "Feeling unwell",
         "payload": {
-            "audio_base64": "",
             "text": "Are you feeling okay?",
             "likes": [],
             "dislikes": []
@@ -47,7 +40,6 @@ TEST_SCENARIOS = [
     {
         "description": "Going outside",
         "payload": {
-            "audio_base64": "",
             "text": "We are going outside to the park now.",
             "likes": ["slide", "running"],
             "dislikes": ["sand"]

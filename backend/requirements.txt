@@ -1,8 +1,7 @@
 fastapi
 uvicorn
-firebase-admin
 pydantic
 pytest
 httpx
 ollama
-python-jose[cryptography]
+PyJWT[crypto]

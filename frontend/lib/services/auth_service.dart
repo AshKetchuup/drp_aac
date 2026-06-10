@@ -56,8 +56,6 @@ class AuthService {
       ),
     );
 
-    if (result == null) return false;
-
     await _storeTokens(
       accessToken: result.accessToken,
       idToken: result.idToken,

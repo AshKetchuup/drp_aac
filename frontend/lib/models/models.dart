@@ -98,7 +98,6 @@ class UserProfile {
   final String name;
   final int? age;
   final String? pronoun;
-  final String? location;
   final String avatarId;
   final List<String> likes;
   final List<String> dislikes;
@@ -110,7 +109,6 @@ class UserProfile {
     required this.name,
     this.age,
     this.pronoun,
-    this.location,
     this.avatarId = 'avatar_1',
     this.likes = const [],
     this.dislikes = const [],
@@ -123,7 +121,6 @@ class UserProfile {
     String? name,
     int? age,
     String? pronoun,
-    String? location,
     String? avatarId,
     List<String>? likes,
     List<String>? dislikes,
@@ -135,7 +132,6 @@ class UserProfile {
       name: name ?? this.name,
       age: age ?? this.age,
       pronoun: pronoun ?? this.pronoun,
-      location: location ?? this.location,
       avatarId: avatarId ?? this.avatarId,
       likes: likes ?? this.likes,
       dislikes: dislikes ?? this.dislikes,

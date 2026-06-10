@@ -104,7 +104,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
   @override
   Widget build(BuildContext context) {
     final provider = Provider.of<AACProvider>(context);
-    final name = provider.currentProfile?.name ?? 'Friend';
 
     return Scaffold(
       backgroundColor: const Color(0xFFF0F4F8),

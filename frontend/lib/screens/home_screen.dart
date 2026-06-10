@@ -1,9 +1,4 @@
-import 'dart:convert';
-
-import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
-import 'package:frontend/services/obf/obf_parser.dart';
-import 'package:frontend/services/obf/obz_parser.dart';
 import 'package:provider/provider.dart';
 import '../theme/app_theme.dart';
 import '../providers/aac_provider.dart';
@@ -27,46 +22,6 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   String? _activeCategory;
   bool _showEmotions = false; // Toggle for emotions view
-
-
-  final _scheduleSymbols = [
-  Symbol(
-    id: 'home',
-    label: 'Home',
-    icon: Icons.home,
-    category: SymbolCategory.activity,
-  ),
-  Symbol(
-    id: 'school',
-    label: 'School',
-    icon: Icons.school,
-    category: SymbolCategory.activity,
-  ),
-  Symbol(
-    id: 'break',
-    label: 'Break',
-    icon: Icons.chair,
-    category: SymbolCategory.activity,
-  ),
-  Symbol(
-    id: 'lunch',
-    label: 'Lunch',
-    icon: Icons.restaurant,
-    category: SymbolCategory.activity,
-  ),
-  Symbol(
-    id: 'outside',
-    label: 'Outside',
-    icon: Icons.park,
-    category: SymbolCategory.activity,
-  ),
-  Symbol(
-    id: 'tablet',
-    label: 'Tablet',
-    icon: Icons.tablet,
-    category: SymbolCategory.activity,
-  ),
-];
 
   void _handleSymbolTap(Symbol symbol) {
     final provider = Provider.of<AACProvider>(context, listen: false);
@@ -294,6 +249,8 @@ class _HomeScreenState extends State<HomeScreen> {
 }
 
 class SettingsSheet extends StatelessWidget {
+  const SettingsSheet({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Consumer<AACProvider>(

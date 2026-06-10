@@ -33,14 +33,6 @@ class AppTheme {
   static const Color categoryQuestion = Color(0xFFD8BFD8); // Purple — question words
   static const Color categoryFolder = Color(0xFF40E0D0); // Teal — topics / folders
 
-  // Emotion Colors
-  static const Color emotionHappy = Color(0xFFFACC15);
-  static const Color emotionSad = Color(0xFF3B82F6);
-  static const Color emotionAngry = Color(0xFFEF4444);
-  static const Color emotionScared = Color(0xFFA855F7);
-  static const Color emotionCalm = Color(0xFF22C55E);
-  static const Color emotionTired = Color(0xFF6B7280);
-
   static ThemeData getTheme(ThemeMode mode) {
     if (mode == ThemeMode.light) {
       return ThemeData(

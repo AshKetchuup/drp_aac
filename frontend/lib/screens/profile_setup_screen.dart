@@ -20,15 +20,14 @@ class _ProfileSetupState extends State<ProfileSetup> {
   final _nameController = TextEditingController();
   final _ageController = TextEditingController();
   String? _selectedPronoun;
-  String? _selectedLocation;
   String _selectedAvatar = 'boy_1';
   final List<String> _selectedLikes = [];
   final List<String> _selectedDislikes = [];
   String? _selectedMood;
 
   static const List<String> pronounOptions = ['He/Him', 'She/Her', 'They/Them', 'Other'];
-  static const List<String> locationOptions = ['Home', 'School', 'Therapy', 'Other'];
-  
+
+
   static const List<Map<String, dynamic>> avatarOptions = [
     {'id': 'boy_1', 'emoji': '👦🏻', 'color': Color(0xFF3B82F6)},
     {'id': 'boy_2', 'emoji': '👦🏼', 'color': Color(0xFF3B82F6)},
@@ -84,7 +83,6 @@ class _ProfileSetupState extends State<ProfileSetup> {
       name: _nameController.text.isNotEmpty ? _nameController.text : 'User',
       age: int.tryParse(_ageController.text),
       pronoun: _selectedPronoun,
-      location: _selectedLocation,
       avatarId: _selectedAvatar,
       likes: _selectedLikes,
       dislikes: _selectedDislikes,
@@ -173,7 +171,6 @@ class _ProfileSetupState extends State<ProfileSetup> {
           Row(
             children: List.generate(5, (index) {
               final isActive = index <= _currentStep;
-              final isCurrent = index == _currentStep;
               return Expanded(
                 child: Container(
                   margin: EdgeInsets.only(right: index < 4 ? 8 : 0),

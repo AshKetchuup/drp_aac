@@ -170,7 +170,6 @@ class CalmingModeScreen extends StatefulWidget {
 class _CalmingModeScreenState extends State<CalmingModeScreen> {
   final FlutterTts _tts = FlutterTts();
   final PageController _pageController = PageController();
-  int _currentPage = 0;
 
   @override
   void initState() {
@@ -184,7 +183,7 @@ class _CalmingModeScreenState extends State<CalmingModeScreen> {
   void _speak(String text) => _tts.speak(text);
 
   void _goToPage(int page) {
-    setState(() => _currentPage = page);
+    setState(() {});
     _pageController.animateToPage(
       page,
       duration: const Duration(milliseconds: 300),
@@ -208,7 +207,7 @@ class _CalmingModeScreenState extends State<CalmingModeScreen> {
           controller: _pageController,
           physics:
               const NeverScrollableScrollPhysics(), // controlled by buttons only
-          onPageChanged: (page) => setState(() => _currentPage = page),
+          onPageChanged: (page) => setState(() {}),
           children: [
             _ZoneAndFeelPage(
               onSpeak: _speak,

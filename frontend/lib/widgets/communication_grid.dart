@@ -1,6 +1,5 @@
 import 'dart:math' as math;
 import 'dart:typed_data';
-import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -626,7 +625,7 @@ class _CommunicationGridState extends State<CommunicationGrid> {
                         padding: const EdgeInsets.symmetric(horizontal: 14),
                         decoration: BoxDecoration(
                           color: isActive
-                              ? page.color.withOpacity(0.18)
+                              ? page.color.withValues(alpha: 0.18)
                               : AppTheme.surface,
                           borderRadius: BorderRadius.circular(14),
                           border: Border.all(
@@ -783,7 +782,7 @@ class _CommunicationGridState extends State<CommunicationGrid> {
                         padding: const EdgeInsets.symmetric(horizontal: 14),
                         decoration: BoxDecoration(
                           color: isActive
-                              ? AppTheme.primary.withOpacity(0.18)
+                              ? AppTheme.primary.withValues(alpha: 0.18)
                               : AppTheme.surface,
                           borderRadius: BorderRadius.circular(14),
                           border: Border.all(
@@ -1462,53 +1461,5 @@ class _ImportedBoardTile extends StatelessWidget {
     }
 
     return fallback;
-  }
-}
-
-class _InlineMiniTile extends StatelessWidget {
-  final String prefix;
-  final Color prefixColor;
-  final Symbol symbol;
-  final IconData iconData;
-  final VoidCallback onTap;
-
-  const _InlineMiniTile({
-    required this.prefix,
-    required this.prefixColor,
-    required this.symbol,
-    required this.iconData,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      behavior: HitTestBehavior.opaque,
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Text(
-            prefix,
-            style: TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.w900,
-              color: prefixColor,
-            ),
-          ),
-          Icon(iconData, size: 18, color: AppTheme.textPrimary),
-          const SizedBox(width: 5),
-          Text(
-            symbol.label,
-            style: const TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w700,
-              color: AppTheme.textPrimary,
-            ),
-          ),
-        ],
-      ),
-    );
   }
 }

@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'package:file_picker/file_picker.dart';
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart' show rootBundle;
@@ -187,19 +186,19 @@ class AACProvider extends ChangeNotifier {
     final result = await FilePicker.pickFiles(
       type: FileType.custom,
       allowedExtensions: ['obf', 'obz'],
-      withData: true,
     );
 
     if (result == null) return;
 
     final file = result.files.single;
+    final bytes = await file.readAsBytes();
 
     if (file.extension?.toLowerCase() == 'obz') {
-      final boardSet = ObzParser().parseObzBytes(file.bytes!);
+      final boardSet = ObzParser().parseObzBytes(bytes);
       _importedBoardSet = boardSet;
       _activeImportedBoardPath = boardSet.rootPath;
     } else {
-      final jsonText = utf8.decode(file.bytes!);
+      final jsonText = utf8.decode(bytes);
       final board = ObfParser().parseObfString(jsonText);
 
       _importedBoardSet = ImportedBoardSet(
@@ -268,19 +267,9 @@ class AACProvider extends ChangeNotifier {
     }
   }
 
-  void removeCustomSymbol(String id) {
-    _customSymbols.removeWhere((s) => s.id == id);
-    notifyListeners();
-  }
-
   void setProfile(UserProfile profile) {
     _currentProfile = profile;
     _isProfileSetupComplete = true;
-    notifyListeners();
-  }
-
-  void updateProfile(UserProfile profile) {
-    _currentProfile = profile;
     notifyListeners();
   }
 
@@ -335,7 +324,7 @@ class AACProvider extends ChangeNotifier {
         }
 
         if (micStatus.isPermanentlyDenied) {
-          print(
+          debugPrint(
             "Microphone permission permanently denied. Opening settings...",
           );
           openAppSettings();
@@ -343,21 +332,21 @@ class AACProvider extends ChangeNotifier {
         }
 
         if (!micStatus.isGranted) {
-          print("Microphone permission denied.");
+          debugPrint("Microphone permission denied.");
           return;
         }
       } catch (e) {
-        print("Permission check skipped: $e");
+        debugPrint("Permission check skipped: $e");
       }
     }
 
     bool available = await _speech.initialize(
-      onStatus: (status) => print('Speech Status: $status'),
-      onError: (error) => print('Speech Error: $error'),
+      onStatus: (status) => debugPrint('Speech Status: $status'),
+      onError: (error) => debugPrint('Speech Error: $error'),
     );
 
     if (!available) {
-      print("Speech recognition engine failed to initialize.");
+      debugPrint("Speech recognition engine failed to initialize.");
       return;
     }
 
@@ -370,8 +359,10 @@ class AACProvider extends ChangeNotifier {
         _teacherPrompt = result.recognizedWords;
         notifyListeners();
       },
-      listenFor: const Duration(minutes: 10), // Effectively unlimited
-      pauseFor: const Duration(minutes: 10), // Don't auto-stop on silence
+      listenOptions: stt.SpeechListenOptions(
+        listenFor: const Duration(minutes: 10), // Effectively unlimited
+        pauseFor: const Duration(minutes: 10), // Don't auto-stop on silence
+      ),
     );
   }
 
@@ -413,7 +404,6 @@ class AACProvider extends ChangeNotifier {
         Uri.parse(apiUrl),
         headers: headers,
         body: jsonEncode({
-          'audio_base64': 'bW9jayBhdWRpbyBkYXRh',
           'text': _teacherPrompt ?? '',
           'likes': _currentProfile?.likes ?? [],
           'dislikes': _currentProfile?.dislikes ?? [],
