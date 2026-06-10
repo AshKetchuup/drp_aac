@@ -6,7 +6,7 @@ incoming Bearer tokens locally — no per-request call to Authentik.
 import time
 import httpx
 import jwt as pyjwt
-from jwt import PyJWKClient, exceptions as jwt_exceptions
+from jwt import PyJWK, exceptions as jwt_exceptions
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
@@ -16,45 +16,54 @@ DISCOVERY_URL = f"{ISSUER}.well-known/openid-configuration"
 CLIENT_ID = "DkaB9fr83vOFhBoBBIJLOXBih1lBn1dM7meHEqIu"
 
 # ── JWKS cache ────────────────────────────────────────────────────────────
-_jwks_client: PyJWKClient | None = None
-_jwks_client_time: float = 0
-_JWKS_CACHE_TTL = 3600  # refresh keys every hour
+_jwks_cache: dict = {}
+_jwks_cache_time: float = 0
+_JWKS_CACHE_TTL = 3600
 
 security = HTTPBearer()
 
+async def _get_jwks() -> dict:
+    """Fetch (and cache) the JSON Web Key Set from Authentik via httpx."""
+    global _jwks_cache, _jwks_cache_time
 
-async def _get_jwks_client() -> PyJWKClient:
-    """Fetch (and cache) the JWKS URI from OIDC discovery, return a PyJWKClient."""
-    global _jwks_client, _jwks_client_time
-
-    if _jwks_client and (time.time() - _jwks_client_time) < _JWKS_CACHE_TTL:
-        return _jwks_client
+    if _jwks_cache and (time.time() - _jwks_cache_time) < _JWKS_CACHE_TTL:
+        return _jwks_cache
 
     async with httpx.AsyncClient() as client:
         # 1. Discover the JWKS URI
         discovery_resp = await client.get(DISCOVERY_URL)
         discovery_resp.raise_for_status()
-        discovery = discovery_resp.json()
-        jwks_uri = discovery["jwks_uri"]
+        jwks_uri = discovery_resp.json()["jwks_uri"]
 
-    # 2. Build a PyJWKClient pointed at the JWKS URI
-    _jwks_client = PyJWKClient(jwks_uri)
-    _jwks_client_time = time.time()
-    return _jwks_client
+        # 2. Fetch the actual keys
+        jwks_resp = await client.get(jwks_uri)
+        jwks_resp.raise_for_status()
+        _jwks_cache = jwks_resp.json()
+        _jwks_cache_time = time.time()
+
+    return _jwks_cache
+
+
+def _find_signing_key(token: str, jwks: dict) -> PyJWK:
+    """Match the token's kid to a key in the JWKS and return a PyJWK."""
+    unverified_header = pyjwt.get_unverified_header(token)
+    kid = unverified_header.get("kid")
+
+    for key_data in jwks.get("keys", []):
+        if key_data.get("kid") == kid:
+            return PyJWK(key_data)
+
+    raise jwt_exceptions.PyJWKClientError("Unable to find appropriate signing key")
 
 
 async def get_current_user(
     credentials: HTTPAuthorizationCredentials = Depends(security),
 ) -> dict:
-    """
-    FastAPI dependency that validates an Authentik JWT access token.
-    Returns the decoded token claims on success, or raises 401.
-    """
     token = credentials.credentials
 
     try:
-        jwks_client = await _get_jwks_client()
-        signing_key = jwks_client.get_signing_key_from_jwt(token)
+        jwks = await _get_jwks()
+        signing_key = _find_signing_key(token, jwks)
 
         payload = pyjwt.decode(
             token,
