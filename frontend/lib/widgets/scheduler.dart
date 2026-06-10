@@ -573,6 +573,7 @@ class _DropCell extends StatelessWidget {
     return Padding(
       padding: EdgeInsets.all(cellPad),
       child: DragTarget<Symbol>(
+        onWillAcceptWithDetails: (d) => d.data != null,
         onAcceptWithDetails: (details) => onAccept(slotKey, details.data),
         builder: (context, candidateData, _) {
           return Container(

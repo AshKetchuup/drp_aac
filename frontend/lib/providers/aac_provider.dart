@@ -102,6 +102,9 @@ class AACProvider extends ChangeNotifier {
   }
 
   Future<void> addToSchedule(SlotKey key, Symbol symbol) async {
+    if (schedule[key] == null) {
+      schedule[key] = [];
+    }
     schedule[key]!.add(symbol);
     notifyListeners();
     await _scheduleRepo.save(schedule);
