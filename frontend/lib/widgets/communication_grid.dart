@@ -21,9 +21,9 @@ class CommunicationGrid extends StatefulWidget {
 
   final ImportedBoardSet? importedBoardSet;
   final String? activeImportedBoardPath;
-  final ValueChanged<String>? onImportedBoardChange;
-
+  final void Function(String)? onImportedBoardChange;
   final ({Symbol? now, Symbol? next}) nowNextData;
+  final VoidCallback? onNowNextTap;
 
   const CommunicationGrid({
     super.key,
@@ -34,6 +34,7 @@ class CommunicationGrid extends StatefulWidget {
     this.activeImportedBoardPath,
     this.onImportedBoardChange,
     required this.nowNextData,
+    this.onNowNextTap,
   });
 
   @override
@@ -456,42 +457,52 @@ class _CommunicationGridState extends State<CommunicationGrid> {
 
     if (!hasNow && !hasNext) return const SizedBox.shrink();
 
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(
-        8,
-        10,
-        16,
-        10,
-      ), // Matches category chip bounds
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment
-            .stretch, // Forces tiles to fill the vertical 64px row height
-        children: [
-          if (hasNow)
-            _buildPrefixedScheduleTile(
-              prefix: "NOW: ",
-              prefixColor: const Color(0xFF2196F3),
-              symbol: widget.nowNextData.now!,
-            ),
-          if (hasNow && hasNext)
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 8),
-              child: Center(
-                child: Icon(
-                  Icons.arrow_forward_rounded,
-                  size: 16,
-                  color: AppTheme.textSecondary,
+    return GestureDetector(
+      onTap: widget.onNowNextTap,
+      child: Container(
+        margin: const EdgeInsets.fromLTRB(8, 10, 16, 10),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        decoration: BoxDecoration(
+          color: AppTheme.secondary.withValues(alpha: 0.15), // Sky blue tint for contrast
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppTheme.secondary.withValues(alpha: 0.6), width: 2), // Prominent border
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.1),
+              blurRadius: 4,
+              offset: const Offset(0, 2),
+            )
+          ],
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.center, // Center vertically
+          children: [
+            if (hasNow)
+              _buildPrefixedScheduleTile(
+                prefix: "NOW: ",
+                prefixColor: const Color(0xFF2196F3),
+                symbol: widget.nowNextData.now!,
+              ),
+            if (hasNow && hasNext)
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 12),
+                child: Center(
+                  child: Icon(
+                    Icons.arrow_forward_rounded,
+                    size: 20,
+                    color: AppTheme.textSecondary,
+                  ),
                 ),
               ),
-            ),
-          if (hasNext)
-            _buildPrefixedScheduleTile(
-              prefix: "NEXT: ",
-              prefixColor: const Color(0xFF4CAF50),
-              symbol: widget.nowNextData.next!,
-            ),
-        ],
+            if (hasNext)
+              _buildPrefixedScheduleTile(
+                prefix: "NEXT: ",
+                prefixColor: const Color(0xFF4CAF50),
+                symbol: widget.nowNextData.next!,
+              ),
+          ],
+        ),
       ),
     );
   }
@@ -509,17 +520,17 @@ class _CommunicationGridState extends State<CommunicationGrid> {
         Text(
           prefix,
           style: TextStyle(
-            fontSize: 12,
+            fontSize: 14,
             fontWeight: FontWeight.w900,
             color: prefixColor,
           ),
         ),
-        const SizedBox(width: 6),
+        const SizedBox(width: 8),
         IntrinsicHeight(
           child: MiniSymbolTile(
             symbol: symbol,
-            isExpanded:
-                true, // Tells the tile to fill out the max 64px line layout cleanly
+            isExpanded: true,
+            iconSize: 26, // Smaller actual icons as requested
             onTap: () => widget.onSymbolTap(symbol),
           ),
         ),
@@ -591,10 +602,9 @@ class _CommunicationGridState extends State<CommunicationGrid> {
       children: [
         // ─── TOP BAR ROW: CHIPS (LEFT) + NOW/NEXT (RIGHT) ────────────────────
         SizedBox(
-          height: 64,
+          height: 96,
           child: Row(
-            crossAxisAlignment: CrossAxisAlignment
-                .stretch, // Makes components fill container height completely
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Expanded(
                 child: ListView.separated(
@@ -748,9 +758,9 @@ class _CommunicationGridState extends State<CommunicationGrid> {
       children: [
         // ─── IMPORTED MODE HEADER ROW WITH INLINE RETENTION ──────────────────
         SizedBox(
-          height: 64,
+          height: 96, // Expanded height so the Now/Next box is larger and readable
           child: Row(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
+            crossAxisAlignment: CrossAxisAlignment.center, // Prevent chips from stretching vertically too much
             children: [
               Expanded(
                 child: ListView.separated(
