@@ -680,6 +680,7 @@ class _CommunicationGridState extends State<CommunicationGrid> {
                     teacherPrompt: provider.teacherPrompt,
                     isLoading: provider.isLoadingSuggestions,
                     suggestions: provider.contextSuggestions,
+                    authRequired: provider.authRequired,
                     onSuggestionTap: widget.onSymbolTap,
                     onClose: () => _closeContextPage(context),
                   ),
@@ -1048,6 +1049,7 @@ class _ContextSuggestionsPage extends StatelessWidget {
   final String? teacherPrompt;
   final bool isLoading;
   final List<String> suggestions;
+  final bool authRequired;
   final Function(Symbol) onSuggestionTap;
   final VoidCallback onClose;
 
@@ -1055,6 +1057,7 @@ class _ContextSuggestionsPage extends StatelessWidget {
     required this.teacherPrompt,
     required this.isLoading,
     required this.suggestions,
+    this.authRequired = false,
     required this.onSuggestionTap,
     required this.onClose,
   });
@@ -1106,6 +1109,32 @@ class _ContextSuggestionsPage extends StatelessWidget {
               padding: const EdgeInsets.all(16),
               child: isLoading
                   ? const Center(child: CircularProgressIndicator())
+                  : authRequired
+                  ? Center(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Icons.lock_outline, size: 48, color: AppTheme.textSecondary),
+                          const SizedBox(height: 12),
+                          const Text(
+                            'Please log in to use smart suggestions',
+                            style: TextStyle(
+                              color: AppTheme.textSecondary,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          const Text(
+                            'Go to the Dashboard and tap the Login button',
+                            style: TextStyle(
+                              color: AppTheme.textSecondary,
+                              fontSize: 13,
+                            ),
+                          ),
+                        ],
+                      ),
+                    )
                   : visibleSuggestions.isEmpty
                   ? const Center(
                       child: Text(

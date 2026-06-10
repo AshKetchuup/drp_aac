@@ -1,15 +1,16 @@
 from typing import List
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from datetime import datetime, timezone
 from google.cloud.firestore_v1.base_query import FieldFilter
 
 from app.db import db
 from app.schemas import AssignmentCreate, AssignmentOut, StudentAssignmentOut
+from app.auth import get_current_user
 
 router = APIRouter(tags=["assignments"])
 
 @router.post("/assignments", response_model=AssignmentOut)
-def create_assignment(payload: AssignmentCreate):
+def create_assignment(payload: AssignmentCreate, user: dict = Depends(get_current_user)):
     teacher_doc = db.collection("teachers").document(payload.teacher_id).get()
     if not teacher_doc.exists:
         raise HTTPException(status_code=404, detail="Teacher not found")
@@ -40,7 +41,7 @@ def create_assignment(payload: AssignmentCreate):
 
 
 @router.get("/students/{student_id}/assignments", response_model=List[StudentAssignmentOut])
-def get_student_assignments(student_id: str):
+def get_student_assignments(student_id: str, user: dict = Depends(get_current_user)):
     assignments_query = db.collection("assignments").where(
         filter=FieldFilter("student_id", "==", student_id)
     ).stream()

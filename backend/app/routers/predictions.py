@@ -1,6 +1,7 @@
 import base64
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from app.schemas import PredictionRequest, PredictionResponse
+from app.auth import get_current_user
 import ollama
 import json
 
@@ -26,7 +27,7 @@ payload_mock = PredictionRequest(
 )
 
 @router.post("/predict", response_model=PredictionResponse)
-def predict_words(payload: PredictionRequest):
+def predict_words(payload: PredictionRequest, user: dict = Depends(get_current_user)):
     try:
         if payload.audio_base64:
             decoded_bytes = base64.b64decode(payload.audio_base64)

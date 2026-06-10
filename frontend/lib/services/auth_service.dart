@@ -201,6 +201,9 @@ class AuthService {
   Future<String?> getAccessToken() =>
       _storage.read(key: 'access_token');
 
+  Future<String?> getIdToken() =>
+      _storage.read(key: 'id_token');
+
   Future<bool> isLoggedIn() async =>
       (await _storage.read(key: 'access_token')) != null;
 }

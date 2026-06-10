@@ -1,7 +1,9 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/aac_provider.dart';
 import '../models/models.dart';
+import '../services/auth_service.dart';
 import 'home_screen.dart';
 import 'profile_setup_screen.dart';
 import 'calming_mode_screen.dart';
@@ -9,7 +11,7 @@ import 'now_next_screen.dart';
 import '../widgets/scheduler.dart';
 import 'login_screen.dart';
 
-class DashboardScreen extends StatelessWidget {
+class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
 
   // Schedule symbols shared with NowNext and Schedule screens
@@ -21,6 +23,82 @@ class DashboardScreen extends StatelessWidget {
     Symbol(id: 'outside', label: 'Outside', icon: Icons.park, category: SymbolCategory.activity),
     Symbol(id: 'tablet', label: 'Tablet', icon: Icons.tablet, category: SymbolCategory.activity),
   ];
+
+  @override
+  State<DashboardScreen> createState() => _DashboardScreenState();
+}
+
+class _DashboardScreenState extends State<DashboardScreen> {
+  final AuthService _authService = AuthService();
+  bool _isLoggedIn = false;
+  String? _userName;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkAuthState();
+  }
+
+  Future<void> _checkAuthState() async {
+    final loggedIn = await _authService.isLoggedIn();
+    String? name;
+
+    if (loggedIn) {
+      name = await _extractUserName();
+    }
+
+    if (mounted) {
+      setState(() {
+        _isLoggedIn = loggedIn;
+        _userName = name;
+      });
+    }
+  }
+
+  /// Decode the user's name from the stored ID token (JWT) without verification.
+  Future<String?> _extractUserName() async {
+    final idToken = await _authService.getIdToken();
+    if (idToken == null) return null;
+
+    try {
+      final parts = idToken.split('.');
+      if (parts.length != 3) return null;
+
+      // JWT payload is base64url encoded
+      final payload = parts[1];
+      final normalized = base64Url.normalize(payload);
+      final decoded = utf8.decode(base64Url.decode(normalized));
+      final claims = jsonDecode(decoded) as Map<String, dynamic>;
+
+      return claims['name'] as String? ??
+          claims['preferred_username'] as String? ??
+          claims['email'] as String?;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  Future<void> _handleLoginTap() async {
+    final result = await Navigator.push<bool>(
+      context,
+      MaterialPageRoute(builder: (_) => const LoginScreen()),
+    );
+
+    if (result == true) {
+      await _checkAuthState();
+    }
+  }
+
+  Future<void> _handleLogoutTap() async {
+    await _authService.logout();
+    if (mounted) {
+      setState(() {
+        _isLoggedIn = false;
+        _userName = null;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final provider = Provider.of<AACProvider>(context);
@@ -69,35 +147,70 @@ class DashboardScreen extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(width: 12),
-                  GestureDetector(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => const LoginScreen(),
-                        ),
-                      );
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(12),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.05),
-                            blurRadius: 8,
-                            offset: const Offset(0, 2),
+                  // ── Dynamic Login / Logout Button ──
+                  if (_isLoggedIn) ...[
+                    // Show user name
+                    if (_userName != null)
+                      Padding(
+                        padding: const EdgeInsets.only(right: 8),
+                        child: Text(
+                          _userName!,
+                          style: const TextStyle(
+                            color: Color(0xFF64748B),
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
                           ),
-                        ],
+                        ),
                       ),
-                      child: const Icon(
-                        Icons.login_rounded,
-                        color: Color(0xFF64748B),
-                        size: 24,
+                    // Logout button
+                    GestureDetector(
+                      onTap: _handleLogoutTap,
+                      child: Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFFEE2E2), // Light red bg
+                          borderRadius: BorderRadius.circular(12),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.05),
+                              blurRadius: 8,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: const Icon(
+                          Icons.logout_rounded,
+                          color: Color(0xFFDC2626), // Red icon
+                          size: 24,
+                        ),
                       ),
                     ),
-                  ),
+                  ] else ...[
+                    // Login button
+                    GestureDetector(
+                      onTap: _handleLoginTap,
+                      child: Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(12),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.05),
+                              blurRadius: 8,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: const Icon(
+                          Icons.login_rounded,
+                          color: Color(0xFF64748B),
+                          size: 24,
+                        ),
+                      ),
+                    ),
+                  ],
+                  const SizedBox(width: 8),
                   // Settings button
                   GestureDetector(
                     onTap: () {
@@ -202,7 +315,7 @@ class DashboardScreen extends StatelessWidget {
                           MaterialPageRoute(
                             builder: (_) => NowNextMode(
                               onExit: () => Navigator.pop(context),
-                              availableSymbols: _scheduleSymbols,
+                              availableSymbols: DashboardScreen._scheduleSymbols,
                             ),
                           ),
                         );
@@ -219,7 +332,7 @@ class DashboardScreen extends StatelessWidget {
                           MaterialPageRoute(
                             builder: (_) => ScheduleMode(
                               onExit: () => Navigator.pop(context),
-                              availableSymbols: _scheduleSymbols,
+                              availableSymbols: DashboardScreen._scheduleSymbols,
                             ),
                           ),
                         );
