@@ -370,6 +370,18 @@ class SettingsSheet extends StatelessWidget {
                         onTap: () {},
                       ),
                       SettingsTile(
+                        icon: Icons.dashboard_outlined,
+                        label: 'Load Default Board',
+                        onTap: () async {
+                          Navigator.pop(context);
+                          try {
+                            await provider.activateDefaultBoard();
+                          } catch (e) {
+                            debugPrint('Error loading default board: $e');
+                          }
+                        },
+                      ),
+                      SettingsTile(
                         icon: Icons.file_upload_outlined,
                         label: 'Import OBF/OBZ Board',
                         onTap: () async {
@@ -386,6 +398,7 @@ class SettingsSheet extends StatelessWidget {
                           icon: Icons.clear_all_outlined,
                           label: 'Clear Imported Board',
                           onTap: () {
+                            provider.clearImportedBoardSet();
                             Navigator.pop(context);
                           },
                         ),
