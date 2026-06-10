@@ -65,12 +65,14 @@ class ScheduleMode extends StatefulWidget {
   final VoidCallback onExit;
   final List<Symbol> availableSymbols;
   final VoidCallback? onSpeakSchedule;
+  final ScheduleViewMode initialView;
 
   const ScheduleMode({
     super.key,
     required this.onExit,
     required this.availableSymbols,
     this.onSpeakSchedule,
+    this.initialView = ScheduleViewMode.week,
   });
 
   @override
@@ -78,8 +80,8 @@ class ScheduleMode extends StatefulWidget {
 }
 
 class _ScheduleModeState extends State<ScheduleMode> {
-  // Controlled view state defaulted to week view
-  ScheduleViewMode _currentView = ScheduleViewMode.week;
+  // Controlled view state defaulted to initialView
+  late ScheduleViewMode _currentView = widget.initialView;
 
   // Default to today; clamp to Mon–Sun range
   int _currentDayIndex = () {
