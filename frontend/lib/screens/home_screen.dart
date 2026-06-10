@@ -15,7 +15,7 @@ import '../widgets/emotions_bar.dart';
 import '../widgets/settings_dialogs.dart';
 import 'calming_mode_screen.dart';
 import 'dashboard_screen.dart';
-
+import '../widgets/scheduler.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -270,6 +270,18 @@ class _HomeScreenState extends State<HomeScreen> {
                     },
 
                     nowNextData: provider.calculateNowNext(),
+                    onNowNextTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => ScheduleMode(
+                            onExit: () => Navigator.pop(context),
+                            availableSymbols: DashboardScreen.scheduleSymbols,
+                            initialView: ScheduleViewMode.nowNext,
+                          ),
+                        ),
+                      );
+                    },
                   ),
                 ),
               ],

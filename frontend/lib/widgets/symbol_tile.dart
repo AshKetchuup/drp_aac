@@ -249,14 +249,15 @@ class MiniSymbolTile extends StatelessWidget {
   final VoidCallback? onTap;
   final VoidCallback? onRemove;
   final bool isExpanded; // Added flag to scale dynamically
+  final double? iconSize; // Override icon size directly
 
   const MiniSymbolTile({
     super.key,
     required this.symbol,
     this.onTap,
     this.onRemove,
-    this.isExpanded =
-        false, // Defaults to false so your existing code doesn't break
+    this.isExpanded = false, // Defaults to false so your existing code doesn't break
+    this.iconSize,
   });
 
   Color get categoryColor => colourfulSemanticsColor(symbol.category);
@@ -294,6 +295,8 @@ class MiniSymbolTile extends StatelessWidget {
             ),
           );
 
+    final double finalIconSize = iconSize ?? (isExpanded ? 40 : 24);
+
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -313,15 +316,15 @@ class MiniSymbolTile extends StatelessWidget {
             // Container scales completely up when expanded is toggled
             AnimatedContainer(
               duration: const Duration(milliseconds: 150),
-              width: isExpanded ? 40 : 24,
-              height: isExpanded ? 40 : 24,
+              width: finalIconSize,
+              height: finalIconSize,
               decoration: BoxDecoration(
                 color: Colors.white.withValues(alpha: 0.5),
                 borderRadius: BorderRadius.circular(4),
               ),
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(4),
-                child: isExpanded
+                child: isExpanded || iconSize != null
                     ? imageWidget
                     : Padding(
                         padding: const EdgeInsets.all(2.0),
@@ -334,9 +337,9 @@ class MiniSymbolTile extends StatelessWidget {
               symbol.label,
               style: TextStyle(
                 color: Colors.black87,
-                fontSize: isExpanded
-                    ? 16
-                    : 14, // Slightly boosted text visibility
+                fontSize: iconSize != null 
+                    ? (iconSize! * 0.45).clamp(12.0, 18.0) // Scale text with custom icon size
+                    : (isExpanded ? 16 : 14), // Slightly boosted text visibility
                 fontWeight: FontWeight.w700,
               ),
             ),

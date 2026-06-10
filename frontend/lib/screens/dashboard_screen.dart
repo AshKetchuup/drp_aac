@@ -14,7 +14,7 @@ class DashboardScreen extends StatelessWidget {
   const DashboardScreen({super.key});
 
   // Schedule symbols shared with NowNext and Schedule screens
-  static final _scheduleSymbols = [
+  static final scheduleSymbols = [
     Symbol(id: 'home', label: 'Home', icon: Icons.home, category: SymbolCategory.activity),
     Symbol(id: 'school', label: 'School', icon: Icons.school, category: SymbolCategory.activity),
     Symbol(id: 'break', label: 'Break', icon: Icons.chair, category: SymbolCategory.activity),
@@ -180,7 +180,7 @@ class DashboardScreen extends StatelessWidget {
                           MaterialPageRoute(
                             builder: (_) => NowNextMode(
                               onExit: () => Navigator.pop(context),
-                              availableSymbols: _scheduleSymbols,
+                              availableSymbols: scheduleSymbols,
                             ),
                           ),
                         );
@@ -197,7 +197,7 @@ class DashboardScreen extends StatelessWidget {
                           MaterialPageRoute(
                             builder: (_) => ScheduleMode(
                               onExit: () => Navigator.pop(context),
-                              availableSymbols: _scheduleSymbols,
+                              availableSymbols: scheduleSymbols,
                             ),
                           ),
                         );
