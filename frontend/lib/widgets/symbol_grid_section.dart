@@ -7,12 +7,14 @@ class SymbolGridSection extends StatelessWidget {
   final String title;
   final List<Symbol> items;
   final void Function(String) onTap;
+  final Map<String, Color>? overrideItemColors;
 
   const SymbolGridSection({
     super.key,
     required this.title,
     required this.items,
     required this.onTap,
+    this.overrideItemColors,
   });
 
   int _crossAxisCount(int count) {
@@ -82,6 +84,7 @@ class SymbolGridSection extends StatelessWidget {
                         return SymbolTile(
                           symbol: symbol,
                           onTap: () => onTap(symbol.label),
+                          overrideBackgroundColor: overrideItemColors?[symbol.id],
                         );
                       },
                     ),

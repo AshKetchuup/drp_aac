@@ -203,6 +203,16 @@ class _FeelPage extends StatelessWidget {
               title: 'I feel...',
               items: _emotions,
               onTap: onSpeak,
+              overrideItemColors: const {
+                'happy': Color(0xFF22C55E), // Green Zone
+                'calm': Color(0xFF22C55E),  // Green Zone
+                'sad': Color(0xFF3B82F6),   // Blue Zone
+                'tired': Color(0xFF3B82F6), // Blue Zone
+                'excited': Color(0xFFFACC15), // Yellow Zone
+                'confused': Color(0xFFFACC15), // Yellow Zone
+                'angry': Color(0xFFEF4444), // Red Zone
+                'scared': Color(0xFFEF4444), // Red Zone
+              },
             ),
           ),
           const SizedBox(height: 16),

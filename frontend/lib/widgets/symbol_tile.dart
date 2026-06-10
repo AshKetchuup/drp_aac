@@ -41,6 +41,8 @@ class SymbolTile extends StatelessWidget {
   final int labelMaxLines;
   final double labelFontSizeDelta;
 
+  final Color? overrideBackgroundColor;
+
   const SymbolTile({
     super.key,
     required this.symbol,
@@ -50,9 +52,10 @@ class SymbolTile extends StatelessWidget {
     this.pictogramKeyword,
     this.labelMaxLines = 1,
     this.labelFontSizeDelta = 0,
+    this.overrideBackgroundColor,
   });
 
-  Color get categoryColor => colourfulSemanticsColor(symbol.category);
+  Color get categoryColor => overrideBackgroundColor ?? colourfulSemanticsColor(symbol.category);
 
   @override
   Widget build(BuildContext context) {
