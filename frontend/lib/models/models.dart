@@ -204,6 +204,13 @@ class ImportedButton {
   final String? linkedBoardId;
   final String? linkedBoardName;
 
+  /// Colours declared by the OBF author (`background_color` / `border_color`).
+  /// Null when the board left them unspecified, so the UI can fall back to its
+  /// own default styling. Imported boards are never re-coloured by Colourful
+  /// Semantics — that scheme is reserved for the default hardcoded board.
+  final Color? backgroundColor;
+  final Color? borderColor;
+
   const ImportedButton({
     required this.id,
     required this.label,
@@ -212,6 +219,8 @@ class ImportedButton {
     this.linkedBoardPath,
     this.linkedBoardId,
     this.linkedBoardName,
+    this.backgroundColor,
+    this.borderColor,
   });
 
   String get speechText {
@@ -234,7 +243,17 @@ class ImportedImage {
   final String? path;
   final String? url;
 
-  const ImportedImage({required this.id, this.dataUri, this.path, this.url});
+  /// OBF `content_type` (e.g. `image/png`, `image/svg+xml`). Used to decide
+  /// which decoder to use — Flutter's raster [Image] cannot render SVG.
+  final String? contentType;
+
+  const ImportedImage({
+    required this.id,
+    this.dataUri,
+    this.path,
+    this.url,
+    this.contentType,
+  });
 }
 
 class ImportedBoardSet {
@@ -258,7 +277,11 @@ class ResolvedImportedImage {
   final Uint8List? bytes;
   final String? url;
 
-  const ResolvedImportedImage({this.bytes, this.url});
+  /// Whether the resolved source is an SVG, so the UI renders it with an SVG
+  /// decoder rather than the raster [Image] widget (which throws on SVG).
+  final bool isSvg;
+
+  const ResolvedImportedImage({this.bytes, this.url, this.isSvg = false});
 
   bool get hasBytes => bytes != null && bytes!.isNotEmpty;
   bool get hasUrl => url != null && url!.isNotEmpty;
