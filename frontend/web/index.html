@@ -41,6 +41,16 @@
     For more details:
     * https://docs.flutter.dev/platform-integration/web/initialization
   -->
+  <script>
+    window.addEventListener('storage', (event) => {
+      if (event.key === 'flutter-web-auth-2' && event.newValue) {
+        window.postMessage({
+          'flutter-web-auth-2': event.newValue
+        }, window.location.origin);
+        window.localStorage.removeItem('flutter-web-auth-2');
+      }
+    });
+  </script>
   <script src="flutter_bootstrap.js" async></script>
 </body>
 </html>

@@ -552,7 +552,7 @@ class _CommunicationGridState extends State<CommunicationGrid> {
     final pages = [
       ..._pages,
       if (showContextPage)
-        _CategoryPage('context', 'Context', Icons.psychology, AppTheme.primary),
+        _CategoryPage('context', 'Suggestions', Icons.psychology, AppTheme.primary),
     ];
 
     final displaySymbols = List<Symbol>.from(symbols);
@@ -1244,8 +1244,23 @@ class _ContextSuggestionsPageState extends State<_ContextSuggestionsPage> {
                                 crossAxisSpacing: 10,
                                 childAspectRatio: 1,
                               ),
-                          itemCount: visibleSuggestions.length,
+                          itemCount: visibleSuggestions.length + 1,
                           itemBuilder: (context, index) {
+                            if (index == visibleSuggestions.length) {
+                              return SymbolTile(
+                                symbol: const Symbol(
+                                  id: 'more_options',
+                                  label: 'More options',
+                                  icon: Icons.add,
+                                  category: SymbolCategory.noun,
+                                ),
+                                onTap: () {
+                                  context.read<AACProvider>().fetchSuggestions(append: true);
+                                },
+                                size: double.infinity,
+                              );
+                            }
+                            
                             final suggestion = visibleSuggestions[index];
                             final imageUrl = _imageUrls[suggestion];
                             final icon = _icons[suggestion];
