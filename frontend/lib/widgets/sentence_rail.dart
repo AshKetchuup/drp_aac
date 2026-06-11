@@ -74,9 +74,15 @@ class SentenceRail extends StatelessWidget {
                       separatorBuilder: (_, _) => const SizedBox(width: 4),
                       itemBuilder: (context, index) {
                         final symbol = provider.sentenceBuilder[index];
-                        return MiniSymbolTile(
-                          symbol: symbol,
-                          onRemove: null,
+                        // Reuse the exact grid tile so the rail icons fill the
+                        // square just like the communication board — no extra
+                        // padding shrinking the pictogram.
+                        return AspectRatio(
+                          aspectRatio: 1,
+                          child: SymbolTile(
+                            symbol: symbol,
+                            onTap: onSpeak,
+                          ),
                         );
                       },
                     ),

@@ -41,6 +41,11 @@ class SymbolTile extends StatelessWidget {
   final int labelMaxLines;
   final double labelFontSizeDelta;
 
+  /// Scales the upper clamp on the icon/label so the tile can grow into large
+  /// cells (e.g. the calming "I feel/I want" pages) instead of leaving a small
+  /// icon stranded in a big tile. Defaults to 1.0 — the original board sizing.
+  final double maxSizeScale;
+
   final Color? overrideBackgroundColor;
 
   const SymbolTile({
@@ -52,6 +57,7 @@ class SymbolTile extends StatelessWidget {
     this.pictogramKeyword,
     this.labelMaxLines = 1,
     this.labelFontSizeDelta = 0,
+    this.maxSizeScale = 1.0,
     this.overrideBackgroundColor,
   });
 
@@ -111,11 +117,13 @@ class SymbolTile extends StatelessWidget {
                   final w = constraints.maxWidth;
                   final h = constraints.maxHeight;
                   final labelFontSize = ((w * 0.16) + labelFontSizeDelta)
-                      .clamp(10.0, 18.0)
+                      .clamp(10.0, 18.0 * maxSizeScale)
                       .toDouble();
-                  final iconSize = (h * 0.42).clamp(18.0, 56.0).toDouble();
+                  final iconSize = (h * 0.42)
+                      .clamp(18.0, 56.0 * maxSizeScale)
+                      .toDouble();
                   final labelBoxHeight = (h * 0.28)
-                      .clamp(16.0, 30.0)
+                      .clamp(16.0, 30.0 * maxSizeScale)
                       .toDouble();
 
                   final imageWidget = symbol.imageUrl != null

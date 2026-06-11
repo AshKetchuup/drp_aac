@@ -135,6 +135,12 @@ const _needs = [
     category: SymbolCategory.verb,
   ),
   Symbol(
+    id: 'toilet',
+    label: 'Toilet',
+    icon: Icons.wc,
+    category: SymbolCategory.verb,
+  ),
+  Symbol(
     id: 'rest',
     label: 'Rest',
     icon: Icons.king_bed,
@@ -145,12 +151,6 @@ const _needs = [
     label: 'A hug',
     icon: Icons.favorite,
     category: SymbolCategory.feeling,
-  ),
-    Symbol(
-    id: 'toilet',
-    label: 'Toilet',
-    icon: Icons.wc,
-    category: SymbolCategory.verb,
   ),
   Symbol(
     id: 'help',
