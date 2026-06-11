@@ -1229,21 +1229,50 @@ class _ContextSuggestionsPageState extends State<_ContextSuggestionsPage> {
                     )
                   : LayoutBuilder(
                       builder: (context, constraints) {
-                        final crossAxisCount = constraints.maxWidth > 900
-                            ? 4
-                            : constraints.maxWidth > 600
-                            ? 3
-                            : 2;
+                        final totalItems = visibleSuggestions.length + 1;
+                        
+                        int bestCols = 1;
+                        int bestRows = totalItems;
+                        double bestAspectRatioDiff = double.infinity;
+
+                        // Subtract 2.0 from max height to prevent Flutter floating-point overflow errors
+                        double safeMaxHeight = constraints.maxHeight - 2.0;
+
+                        for (int cols = 1; cols <= totalItems; cols++) {
+                          int rows = (totalItems / cols).ceil();
+                          double itemWidth = (constraints.maxWidth - (cols - 1) * 10) / cols;
+                          double itemHeight = (safeMaxHeight - (rows - 1) * 10) / rows;
+                          
+                          if (itemHeight <= 0 || itemWidth <= 0) continue;
+                          
+                          double ratio = itemWidth / itemHeight;
+                          double diff = (ratio - 1.0).abs();
+                          
+                          // We prefer slightly wider tiles
+                          if (ratio > 0.8 && ratio < 3.0 && diff < bestAspectRatioDiff) {
+                            bestAspectRatioDiff = diff;
+                            bestCols = cols;
+                            bestRows = rows;
+                          } else if (bestAspectRatioDiff == double.infinity) {
+                             bestAspectRatioDiff = diff;
+                             bestCols = cols;
+                             bestRows = rows;
+                          }
+                        }
+
+                        double finalItemWidth = (constraints.maxWidth - (bestCols - 1) * 10) / bestCols;
+                        double finalItemHeight = (safeMaxHeight - (bestRows - 1) * 10) / bestRows;
+                        double finalAspectRatio = (finalItemWidth / finalItemHeight).clamp(0.1, 10.0);
+
                         return GridView.builder(
                           physics: const NeverScrollableScrollPhysics(),
                           padding: EdgeInsets.zero,
-                          gridDelegate:
-                              SliverGridDelegateWithFixedCrossAxisCount(
-                                crossAxisCount: crossAxisCount,
-                                mainAxisSpacing: 10,
-                                crossAxisSpacing: 10,
-                                childAspectRatio: 1,
-                              ),
+                          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: bestCols,
+                            mainAxisSpacing: 10,
+                            crossAxisSpacing: 10,
+                            childAspectRatio: finalAspectRatio,
+                          ),
                           itemCount: visibleSuggestions.length + 1,
                           itemBuilder: (context, index) {
                             if (index == visibleSuggestions.length) {
