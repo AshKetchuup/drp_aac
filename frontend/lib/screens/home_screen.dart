@@ -104,7 +104,9 @@ class _HomeScreenState extends State<HomeScreen> {
                             const SizedBox(width: 8),
                             Expanded(
                               child: Text(
-                                provider.importedBoardSet?.boardsByPath[provider.activeImportedBoardPath]?.name ?? provider.currentProfile?.name ?? 'My Board',
+                                // Always show the user's name here; importing a
+                                // board must not overwrite the profile label.
+                                provider.currentProfile?.name ?? 'My Board',
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                                 style: TextStyle(

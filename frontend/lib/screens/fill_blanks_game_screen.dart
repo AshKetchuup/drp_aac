@@ -120,12 +120,26 @@ class _FillBlanksGameState extends State<FillBlanksGame> {
                 border: Border.all(color: AppTheme.border),
               ),
               padding: const EdgeInsets.all(16),
-              child: _Pictogram(
-                keyword: question.sceneKeyword,
-                fallbackIcon: question.sceneFallbackIcon,
-                iconColor:
-                    AppTheme.isHighContrast ? Colors.black : Colors.black54,
-              ),
+              child: question.sceneImage != null
+                  ? Image.asset(
+                      question.sceneImage!,
+                      fit: BoxFit.contain,
+                      // Fall back to the pictogram lookup if the bundled photo
+                      // is ever missing.
+                      errorBuilder: (_, _, _) => _Pictogram(
+                        keyword: question.sceneKeyword,
+                        fallbackIcon: question.sceneFallbackIcon,
+                        iconColor: AppTheme.isHighContrast
+                            ? Colors.black
+                            : Colors.black54,
+                      ),
+                    )
+                  : _Pictogram(
+                      keyword: question.sceneKeyword,
+                      fallbackIcon: question.sceneFallbackIcon,
+                      iconColor:
+                          AppTheme.isHighContrast ? Colors.black : Colors.black54,
+                    ),
             ),
           ),
         ),

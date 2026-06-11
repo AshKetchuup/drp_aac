@@ -137,7 +137,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'AAC dashboard!',
+                          'alpAACa',
                           style: TextStyle(
                             color: AppTheme.isHighContrast ? Colors.white : const Color(0xFF1E293B),
                             fontSize: 28,
@@ -539,9 +539,16 @@ class _MinigameTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
+      // This hub uses a light background, so force a light card surface in the
+      // default theme — otherwise the card inherits the dark slate cardTheme
+      // colour and the dark title/subtitle text becomes unreadable on it.
+      color: AppTheme.isHighContrast ? Colors.black : Colors.white,
       margin: const EdgeInsets.only(bottom: 16),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(20),
+        side: AppTheme.isHighContrast
+            ? const BorderSide(color: Colors.white, width: 2)
+            : BorderSide.none,
       ),
       child: InkWell(
         borderRadius: BorderRadius.circular(20),

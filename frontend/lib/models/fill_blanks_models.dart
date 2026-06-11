@@ -87,6 +87,10 @@ class GameQuestion {
   /// Keyword for the target scene image (same lookup chain as card images).
   final String sceneKeyword;
 
+  /// Optional bundled scene photo (e.g. `assets/minigame/boy_eating.png`).
+  /// When set, it is shown instead of the ARASAAC pictogram for [sceneKeyword].
+  final String? sceneImage;
+
   final IconData sceneFallbackIcon;
 
   /// The sentence strip. Must contain exactly one blank; the blank takes the
@@ -108,6 +112,7 @@ class GameQuestion {
     required this.correctCard,
     required this.semanticDistractor,
     required this.grammaticalDistractor,
+    this.sceneImage,
     this.sceneFallbackIcon = Icons.image_outlined,
   })  : assert(
           segments.where((s) => s.isBlank).length == 1,
@@ -163,6 +168,7 @@ class SentenceGameSession {
         GameQuestion(
           id: 'q_doing',
           sceneKeyword: 'drink',
+          sceneImage: 'assets/minigame/boy_drinking_water.webp',
           segments: const [
             SentenceSegment.text('The boy'),
             SentenceSegment.blank(),
@@ -195,6 +201,7 @@ class SentenceGameSession {
         GameQuestion(
           id: 'q_who',
           sceneKeyword: 'eat',
+          sceneImage: 'assets/minigame/boy_eating.png',
           segments: const [
             SentenceSegment.blank(),
             SentenceSegment.text('eats food.'),
@@ -221,73 +228,11 @@ class SentenceGameSession {
             fallbackIcon: Icons.bedtime,
           ),
         ),
-
-        // What? (green)
-        GameQuestion(
-          id: 'q_what',
-          sceneKeyword: 'water',
-          segments: const [
-            SentenceSegment.text('I drink'),
-            SentenceSegment.blank(),
-          ],
-          correctCard: const GameCard(
-            id: 'water',
-            label: 'water',
-            semanticType: SemanticType.what,
-            pictogramKeyword: 'water',
-            fallbackIcon: Icons.water_drop,
-          ),
-          semanticDistractor: const GameCard(
-            id: 'food',
-            label: 'food',
-            semanticType: SemanticType.what,
-            pictogramKeyword: 'food',
-            fallbackIcon: Icons.fastfood,
-          ),
-          grammaticalDistractor: const GameCard(
-            id: 'happy_card',
-            label: 'happy',
-            semanticType: SemanticType.whatKind,
-            pictogramKeyword: 'happy',
-            fallbackIcon: Icons.sentiment_very_satisfied,
-          ),
-        ),
-
-        // Where? (blue)
-        GameQuestion(
-          id: 'q_where',
-          sceneKeyword: 'school',
-          segments: const [
-            SentenceSegment.text('We play'),
-            SentenceSegment.blank(),
-          ],
-          correctCard: const GameCard(
-            id: 'at_school2',
-            label: 'at school',
-            semanticType: SemanticType.where,
-            pictogramKeyword: 'school',
-            fallbackIcon: Icons.school,
-          ),
-          semanticDistractor: const GameCard(
-            id: 'at_home',
-            label: 'at home',
-            semanticType: SemanticType.where,
-            pictogramKeyword: 'home',
-            fallbackIcon: Icons.home,
-          ),
-          grammaticalDistractor: const GameCard(
-            id: 'sad_card',
-            label: 'sad',
-            semanticType: SemanticType.whatKind,
-            pictogramKeyword: 'sad',
-            fallbackIcon: Icons.sentiment_dissatisfied,
-          ),
-        ),
-
         // What kind? (white)
         GameQuestion(
           id: 'q_whatkind',
           sceneKeyword: 'happy',
+          sceneImage: 'assets/minigame/happy_boy.png',
           segments: const [
             SentenceSegment.text('The boy is'),
             SentenceSegment.blank(),

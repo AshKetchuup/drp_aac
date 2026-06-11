@@ -44,15 +44,15 @@ const _emotions = [
     category: SymbolCategory.feeling,
   ),
   Symbol(
-    id: 'excited',
-    label: 'Excited',
-    icon: Icons.celebration,
+    id: 'frustrated',
+    label: 'Frustrated',
+    icon: Icons.sentiment_very_dissatisfied,
     category: SymbolCategory.feeling,
   ),
   Symbol(
     id: 'confused',
     label: 'Confused',
-    icon: Icons.help_outline,
+    icon: Icons.psychology_alt,
     category: SymbolCategory.feeling,
   ),
 ];
@@ -87,7 +87,7 @@ const _zones = [
 const _zoneEmotions = {
   'blue_zone': ['sad', 'tired'],
   'green_zone': ['happy', 'calm'],
-  'yellow_zone': ['excited', 'confused'],
+  'yellow_zone': ['frustrated', 'confused'],
   'red_zone': ['angry', 'scared'],
 };
 
@@ -103,7 +103,7 @@ const _emotionColors = {
   'calm': Color(0xFF22C55E),
   'sad': Color(0xFF3B82F6),
   'tired': Color(0xFF3B82F6),
-  'excited': Color(0xFFFACC15),
+  'frustrated': Color(0xFFFACC15),
   'confused': Color(0xFFFACC15),
   'angry': Color(0xFFEF4444),
   'scared': Color(0xFFEF4444),

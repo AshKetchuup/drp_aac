@@ -899,7 +899,10 @@ class _CommunicationGridState extends State<CommunicationGrid> {
     }
   }
 
-  void _handleImportedButtonTap(ImportedButton button) {
+  void _handleImportedButtonTap(
+    ImportedButton button,
+    ResolvedImportedImage? image,
+  ) {
     final linkedPath = button.linkedBoardPath;
     if (linkedPath != null && linkedPath.isNotEmpty) {
       final targetIndex = _importedPageIndexFor(linkedPath);
@@ -912,6 +915,14 @@ class _CommunicationGridState extends State<CommunicationGrid> {
         id: button.id,
         label: button.speechText,
         category: SymbolCategory.noun,
+        // Carry the pictogram and the author's colours so the sentence rail
+        // matches the imported board instead of falling back to a blank
+        // Colourful Semantics tile.
+        imageBytes: image?.bytes,
+        imageUrl: image?.url,
+        isSvg: image?.isSvg ?? false,
+        backgroundColor: button.backgroundColor ?? AppTheme.surface,
+        borderColor: button.borderColor ?? AppTheme.border,
       ),
     );
   }
@@ -1340,7 +1351,11 @@ class _GridMetrics {
 class _ImportedBoardPageView extends StatelessWidget {
   final ImportedBoard board;
   final Map<String, List<int>> packagedFiles;
-  final ValueChanged<ImportedButton> onButtonTap;
+  // Receives the resolved image alongside the button so the tap target (e.g.
+  // the sentence rail) can show the same pictogram the tile rendered, without
+  // re-resolving it from the archive.
+  final void Function(ImportedButton button, ResolvedImportedImage? image)
+      onButtonTap;
 
   const _ImportedBoardPageView({
     required this.board,
@@ -1399,7 +1414,7 @@ class _ImportedBoardPageView extends StatelessWidget {
               imageBytes: resolvedImage?.bytes,
               imageUrl: resolvedImage?.url,
               isSvg: resolvedImage?.isSvg ?? false,
-              onTap: () => onButtonTap(button),
+              onTap: () => onButtonTap(button, resolvedImage),
             );
           },
         );

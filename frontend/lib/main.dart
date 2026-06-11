@@ -26,11 +26,11 @@ void main() {
     ),
   );
 
-  runApp(const SpeakEasyApp());
+  runApp(const AlpaacaApp());
 }
 
-class SpeakEasyApp extends StatelessWidget {
-  const SpeakEasyApp({super.key});
+class AlpaacaApp extends StatelessWidget {
+  const AlpaacaApp({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -39,7 +39,7 @@ class SpeakEasyApp extends StatelessWidget {
       child: Consumer<AACProvider>(
         builder: (context, provider, _) {
           return MaterialApp(
-            title: 'SpeakEasy AAC',
+            title: 'alpAACa',
             debugShowCheckedModeBanner: false,
             // Two themes: default Dark, or High Contrast when the toggle is on.
             // The OS never switches themes (no darkTheme is supplied).
