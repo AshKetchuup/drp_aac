@@ -88,8 +88,13 @@ BAD example (NEVER do this):
 
     user_prompt = f"""Someone said: "{payload.text}"
 Child likes: {likes_str}
-Child dislikes: {dislikes_str}
-Answer:"""
+Child dislikes: {dislikes_str}"""
+
+    if payload.current_suggestions:
+        exclude_str = ", ".join(payload.current_suggestions)
+        user_prompt += f"\n\nCRITICAL: You have already suggested the following words: {exclude_str}.\nYOU MUST NOT SUGGEST ANY OF THOSE WORDS AGAIN. Give me entirely DIFFERENT options!"
+
+    user_prompt += "\nAnswer:"
 
     response = ollama.chat(
         model='qwen2.5:1.5b', # Extremely smart 1B model
