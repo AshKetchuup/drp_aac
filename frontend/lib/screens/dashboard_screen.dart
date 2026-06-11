@@ -137,7 +137,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'AAC dashboard!',
+                          'alpAACa',
                           style: TextStyle(
                             color: AppTheme.isHighContrast ? Colors.white : const Color(0xFF1E293B),
                             fontSize: 28,

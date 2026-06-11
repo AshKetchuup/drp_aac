@@ -17,7 +17,7 @@ class AuthService {
   static const String clientId =
       'DkaB9fr83vOFhBoBBIJLOXBih1lBn1dM7meHEqIu';
 
-  static const String redirectUrl = 'com.example.frontend://auth';
+  static const String redirectUrl = 'com.alpaaca://auth';
 
   static const String linuxRedirectUrl =
       'http://localhost:3000/callback';

@@ -30,6 +30,25 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^6.0.0
+  flutter_launcher_icons: ^0.14.4
+
+# App icon generation for every platform. Source lives in assets/icon/icon.png.
+# Run `dart run flutter_launcher_icons` after changing the source image.
+flutter_launcher_icons:
+  image_path: "assets/icon/icon.png"
+  # Solid background so the icon is filled (the source has no alpha channel).
+  adaptive_icon_background: "#FFFFFF"
+  adaptive_icon_foreground: "assets/icon/icon.png"
+  android: "ic_launcher"
+  ios: true
+  remove_alpha_ios: true
+  web:
+    generate: true
+  windows:
+    generate: true
+    icon_size: 48
+  macos:
+    generate: true
 
 flutter:
   uses-material-design: true
