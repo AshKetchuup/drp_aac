@@ -10,6 +10,7 @@ import 'package:provider/provider.dart';
 import '../models/models.dart';
 import '../providers/aac_provider.dart';
 import '../services/arasaac_service.dart';
+import '../services/kpi_logger.dart';
 import '../theme/app_theme.dart';
 import 'symbol_tile.dart';
 
@@ -388,6 +389,9 @@ class _CommunicationGridState extends State<CommunicationGrid> {
     super.initState();
     _currentPage = _initialPageIndex();
     _pageController = PageController(initialPage: _currentPage);
+    // Register the static board vocabulary (the single source of truth) so the
+    // KPI logger can tell on-board taps from off-board (vocab-expansion) ones.
+    KpiLogger.instance.setBoardVocabulary(symbols.map((s) => s.label));
   }
 
   int _initialPageIndex() {
@@ -1302,7 +1306,12 @@ class _ContextSuggestionsPageState extends State<_ContextSuggestionsPage> {
                             );
                             return SymbolTile(
                               symbol: symbol,
-                              onTap: () => widget.onSuggestionTap(symbol),
+                              onTap: () {
+                                // Record the accepted AI suggestion for KPI
+                                // measurement (acceptance rate, keystroke savings).
+                                KpiLogger.instance.logSuggestionTap(suggestion);
+                                widget.onSuggestionTap(symbol);
+                              },
                             );
                           },
                         );

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
@@ -13,6 +14,7 @@ import '../widgets/scheduler.dart';
 import '../repositories/schedule_repository.dart';
 import '../repositories/local_schedule_repository.dart';
 import '../services/auth_service.dart';
+import '../services/kpi_logger.dart';
 
 class AACProvider extends ChangeNotifier {
   final ScheduleRepository _scheduleRepo;
@@ -395,16 +397,21 @@ class AACProvider extends ChangeNotifier {
         headers['Authorization'] = 'Bearer $token';
       }
 
+      final likes = _currentProfile?.likes ?? [];
+      final dislikes = _currentProfile?.dislikes ?? [];
+
+      final stopwatch = Stopwatch()..start();
       final response = await http.post(
         Uri.parse(apiUrl),
         headers: headers,
         body: jsonEncode({
           'text': _teacherPrompt ?? '',
-          'likes': _currentProfile?.likes ?? [],
-          'dislikes': _currentProfile?.dislikes ?? [],
+          'likes': likes,
+          'dislikes': dislikes,
           'current_suggestions': append ? _contextSuggestions : [],
         }),
       );
+      stopwatch.stop();
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
@@ -414,6 +421,14 @@ class AACProvider extends ChangeNotifier {
         } else {
           _contextSuggestions = newSuggestions;
         }
+        // Measure KPIs from this real fetch (no token harness needed).
+        unawaited(KpiLogger.instance.logFetch(
+          prompt: _teacherPrompt ?? '',
+          suggestions: newSuggestions,
+          likes: List<String>.from(likes),
+          dislikes: List<String>.from(dislikes),
+          latencyMs: stopwatch.elapsedMilliseconds,
+        ));
       } else if (response.statusCode == 401 || response.statusCode == 403) {
         // User is not authenticated — signal to the UI
         _authRequired = true;
