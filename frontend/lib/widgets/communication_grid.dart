@@ -1509,6 +1509,9 @@ class _ImportedBoardTile extends StatelessWidget {
           : Image.network(
               imageUrl!,
               fit: BoxFit.contain,
+              // Pictograms render in small tiles; cap the decoded bitmap size
+              // so the image cache doesn't hold full-res copies.
+              cacheWidth: 200,
               errorBuilder: (_, _, _) => fallback,
             );
     }

@@ -417,7 +417,10 @@ class AACProvider extends ChangeNotifier {
         final data = jsonDecode(response.body);
         final newSuggestions = List<String>.from(data['predictions'] ?? []);
         if (append) {
-          _contextSuggestions.addAll(newSuggestions);
+          // Build a new list (rather than mutating in place) so the
+          // suggestions widget sees a changed reference and re-runs its
+          // ARASAAC icon fetch for the newly appended words.
+          _contextSuggestions = [..._contextSuggestions, ...newSuggestions];
         } else {
           _contextSuggestions = newSuggestions;
         }
