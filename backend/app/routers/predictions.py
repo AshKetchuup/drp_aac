@@ -45,7 +45,7 @@ def predict_words(payload: PredictionRequest, user: dict = Depends(get_current_u
 def generate_suggestions(payload):
     likes_str = ", ".join(payload.likes) if payload.likes else "None"
     dislikes_str = ", ".join(payload.dislikes) if payload.dislikes else "None"
-    
+    exclude_str = ", ".join(payload.current_suggestions) if payload.current_suggestions else "None"
 
     history_str = ""
     for past in past_predictions[-3:]:  # Only take the last 3 to keep it fast
@@ -58,6 +58,7 @@ Your task: given what someone just said to the child, predict the words the chil
 
 The child's favourite things: {likes_str}
 Things the child dislikes: {dislikes_str}
+Already suggested (DO NOT SUGGEST THESE AGAIN): {exclude_str}
 
 What the child said recently:
 {history_str}
@@ -87,8 +88,13 @@ BAD example (NEVER do this):
 
     user_prompt = f"""Someone said: "{payload.text}"
 Child likes: {likes_str}
-Child dislikes: {dislikes_str}
-Answer:"""
+Child dislikes: {dislikes_str}"""
+
+    if payload.current_suggestions:
+        exclude_str = ", ".join(payload.current_suggestions)
+        user_prompt += f"\n\nCRITICAL: You have already suggested the following words: {exclude_str}.\nYOU MUST NOT SUGGEST ANY OF THOSE WORDS AGAIN. Give me entirely DIFFERENT options!"
+
+    user_prompt += "\nAnswer:"
 
     response = ollama.chat(
         model='qwen2.5:1.5b', # Extremely smart 1B model
@@ -122,6 +128,8 @@ Answer:"""
         
     # Fully flatten any nested lists, split comma-separated strings, and convert to strings
     suggestions_list = []
+    existing_lower = set(s.lower() for s in payload.current_suggestions) if payload.current_suggestions else set()
+    
     for item in raw_list:
         val = ""
         if isinstance(item, list) and len(item) > 0:
@@ -136,8 +144,12 @@ Answer:"""
             # Remove leading '#' if the model added it randomly
             if cleaned.startswith('#'):
                 cleaned = cleaned[1:].strip()
+                
             if cleaned:
-                suggestions_list.append(cleaned)
+                cleaned_lower = cleaned.lower()
+                if cleaned_lower not in existing_lower:
+                    suggestions_list.append(cleaned)
+                    existing_lower.add(cleaned_lower)
         
     return suggestions_list[:8]
 

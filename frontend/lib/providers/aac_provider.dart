@@ -376,7 +376,7 @@ class AACProvider extends ChangeNotifier {
     }
   }
 
-  Future<void> fetchSuggestions() async {
+  Future<void> fetchSuggestions({bool append = false}) async {
     _isLoadingSuggestions = true;
     _authRequired = false; // Reset auth flag
     notifyListeners();
@@ -385,11 +385,7 @@ class AACProvider extends ChangeNotifier {
       // Use kIsWeb and defaultTargetPlatform to dynamically set the correct backend URL
       // On web, the browser is on Windows but the backend is in WSL — use the WSL IP
       String apiUrl = 'https://api.ismailmehmood.co.uk/api/context/predict';
-      // if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
-      //   apiUrl = 'http://10.0.2.2:8000/api/context/predict'; // Special IP for Android Emulator host
-      // }
 
-      // Read stored access token from secure storage
       final token = await AuthService().getAccessToken();
 
       final headers = <String, String>{
@@ -406,12 +402,18 @@ class AACProvider extends ChangeNotifier {
           'text': _teacherPrompt ?? '',
           'likes': _currentProfile?.likes ?? [],
           'dislikes': _currentProfile?.dislikes ?? [],
+          'current_suggestions': append ? _contextSuggestions : [],
         }),
       );
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        _contextSuggestions = List<String>.from(data['predictions'] ?? []);
+        final newSuggestions = List<String>.from(data['predictions'] ?? []);
+        if (append) {
+          _contextSuggestions.addAll(newSuggestions);
+        } else {
+          _contextSuggestions = newSuggestions;
+        }
       } else if (response.statusCode == 401 || response.statusCode == 403) {
         // User is not authenticated — signal to the UI
         _authRequired = true;

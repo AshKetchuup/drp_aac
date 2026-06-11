@@ -8,6 +8,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 import 'package:crypto/crypto.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:flutter_web_auth_2/flutter_web_auth_2.dart';
 
 class AuthService {
   final FlutterAppAuth _appAuth = const FlutterAppAuth();
@@ -32,10 +33,13 @@ class AuthService {
 
   Future<bool> login() async {
     try {
-      if (Platform.isLinux) {
+      if (kIsWeb) {
+        return await _loginWeb();
+      } else if (Platform.isLinux) {
         return await _loginLinux();
+      } else {
+        return await _loginMobile();
       }
-      return await _loginMobile();
     } catch (e) {
       debugPrint('Auth login failed: $e');
       return false;
@@ -179,14 +183,90 @@ class AuthService {
   // PKCE Helpers (fixed)
   // ------------------------------------------------------------
   String _generateCodeVerifier() {
+    const charset = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~';
     final random = Random.secure();
-    final values = List<int>.generate(64, (_) => random.nextInt(256));
-    return base64UrlEncode(values).replaceAll('=', '');
+    return String.fromCharCodes(Iterable.generate(
+        64, (_) => charset.codeUnitAt(random.nextInt(charset.length))));
   }
 
   String _generateCodeChallenge(String verifier) {
     final bytes = sha256.convert(utf8.encode(verifier)).bytes;
     return base64UrlEncode(bytes).replaceAll('=', '');
+  }
+
+  // ------------------------------------------------------------
+  // Web (flutter_web_auth_2)
+  // ------------------------------------------------------------
+  Future<bool> _loginWeb() async {
+    try {
+      final discoveryResponse = await http.get(
+        Uri.parse('$issuer.well-known/openid-configuration'),
+      );
+
+      if (discoveryResponse.statusCode != 200) {
+        throw Exception('Discovery failed: ${discoveryResponse.statusCode}');
+      }
+
+      final discovery = jsonDecode(discoveryResponse.body);
+      final authorizationEndpoint = discovery['authorization_endpoint'];
+      final tokenEndpoint = discovery['token_endpoint'];
+
+      final codeVerifier = _generateCodeVerifier();
+      final codeChallenge = _generateCodeChallenge(codeVerifier);
+
+      // Dynamically get the current URL (e.g., http://172.25.46.159:8080 or http://localhost:3000)
+      final String webRedirectUrl = '${Uri.base.origin}/auth.html';
+
+    final authUrl = Uri.parse(authorizationEndpoint).replace(
+      queryParameters: {
+        'client_id': clientId,
+        'redirect_uri': webRedirectUrl,
+        'response_type': 'code',
+        'scope': scopes.join(' '),
+        'code_challenge': codeChallenge,
+        'code_challenge_method': 'S256',
+        'prompt': 'login',
+      },
+    );
+
+    final result = await FlutterWebAuth2.authenticate(
+      url: authUrl.toString(),
+      callbackUrlScheme: "http", 
+    );
+
+    final code = Uri.parse(result).queryParameters['code'];
+    if (code == null) {
+      throw Exception('No code returned from web auth');
+    }
+
+    final tokenResponse = await http.post(
+      Uri.parse(tokenEndpoint),
+      headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+      body: {
+        'client_id': clientId,
+        'grant_type': 'authorization_code',
+        'code': code,
+        'redirect_uri': webRedirectUrl,
+        'code_verifier': codeVerifier,
+      },
+    );
+
+    if (tokenResponse.statusCode != 200) {
+      throw Exception('Token exchange failed: ${tokenResponse.statusCode}');
+    }
+
+      final tokens = jsonDecode(tokenResponse.body);
+      await _storeTokens(
+        accessToken: tokens['access_token'],
+        idToken: tokens['id_token'],
+        refreshToken: tokens['refresh_token'],
+      );
+
+      return true;
+    } catch (e) {
+      debugPrint('Web auth failed: $e');
+      return false;
+    }
   }
 
   // ------------------------------------------------------------

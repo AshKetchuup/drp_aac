@@ -462,14 +462,14 @@ class _CommunicationGridState extends State<CommunicationGrid> {
         margin: const EdgeInsets.fromLTRB(8, 10, 16, 10),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         decoration: BoxDecoration(
-          color: AppTheme.secondary.withValues(alpha: 0.15), // Sky blue tint for contrast
+          color: const Color(0xFF1E3A8A), // Solid dark blue for strong contrast against slate background
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppTheme.secondary.withValues(alpha: 0.6), width: 2), // Prominent border
+          border: Border.all(color: AppTheme.secondary, width: 3), // Bright, prominent border
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.1),
-              blurRadius: 4,
-              offset: const Offset(0, 2),
+              color: AppTheme.secondary.withValues(alpha: 0.2),
+              blurRadius: 8,
+              offset: const Offset(0, 4),
             )
           ],
         ),
@@ -552,7 +552,7 @@ class _CommunicationGridState extends State<CommunicationGrid> {
     final pages = [
       ..._pages,
       if (showContextPage)
-        _CategoryPage('context', 'Context', Icons.psychology, AppTheme.primary),
+        _CategoryPage('context', 'Suggestions', Icons.psychology, AppTheme.primary),
     ];
 
     final displaySymbols = List<Symbol>.from(symbols);
@@ -1229,23 +1229,67 @@ class _ContextSuggestionsPageState extends State<_ContextSuggestionsPage> {
                     )
                   : LayoutBuilder(
                       builder: (context, constraints) {
-                        final crossAxisCount = constraints.maxWidth > 900
-                            ? 4
-                            : constraints.maxWidth > 600
-                            ? 3
-                            : 2;
+                        final totalItems = visibleSuggestions.length + 1;
+                        
+                        int bestCols = 1;
+                        int bestRows = totalItems;
+                        double bestAspectRatioDiff = double.infinity;
+
+                        // Subtract 2.0 from max height to prevent Flutter floating-point overflow errors
+                        double safeMaxHeight = constraints.maxHeight - 2.0;
+
+                        for (int cols = 1; cols <= totalItems; cols++) {
+                          int rows = (totalItems / cols).ceil();
+                          double itemWidth = (constraints.maxWidth - (cols - 1) * 10) / cols;
+                          double itemHeight = (safeMaxHeight - (rows - 1) * 10) / rows;
+                          
+                          if (itemHeight <= 0 || itemWidth <= 0) continue;
+                          
+                          double ratio = itemWidth / itemHeight;
+                          double diff = (ratio - 1.0).abs();
+                          
+                          // We prefer slightly wider tiles
+                          if (ratio > 0.8 && ratio < 3.0 && diff < bestAspectRatioDiff) {
+                            bestAspectRatioDiff = diff;
+                            bestCols = cols;
+                            bestRows = rows;
+                          } else if (bestAspectRatioDiff == double.infinity) {
+                             bestAspectRatioDiff = diff;
+                             bestCols = cols;
+                             bestRows = rows;
+                          }
+                        }
+
+                        double finalItemWidth = (constraints.maxWidth - (bestCols - 1) * 10) / bestCols;
+                        double finalItemHeight = (safeMaxHeight - (bestRows - 1) * 10) / bestRows;
+                        double finalAspectRatio = (finalItemWidth / finalItemHeight).clamp(0.1, 10.0);
+
                         return GridView.builder(
                           physics: const NeverScrollableScrollPhysics(),
                           padding: EdgeInsets.zero,
-                          gridDelegate:
-                              SliverGridDelegateWithFixedCrossAxisCount(
-                                crossAxisCount: crossAxisCount,
-                                mainAxisSpacing: 10,
-                                crossAxisSpacing: 10,
-                                childAspectRatio: 1,
-                              ),
-                          itemCount: visibleSuggestions.length,
+                          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: bestCols,
+                            mainAxisSpacing: 10,
+                            crossAxisSpacing: 10,
+                            childAspectRatio: finalAspectRatio,
+                          ),
+                          itemCount: visibleSuggestions.length + 1,
                           itemBuilder: (context, index) {
+                            if (index == visibleSuggestions.length) {
+                              return SymbolTile(
+                                symbol: const Symbol(
+                                  id: 'more_options',
+                                  label: 'More options',
+                                  icon: Icons.add,
+                                  category: SymbolCategory.noun,
+                                ),
+                                onTap: () {
+                                  context.read<AACProvider>().fetchSuggestions(append: true);
+                                },
+                                size: double.infinity,
+                              );
+                            }
+                            
                             final suggestion = visibleSuggestions[index];
                             final imageUrl = _imageUrls[suggestion];
                             final icon = _icons[suggestion];
