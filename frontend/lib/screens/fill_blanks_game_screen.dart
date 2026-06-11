@@ -577,6 +577,9 @@ class _NetworkPictogram extends StatelessWidget {
         return Image.network(
           url,
           fit: BoxFit.contain,
+          // Pictograms render at modest sizes; cap the decoded bitmap size so
+          // the image cache doesn't hold full-res copies.
+          cacheWidth: 200,
           errorBuilder: (_, _, _) => Center(
             child: Icon(fallbackIcon, size: 48, color: iconColor),
           ),

@@ -130,6 +130,9 @@ class SymbolTile extends StatelessWidget {
                       ? Image.network(
                           symbol.imageUrl!,
                           fit: BoxFit.contain,
+                          // Pictograms are small tiles; cap the decoded bitmap
+                          // size so the image cache doesn't hold full-res copies.
+                          cacheWidth: 200,
                           errorBuilder: (context, error, stackTrace) => Icon(
                             symbol.icon ?? Icons.help_outline,
                             size: iconSize,
@@ -300,6 +303,9 @@ class MiniSymbolTile extends StatelessWidget {
         ? Image.network(
             symbol.imageUrl!,
             fit: BoxFit.contain,
+            // Pictograms render in small tiles; cap the decoded bitmap size
+            // so the image cache doesn't hold full-res copies.
+            cacheWidth: 200,
             errorBuilder: (context, error, stackTrace) => Icon(
               symbol.icon ?? Icons.help_outline,
               size: isExpanded ? 32 : 16, // Scale fallback icon size
