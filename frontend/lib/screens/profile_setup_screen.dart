@@ -132,7 +132,9 @@ class _ProfileSetupState extends State<ProfileSetup> {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: AppTheme.primary.withValues(alpha: 0.2),
+                  color: AppTheme.isHighContrast
+                      ? AppTheme.surfaceLight
+                      : AppTheme.primary.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Icon(
@@ -267,7 +269,11 @@ class _ProfileSetupState extends State<ProfileSetup> {
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                   decoration: BoxDecoration(
-                    color: isSelected ? AppTheme.primary.withValues(alpha: 0.2) : AppTheme.surface,
+                    color: isSelected
+                        ? (AppTheme.isHighContrast
+                            ? AppTheme.surfaceLight
+                            : AppTheme.primary.withValues(alpha: 0.2))
+                        : AppTheme.surface,
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
                       color: isSelected ? AppTheme.primary : AppTheme.border,
@@ -325,15 +331,19 @@ class _ProfileSetupState extends State<ProfileSetup> {
                     width: 120,
                     height: 120,
                     decoration: BoxDecoration(
-                      color: isSelected 
-                          ? (avatar['color'] as Color).withValues(alpha: 0.2)
+                      color: isSelected
+                          ? (AppTheme.isHighContrast
+                              ? AppTheme.surfaceLight
+                              : (avatar['color'] as Color).withValues(alpha: 0.2))
                           : AppTheme.surface,
                       borderRadius: BorderRadius.circular(24),
                       border: Border.all(
                         color: isSelected ? avatar['color'] as Color : AppTheme.border,
                         width: isSelected ? 3 : 1,
                       ),
-                      boxShadow: isSelected
+                      // Glow is a low-contrast cue — the solid 3px colour
+                      // border carries selection in High Contrast.
+                      boxShadow: isSelected && !AppTheme.isHighContrast
                           ? [
                               BoxShadow(
                                 color: (avatar['color'] as Color).withValues(alpha: 0.3),
@@ -422,8 +432,10 @@ class _ProfileSetupState extends State<ProfileSetup> {
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 200),
                     decoration: BoxDecoration(
-                      color: isSelected 
-                          ? (interest['color'] as Color).withValues(alpha: 0.2)
+                      color: isSelected
+                          ? (AppTheme.isHighContrast
+                              ? AppTheme.surfaceLight
+                              : (interest['color'] as Color).withValues(alpha: 0.2))
                           : AppTheme.surface,
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(
@@ -520,16 +532,22 @@ class _ProfileSetupState extends State<ProfileSetup> {
                     duration: const Duration(milliseconds: 200),
                     decoration: BoxDecoration(
                       color: isLiked
-                          ? AppTheme.surfaceLight.withValues(alpha: 0.3)
-                          : isSelected 
-                              ? AppTheme.error.withValues(alpha: 0.2)
+                          ? (AppTheme.isHighContrast
+                              ? AppTheme.surfaceLight
+                              : AppTheme.surfaceLight.withValues(alpha: 0.3))
+                          : isSelected
+                              ? (AppTheme.isHighContrast
+                                  ? AppTheme.surfaceLight
+                                  : AppTheme.error.withValues(alpha: 0.2))
                               : AppTheme.surface,
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(
                         color: isLiked
-                            ? AppTheme.border.withValues(alpha: 0.3)
-                            : isSelected 
-                                ? AppTheme.error 
+                            ? (AppTheme.isHighContrast
+                                ? AppTheme.border
+                                : AppTheme.border.withValues(alpha: 0.3))
+                            : isSelected
+                                ? AppTheme.error
                                 : AppTheme.border,
                         width: isSelected ? 2 : 1,
                       ),
@@ -612,15 +630,17 @@ class _ProfileSetupState extends State<ProfileSetup> {
                     width: 140,
                     height: 140,
                     decoration: BoxDecoration(
-                      color: isSelected 
-                          ? (mood['color'] as Color).withValues(alpha: 0.2)
+                      color: isSelected
+                          ? (AppTheme.isHighContrast
+                              ? AppTheme.surfaceLight
+                              : (mood['color'] as Color).withValues(alpha: 0.2))
                           : AppTheme.surface,
                       borderRadius: BorderRadius.circular(24),
                       border: Border.all(
                         color: isSelected ? mood['color'] as Color : AppTheme.border,
                         width: isSelected ? 3 : 1,
                       ),
-                      boxShadow: isSelected
+                      boxShadow: isSelected && !AppTheme.isHighContrast
                           ? [
                               BoxShadow(
                                 color: (mood['color'] as Color).withValues(alpha: 0.3),

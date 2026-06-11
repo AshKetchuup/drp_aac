@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'package:file_picker/file_picker.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:frontend/services/obf/obf_parser.dart';
@@ -22,12 +21,12 @@ class AACProvider extends ChangeNotifier {
   double _voicePitch = 1.0;
   double _voiceRate = 0.4;
   int? _gridColumns; // null = Auto
-  ThemeMode _themeMode = ThemeMode.dark;
+  bool _highContrast = false; // false = default Dark theme, true = High Contrast
 
   double get voicePitch => _voicePitch;
   double get voiceRate => _voiceRate;
   int? get gridColumns => _gridColumns;
-  ThemeMode get themeMode => _themeMode;
+  bool get highContrast => _highContrast;
 
   void updateVoiceSettings(double pitch, double rate) {
     _voicePitch = pitch;
@@ -42,8 +41,8 @@ class AACProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  void updateThemeMode(ThemeMode mode) {
-    _themeMode = mode;
+  void setHighContrast(bool enabled) {
+    _highContrast = enabled;
     notifyListeners();
   }
 

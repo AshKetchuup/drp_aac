@@ -123,7 +123,8 @@ class _FillBlanksGameState extends State<FillBlanksGame> {
               child: _Pictogram(
                 keyword: question.sceneKeyword,
                 fallbackIcon: question.sceneFallbackIcon,
-                iconColor: Colors.black54,
+                iconColor:
+                    AppTheme.isHighContrast ? Colors.black : Colors.black54,
               ),
             ),
           ),
@@ -234,7 +235,7 @@ class _GameTopBar extends StatelessWidget {
           const Spacer(),
           Text(
             '$questionNumber of $totalQuestions',
-            style: const TextStyle(
+            style: TextStyle(
               color: AppTheme.textSecondary,
               fontSize: 14,
               fontWeight: FontWeight.w600,
@@ -326,21 +327,31 @@ class _BlankSlot extends StatelessWidget {
         constraints: const BoxConstraints(minWidth: 130, minHeight: 52),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(
-          color: type.color.withValues(alpha: isFilled ? 0.9 : 0.22),
+          color: AppTheme.isHighContrast
+              ? type.color
+              : type.color.withValues(alpha: isFilled ? 0.9 : 0.22),
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: isFilled ? const Color(0xFF22C55E) : type.color,
+            color: isFilled
+                ? (AppTheme.isHighContrast
+                    ? AppTheme.focusHighlight
+                    : const Color(0xFF22C55E))
+                : (AppTheme.isHighContrast
+                    ? AppTheme.onColor(type.color)
+                    : type.color),
             width: 3,
           ),
-          boxShadow: isFilled
-              ? [
-                  BoxShadow(
-                    color: const Color(0xFF22C55E).withValues(alpha: 0.6),
-                    blurRadius: 14,
-                    spreadRadius: 2,
-                  ),
-                ]
-              : null,
+          boxShadow: AppTheme.isHighContrast
+              ? null
+              : isFilled
+                  ? [
+                      BoxShadow(
+                        color: const Color(0xFF22C55E).withValues(alpha: 0.6),
+                        blurRadius: 14,
+                        spreadRadius: 2,
+                      ),
+                    ]
+                  : null,
         ),
         child: isFilled
             ? TweenAnimationBuilder<double>(
@@ -354,7 +365,9 @@ class _BlankSlot extends StatelessWidget {
                 child: Text(
                   filledCard!.label,
                   style: TextStyle(
-                    color: type.onColor,
+                    color: AppTheme.isHighContrast
+                        ? AppTheme.onColor(type.color)
+                        : type.onColor,
                     fontSize: 24,
                     fontWeight: FontWeight.w800,
                   ),
@@ -364,9 +377,11 @@ class _BlankSlot extends StatelessWidget {
                 child: Text(
                   type.question,
                   style: TextStyle(
-                    color: type == SemanticType.whatKind
-                        ? type.color
-                        : type.color,
+                    color: AppTheme.isHighContrast
+                        ? AppTheme.onColor(type.color)
+                        : type == SemanticType.whatKind
+                            ? type.color
+                            : type.color,
                     fontSize: 18,
                     fontWeight: FontWeight.w700,
                     fontStyle: FontStyle.italic,
@@ -415,10 +430,16 @@ class _OptionCard extends StatelessWidget {
           color: card.semanticType.color,
           borderRadius: BorderRadius.circular(10),
           border: Border.all(
-            color: isSolved ? const Color(0xFF22C55E) : Colors.black87,
+            // Cyan in High Contrast: visible on every semantic fill (a green
+            // ring would vanish on the green noun cards).
+            color: isSolved
+                ? (AppTheme.isHighContrast
+                    ? AppTheme.focusHighlight
+                    : const Color(0xFF22C55E))
+                : Colors.black87,
             width: isSolved ? 4 : 1.5,
           ),
-          boxShadow: isSolved
+          boxShadow: isSolved && !AppTheme.isHighContrast
               ? [
                   BoxShadow(
                     color: const Color(0xFF22C55E).withValues(alpha: 0.55),
@@ -602,7 +623,7 @@ class _CompletionView extends StatelessWidget {
           const SizedBox(height: 8),
           Text(
             '$score of $total first try',
-            style: const TextStyle(
+            style: TextStyle(
               color: AppTheme.textSecondary,
               fontSize: 18,
               fontWeight: FontWeight.w600,

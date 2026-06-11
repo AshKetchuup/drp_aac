@@ -371,7 +371,11 @@ class _SentenceDropBox extends StatelessWidget {
             color: AppTheme.background,
             borderRadius: BorderRadius.circular(18),
             border: Border.all(
-              color: highlight ? AppTheme.primary : AppTheme.border,
+              color: highlight
+                  ? (AppTheme.isHighContrast
+                      ? AppTheme.focusHighlight
+                      : AppTheme.primary)
+                  : AppTheme.border,
               width: 3,
             ),
           ),
@@ -382,7 +386,9 @@ class _SentenceDropBox extends StatelessWidget {
                     Icon(
                       Icons.add_circle_outline,
                       size: 36,
-                      color: AppTheme.textSecondary.withValues(alpha: 0.5),
+                      color: AppTheme.isHighContrast
+                          ? AppTheme.textSecondary
+                          : AppTheme.textSecondary.withValues(alpha: 0.5),
                     ),
                     const SizedBox(height: 8),
                     Text(
@@ -584,7 +590,11 @@ class _ToggleChip extends StatelessWidget {
         child: Text(
           label,
           style: TextStyle(
-            color: selected ? Colors.white : AppTheme.textSecondary,
+            color: selected
+                ? (AppTheme.isHighContrast
+                    ? AppTheme.onColor(AppTheme.primary)
+                    : Colors.white)
+                : AppTheme.textSecondary,
             fontWeight: FontWeight.w600,
             fontSize: 14,
           ),

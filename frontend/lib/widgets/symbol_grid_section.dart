@@ -53,42 +53,39 @@ class SymbolGridSection extends StatelessWidget {
               builder: (context, constraints) {
                 const spacing = 8.0;
 
-                final cellByWidth =
+                // Let the cells fill the whole area instead of being squashed
+                // into squares and centred — that left the icons tiny with a
+                // lot of wasted space. The aspect ratio is derived from the
+                // real cell dimensions so the tiles grow to fit the box.
+                final cellWidth =
                     (constraints.maxWidth - (spacing * (columns - 1))) /
                     columns;
-                final cellByHeight =
+                final cellHeight =
                     (constraints.maxHeight - (spacing * (rows - 1))) / rows;
-                final cellSize = cellByWidth < cellByHeight
-                    ? cellByWidth
-                    : cellByHeight;
+                final aspectRatio = cellHeight > 0
+                    ? cellWidth / cellHeight
+                    : 1.0;
 
-                final gridWidth =
-                    (cellSize * columns) + (spacing * (columns - 1));
-                final gridHeight = (cellSize * rows) + (spacing * (rows - 1));
-
-                return Center(
-                  child: SizedBox(
-                    width: gridWidth,
-                    height: gridHeight,
-                    child: GridView.builder(
-                      physics: const NeverScrollableScrollPhysics(),
-                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: columns,
-                        mainAxisSpacing: spacing,
-                        crossAxisSpacing: spacing,
-                        childAspectRatio: 1,
-                      ),
-                      itemCount: items.length,
-                      itemBuilder: (context, index) {
-                        final symbol = items[index];
-                        return SymbolTile(
-                          symbol: symbol,
-                          onTap: () => onTap(symbol.label),
-                          overrideBackgroundColor: overrideItemColors?[symbol.id],
-                        );
-                      },
-                    ),
+                return GridView.builder(
+                  physics: const NeverScrollableScrollPhysics(),
+                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: columns,
+                    mainAxisSpacing: spacing,
+                    crossAxisSpacing: spacing,
+                    childAspectRatio: aspectRatio,
                   ),
+                  itemCount: items.length,
+                  itemBuilder: (context, index) {
+                    final symbol = items[index];
+                    return SymbolTile(
+                      symbol: symbol,
+                      onTap: () => onTap(symbol.label),
+                      // These pages have only a handful of tiles, so let the
+                      // icon/label grow to fill the large cells.
+                      maxSizeScale: 2.2,
+                      overrideBackgroundColor: overrideItemColors?[symbol.id],
+                    );
+                  },
                 );
               },
             ),

@@ -135,6 +135,12 @@ const _needs = [
     category: SymbolCategory.verb,
   ),
   Symbol(
+    id: 'toilet',
+    label: 'Toilet',
+    icon: Icons.wc,
+    category: SymbolCategory.verb,
+  ),
+  Symbol(
     id: 'rest',
     label: 'Rest',
     icon: Icons.king_bed,
@@ -145,12 +151,6 @@ const _needs = [
     label: 'A hug',
     icon: Icons.favorite,
     category: SymbolCategory.feeling,
-  ),
-    Symbol(
-    id: 'toilet',
-    label: 'Toilet',
-    icon: Icons.wc,
-    category: SymbolCategory.verb,
   ),
   Symbol(
     id: 'help',
@@ -410,7 +410,7 @@ class _Header extends StatelessWidget {
               borderRadius: BorderRadius.circular(14),
               border: Border.all(color: AppTheme.border),
             ),
-            child: const Row(
+            child: Row(
               children: [
                 Icon(Icons.arrow_back, color: AppTheme.textSecondary, size: 18),
                 SizedBox(width: 6),
@@ -475,9 +475,15 @@ class _BottomButton extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 14),
         decoration: BoxDecoration(
-          color: AppTheme.primary.withValues(alpha: 0.12),
+          color: AppTheme.isHighContrast
+              ? AppTheme.surfaceLight
+              : AppTheme.primary.withValues(alpha: 0.12),
           borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: AppTheme.primary.withValues(alpha: 0.6)),
+          border: Border.all(
+            color: AppTheme.isHighContrast
+                ? AppTheme.primary
+                : AppTheme.primary.withValues(alpha: 0.6),
+          ),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,

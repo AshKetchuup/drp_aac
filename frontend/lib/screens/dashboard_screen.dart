@@ -106,7 +106,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final provider = Provider.of<AACProvider>(context);
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF0F4F8),
+      backgroundColor: AppTheme.isHighContrast ? Colors.black : const Color(0xFFF0F4F8),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 24),
@@ -138,8 +138,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       children: [
                         Text(
                           'AAC dashboard!',
-                          style: const TextStyle(
-                            color: Color(0xFF1E293B),
+                          style: TextStyle(
+                            color: AppTheme.isHighContrast ? Colors.white : const Color(0xFF1E293B),
                             fontSize: 28,
                             fontWeight: FontWeight.bold,
                           ),
@@ -156,8 +156,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         padding: const EdgeInsets.only(right: 8),
                         child: Text(
                           _userName!,
-                          style: const TextStyle(
-                            color: Color(0xFF64748B),
+                          style: TextStyle(
+                            color: AppTheme.isHighContrast ? AppTheme.textSecondary : const Color(0xFF64748B),
                             fontSize: 14,
                             fontWeight: FontWeight.w600,
                           ),
@@ -171,7 +171,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         decoration: BoxDecoration(
                           color: const Color(0xFFFEE2E2), // Light red bg
                           borderRadius: BorderRadius.circular(12),
-                          boxShadow: [
+                          boxShadow: AppTheme.isHighContrast ? null : [
                             BoxShadow(
                               color: Colors.black.withValues(alpha: 0.05),
                               blurRadius: 8,
@@ -193,9 +193,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       child: Container(
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
-                          color: Colors.white,
+                          color: AppTheme.isHighContrast ? AppTheme.surfaceLight : Colors.white,
                           borderRadius: BorderRadius.circular(12),
-                          boxShadow: [
+                          boxShadow: AppTheme.isHighContrast ? null : [
                             BoxShadow(
                               color: Colors.black.withValues(alpha: 0.05),
                               blurRadius: 8,
@@ -203,9 +203,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             ),
                           ],
                         ),
-                        child: const Icon(
+                        child: Icon(
                           Icons.login_rounded,
-                          color: Color(0xFF64748B),
+                          color: AppTheme.isHighContrast ? Colors.white : const Color(0xFF64748B),
                           size: 24,
                         ),
                       ),
@@ -227,9 +227,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     child: Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: AppTheme.isHighContrast ? AppTheme.surfaceLight : Colors.white,
                         borderRadius: BorderRadius.circular(12),
-                        boxShadow: [
+                        boxShadow: AppTheme.isHighContrast ? null : [
                           BoxShadow(
                             color: Colors.black.withValues(alpha: 0.05),
                             blurRadius: 8,
@@ -237,9 +237,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           ),
                         ],
                       ),
-                      child: const Icon(
+                      child: Icon(
                         Icons.settings_rounded,
-                        color: Color(0xFF64748B),
+                        color: AppTheme.isHighContrast ? Colors.white : const Color(0xFF64748B),
                         size: 24,
                       ),
                     ),
@@ -414,7 +414,7 @@ class _DashboardTileState extends State<_DashboardTile> {
             color: widget.backgroundColor ?? Colors.white,
             borderRadius: BorderRadius.circular(16), // More square, blocky
             border: Border.all(color: widget.iconColor ?? Colors.black, width: 4), // Chunky outline
-            boxShadow: [
+            boxShadow: AppTheme.isHighContrast ? null : [
               // Hard drop shadow for pixel art / neo-brutalist feel
               BoxShadow(
                 color: widget.iconColor ?? Colors.black,
@@ -434,7 +434,7 @@ class _DashboardTileState extends State<_DashboardTile> {
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(12), // Square with slight rounding
                       border: Border.all(color: widget.iconColor ?? Colors.black, width: 3),
-                      boxShadow: [
+                      boxShadow: AppTheme.isHighContrast ? null : [
                         BoxShadow(
                           color: widget.iconColor ?? Colors.black,
                           blurRadius: 0,
@@ -480,18 +480,18 @@ class MinigamesPlaceholder extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF0F4F8),
+      backgroundColor: AppTheme.isHighContrast ? Colors.black : const Color(0xFFF0F4F8),
       appBar: AppBar(
-        backgroundColor: const Color(0xFFF0F4F8),
+        backgroundColor: AppTheme.isHighContrast ? Colors.black : const Color(0xFFF0F4F8),
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_rounded, color: Color(0xFF1E293B)),
+          icon: Icon(Icons.arrow_back_rounded, color: AppTheme.isHighContrast ? Colors.white : const Color(0xFF1E293B)),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
+        title: Text(
           'Minigames',
           style: TextStyle(
-            color: Color(0xFF1E293B),
+            color: AppTheme.isHighContrast ? Colors.white : const Color(0xFF1E293B),
             fontWeight: FontWeight.bold,
           ),
         ),
@@ -557,7 +557,7 @@ class _MinigameTile extends StatelessWidget {
                   gradient: LinearGradient(colors: gradient),
                   borderRadius: BorderRadius.circular(18),
                 ),
-                child: Icon(icon, size: 32, color: Colors.white),
+                child: Icon(icon, size: 32, color: AppTheme.isHighContrast ? Colors.black : Colors.white),
               ),
               const SizedBox(width: 16),
               Expanded(
@@ -566,8 +566,8 @@ class _MinigameTile extends StatelessWidget {
                   children: [
                     Text(
                       title,
-                      style: const TextStyle(
-                        color: Color(0xFF1E293B),
+                      style: TextStyle(
+                        color: AppTheme.isHighContrast ? Colors.white : const Color(0xFF1E293B),
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
                       ),
@@ -575,15 +575,15 @@ class _MinigameTile extends StatelessWidget {
                     const SizedBox(height: 4),
                     Text(
                       subtitle,
-                      style: const TextStyle(
-                        color: Color(0xFF64748B),
+                      style: TextStyle(
+                        color: AppTheme.isHighContrast ? AppTheme.textSecondary : const Color(0xFF64748B),
                         fontSize: 14,
                       ),
                     ),
                   ],
                 ),
               ),
-              const Icon(Icons.chevron_right_rounded, color: Color(0xFF94A3B8)),
+              Icon(Icons.chevron_right_rounded, color: AppTheme.isHighContrast ? AppTheme.textSecondary : const Color(0xFF94A3B8)),
             ],
           ),
         ),

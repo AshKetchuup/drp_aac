@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/aac_provider.dart';
+import '../theme/app_theme.dart';
 
 class SmartSuggestions extends StatefulWidget {
   final Function(String) onSuggestionTap;
@@ -41,17 +42,22 @@ class _SmartSuggestionsState extends State<SmartSuggestions> with SingleTickerPr
   Widget build(BuildContext context) {
     return Consumer<AACProvider>(
       builder: (context, provider, child) {
+        final hc = AppTheme.isHighContrast;
         return Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          decoration: const BoxDecoration(
-            color: Colors.white,
+          decoration: BoxDecoration(
+            color: hc ? Colors.black : Colors.white,
             border: Border(
-              bottom: BorderSide(color: Colors.black87, width: 2),
+              bottom: BorderSide(
+                color: hc ? Colors.white : Colors.black87,
+                width: 2,
+              ),
             ),
           ),
           child: Row(
             children: [
-              const Icon(Icons.hearing, size: 24, color: Colors.black87),
+              Icon(Icons.hearing,
+                  size: 24, color: hc ? Colors.white : Colors.black87),
               const SizedBox(width: 8),
               Expanded(
                 child: provider.teacherPrompt != null
@@ -59,19 +65,21 @@ class _SmartSuggestionsState extends State<SmartSuggestions> with SingleTickerPr
                         '"${provider.teacherPrompt}"',
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          color: Colors.teal,
+                        style: TextStyle(
+                          // Cyan keeps the "heard speech" emphasis at ~13:1 on
+                          // black in High Contrast (teal is ~5:1 there).
+                          color: hc ? AppTheme.focusHighlight : Colors.teal,
                           fontSize: 16,
                           fontWeight: FontWeight.w500,
                           fontStyle: FontStyle.italic,
                         ),
                       )
-                    : const Text(
+                    : Text(
                         'Classroom Context',
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
-                          color: Colors.black54,
+                          color: hc ? AppTheme.textSecondary : Colors.black54,
                           fontSize: 16,
                         ),
                       ),
@@ -111,19 +119,28 @@ class _SmartSuggestionsState extends State<SmartSuggestions> with SingleTickerPr
                   : Container(
                       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                       decoration: BoxDecoration(
-                        color: Colors.green.withValues(alpha: 0.1),
-                        border: Border.all(color: Colors.green, width: 2),
+                        // Solid fill + brighter green in High Contrast — the
+                        // translucent tint washes out on pure black.
+                        color: hc
+                            ? Colors.black
+                            : Colors.green.withValues(alpha: 0.1),
+                        border: Border.all(
+                          color: hc ? Colors.greenAccent : Colors.green,
+                          width: 2,
+                        ),
                         borderRadius: BorderRadius.circular(18),
                       ),
-                      child: const Row(
+                      child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(Icons.mic, size: 16, color: Colors.green),
-                          SizedBox(width: 6),
+                          Icon(Icons.mic,
+                              size: 16,
+                              color: hc ? Colors.greenAccent : Colors.green),
+                          const SizedBox(width: 6),
                           Text(
                             'Listen',
                             style: TextStyle(
-                              color: Colors.green,
+                              color: hc ? Colors.greenAccent : Colors.green,
                               fontWeight: FontWeight.bold,
                               fontSize: 14,
                             ),

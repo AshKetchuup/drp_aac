@@ -41,6 +41,11 @@ class SymbolTile extends StatelessWidget {
   final int labelMaxLines;
   final double labelFontSizeDelta;
 
+  /// Scales the upper clamp on the icon/label so the tile can grow into large
+  /// cells (e.g. the calming "I feel/I want" pages) instead of leaving a small
+  /// icon stranded in a big tile. Defaults to 1.0 — the original board sizing.
+  final double maxSizeScale;
+
   final Color? overrideBackgroundColor;
 
   const SymbolTile({
@@ -52,6 +57,7 @@ class SymbolTile extends StatelessWidget {
     this.pictogramKeyword,
     this.labelMaxLines = 1,
     this.labelFontSizeDelta = 0,
+    this.maxSizeScale = 1.0,
     this.overrideBackgroundColor,
   });
 
@@ -70,6 +76,13 @@ class SymbolTile extends StatelessWidget {
         ? 'assets/arasaac/dislike.png'
         : 'assets/arasaac/$searchWord.png';
 
+    // High Contrast mode keeps the Colourful Semantics fill EXACTLY as-is and
+    // instead strengthens the outline/label ink: black or white (whichever
+    // contrasts the fill most), with a bright cyan ring for selection so the
+    // selected state never depends on a subtle glow.
+    final bool hc = AppTheme.isHighContrast;
+    final Color ink = AppTheme.onColor(categoryColor);
+
     return GestureDetector(
       onTap: onTap,
       child: AnimatedContainer(
@@ -78,10 +91,14 @@ class SymbolTile extends StatelessWidget {
           color: categoryColor,
           borderRadius: BorderRadius.circular(6), // iPad style slightly rounded
           border: Border.all(
-            color: isSelected ? Colors.white : Colors.black87,
-            width: isSelected ? 3 : 1,
+            color: isSelected
+                ? (hc ? AppTheme.focusHighlight : Colors.white)
+                : (hc ? ink : Colors.black87),
+            width: isSelected ? (hc ? 4 : 3) : (hc ? 3 : 1),
           ),
-          boxShadow: isSelected
+          // The translucent glow is a low-contrast cue — disabled in High
+          // Contrast, where the thick cyan ring carries the selected state.
+          boxShadow: isSelected && !hc
               ? [
                   BoxShadow(
                     color: categoryColor.withValues(alpha: 0.5),
@@ -100,11 +117,13 @@ class SymbolTile extends StatelessWidget {
                   final w = constraints.maxWidth;
                   final h = constraints.maxHeight;
                   final labelFontSize = ((w * 0.16) + labelFontSizeDelta)
-                      .clamp(10.0, 18.0)
+                      .clamp(10.0, 18.0 * maxSizeScale)
                       .toDouble();
-                  final iconSize = (h * 0.42).clamp(18.0, 56.0).toDouble();
+                  final iconSize = (h * 0.42)
+                      .clamp(18.0, 56.0 * maxSizeScale)
+                      .toDouble();
                   final labelBoxHeight = (h * 0.28)
-                      .clamp(16.0, 30.0)
+                      .clamp(16.0, 30.0 * maxSizeScale)
                       .toDouble();
 
                   final imageWidget = symbol.imageUrl != null
@@ -114,7 +133,7 @@ class SymbolTile extends StatelessWidget {
                           errorBuilder: (context, error, stackTrace) => Icon(
                             symbol.icon ?? Icons.help_outline,
                             size: iconSize,
-                            color: Colors.black54,
+                            color: hc ? ink : Colors.black54,
                           ),
                         )
                       : Image.asset(
@@ -123,7 +142,7 @@ class SymbolTile extends StatelessWidget {
                           errorBuilder: (context, error, stackTrace) => Icon(
                             symbol.icon ?? Icons.help_outline,
                             size: iconSize,
-                            color: Colors.black54,
+                            color: hc ? ink : Colors.black54,
                           ),
                         );
 
@@ -148,10 +167,12 @@ class SymbolTile extends StatelessWidget {
                                   child: Text(
                                     symbol.label,
                                     style: TextStyle(
-                                      color: Colors
-                                          .black87, // Black text on colored background
+                                      // Full-strength contrast-matched ink in
+                                      // High Contrast; original look otherwise.
+                                      color: hc ? ink : Colors.black87,
                                       fontSize: labelFontSize,
-                                      fontWeight: FontWeight.w600,
+                                      fontWeight:
+                                          hc ? FontWeight.w700 : FontWeight.w600,
                                     ),
                                     textAlign: TextAlign.center,
                                     maxLines: labelMaxLines,
@@ -282,7 +303,7 @@ class MiniSymbolTile extends StatelessWidget {
             errorBuilder: (context, error, stackTrace) => Icon(
               symbol.icon ?? Icons.help_outline,
               size: isExpanded ? 32 : 16, // Scale fallback icon size
-              color: Colors.black87,
+              color: AppTheme.isHighContrast ? Colors.black : Colors.black87,
             ),
           )
         : Image.asset(
@@ -291,11 +312,16 @@ class MiniSymbolTile extends StatelessWidget {
             errorBuilder: (context, error, stackTrace) => Icon(
               symbol.icon ?? Icons.help_outline,
               size: isExpanded ? 32 : 16, // Scale fallback icon size
-              color: Colors.black87,
+              color: AppTheme.isHighContrast ? Colors.black : Colors.black87,
             ),
           );
 
     final double finalIconSize = iconSize ?? (isExpanded ? 40 : 24);
+
+    // Same High Contrast treatment as SymbolTile: keep the semantic fill,
+    // strengthen the outline and label ink only.
+    final bool hc = AppTheme.isHighContrast;
+    final Color ink = AppTheme.onColor(categoryColor);
 
     return GestureDetector(
       onTap: onTap,
@@ -308,7 +334,10 @@ class MiniSymbolTile extends StatelessWidget {
         decoration: BoxDecoration(
           color: categoryColor,
           borderRadius: BorderRadius.circular(6),
-          border: Border.all(color: Colors.black87),
+          border: Border.all(
+            color: hc ? ink : Colors.black87,
+            width: hc ? 2.5 : 1,
+          ),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
@@ -319,7 +348,9 @@ class MiniSymbolTile extends StatelessWidget {
               width: finalIconSize,
               height: finalIconSize,
               decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.5),
+                // Translucent plate reads as washed-out in High Contrast —
+                // use a solid plate there so the pictogram stays crisp.
+                color: hc ? Colors.white : Colors.white.withValues(alpha: 0.5),
                 borderRadius: BorderRadius.circular(4),
               ),
               child: ClipRRect(
@@ -336,8 +367,8 @@ class MiniSymbolTile extends StatelessWidget {
             Text(
               symbol.label,
               style: TextStyle(
-                color: Colors.black87,
-                fontSize: iconSize != null 
+                color: hc ? ink : Colors.black87,
+                fontSize: iconSize != null
                     ? (iconSize! * 0.45).clamp(12.0, 18.0) // Scale text with custom icon size
                     : (isExpanded ? 16 : 14), // Slightly boosted text visibility
                 fontWeight: FontWeight.w700,
@@ -347,7 +378,7 @@ class MiniSymbolTile extends StatelessWidget {
               const SizedBox(width: 6),
               GestureDetector(
                 onTap: onRemove,
-                child: const Icon(Icons.close, size: 16, color: Colors.black87),
+                child: Icon(Icons.close, size: 16, color: hc ? ink : Colors.black87),
               ),
             ],
           ],

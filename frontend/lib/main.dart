@@ -18,7 +18,7 @@ void main() {
 
   // Set system UI overlay style
   SystemChrome.setSystemUIOverlayStyle(
-    const SystemUiOverlayStyle(
+    SystemUiOverlayStyle(
       statusBarColor: Colors.transparent,
       statusBarIconBrightness: Brightness.light,
       systemNavigationBarColor: AppTheme.background,
@@ -41,8 +41,9 @@ class SpeakEasyApp extends StatelessWidget {
           return MaterialApp(
             title: 'SpeakEasy AAC',
             debugShowCheckedModeBanner: false,
-            themeMode: ThemeMode.light, // Let AppTheme.getTheme handle the actual colors based on mode instead of letting flutter switch theme based on OS
-            theme: AppTheme.getTheme(provider.themeMode),
+            // Two themes: default Dark, or High Contrast when the toggle is on.
+            // The OS never switches themes (no darkTheme is supplied).
+            theme: AppTheme.getTheme(highContrast: provider.highContrast),
             home: const AppShell(),
           );
         },

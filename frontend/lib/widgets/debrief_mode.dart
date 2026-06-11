@@ -133,24 +133,24 @@ class DebriefMode extends StatelessWidget {
                   ),
                   const SizedBox(height: 10),
                   Expanded(
-                    child: Row(
+                    child: Column(
                       children: [
                         Expanded(
-                          child: _VerticalTileColumn(
+                          child: _HorizontalTileRow(
                             tiles: _firstColumn,
                             onTap: onSymbolTap,
                           ),
                         ),
-                        const SizedBox(width: 8),
+                        const SizedBox(height: 8),
                         Expanded(
-                          child: _VerticalTileColumn(
+                          child: _HorizontalTileRow(
                             tiles: _secondColumn,
                             onTap: onSymbolTap,
                           ),
                         ),
-                        const SizedBox(width: 8),
+                        const SizedBox(height: 8),
                         Expanded(
-                          child: _VerticalTileColumn(
+                          child: _HorizontalTileRow(
                             tiles: _thirdColumn,
                             onTap: onSymbolTap,
                           ),
@@ -187,7 +187,7 @@ class _Header extends StatelessWidget {
               borderRadius: BorderRadius.circular(14),
               border: Border.all(color: AppTheme.border),
             ),
-            child: const Row(
+            child: Row(
               children: [
                 Icon(Icons.arrow_back, color: AppTheme.textSecondary, size: 18),
                 SizedBox(width: 6),
@@ -243,7 +243,7 @@ class _Header extends StatelessWidget {
               borderRadius: BorderRadius.circular(14),
               border: Border.all(color: AppTheme.border),
             ),
-            child: const Row(
+            child: Row(
               children: [
                 Icon(Icons.close, color: AppTheme.textSecondary, size: 18),
                 SizedBox(width: 6),
@@ -284,10 +284,14 @@ class _EmotionStrip extends StatelessWidget {
             width: 132,
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
             decoration: BoxDecoration(
-              color: AppTheme.secondary.withValues(alpha: 0.12),
+              color: AppTheme.isHighContrast
+                  ? AppTheme.surfaceLight
+                  : AppTheme.secondary.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(14),
               border: Border.all(
-                color: AppTheme.secondary.withValues(alpha: 0.6),
+                color: AppTheme.isHighContrast
+                    ? AppTheme.secondary
+                    : AppTheme.secondary.withValues(alpha: 0.6),
               ),
             ),
             child: const Text(
@@ -336,10 +340,10 @@ class _EmotionStrip extends StatelessWidget {
   }
 }
 
-class _VerticalTileColumn extends StatelessWidget {
+class _HorizontalTileRow extends StatelessWidget {
   final List<_CalmingSymbol> tiles;
   final Function(Symbol) onTap;
-  const _VerticalTileColumn({required this.tiles, required this.onTap});
+  const _HorizontalTileRow({required this.tiles, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -350,13 +354,13 @@ class _VerticalTileColumn extends StatelessWidget {
         borderRadius: BorderRadius.circular(18),
         border: Border.all(color: AppTheme.border),
       ),
-      child: Column(
+      child: Row(
         children: [
           for (var index = 0; index < tiles.length; index++) ...[
             Expanded(
               child: Padding(
                 padding: EdgeInsets.only(
-                  bottom: index == tiles.length - 1 ? 0 : 8,
+                  right: index == tiles.length - 1 ? 0 : 8,
                 ),
                 child: SymbolTile(
                   symbol: tiles[index].symbol,
