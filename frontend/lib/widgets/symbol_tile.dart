@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import '../theme/app_theme.dart';
 import '../models/models.dart';
 
@@ -61,7 +62,10 @@ class SymbolTile extends StatelessWidget {
     this.overrideBackgroundColor,
   });
 
-  Color get categoryColor => overrideBackgroundColor ?? colourfulSemanticsColor(symbol.category);
+  Color get categoryColor =>
+      overrideBackgroundColor ??
+      symbol.backgroundColor ??
+      colourfulSemanticsColor(symbol.category);
 
   @override
   Widget build(BuildContext context) {
@@ -91,9 +95,12 @@ class SymbolTile extends StatelessWidget {
           color: categoryColor,
           borderRadius: BorderRadius.circular(6), // iPad style slightly rounded
           border: Border.all(
+            // In normal contrast an imported symbol keeps its author border
+            // colour; selection and High Contrast still take precedence so
+            // those cues are never lost.
             color: isSelected
                 ? (hc ? AppTheme.focusHighlight : Colors.white)
-                : (hc ? ink : Colors.black87),
+                : (hc ? ink : (symbol.borderColor ?? Colors.black87)),
             width: isSelected ? (hc ? 4 : 3) : (hc ? 3 : 1),
           ),
           // The translucent glow is a low-contrast cue — disabled in High
@@ -126,28 +133,54 @@ class SymbolTile extends StatelessWidget {
                       .clamp(16.0, 30.0 * maxSizeScale)
                       .toDouble();
 
-                  final imageWidget = symbol.imageUrl != null
-                      ? Image.network(
-                          symbol.imageUrl!,
-                          fit: BoxFit.contain,
-                          // Pictograms are small tiles; cap the decoded bitmap
-                          // size so the image cache doesn't hold full-res copies.
-                          cacheWidth: 200,
-                          errorBuilder: (context, error, stackTrace) => Icon(
-                            symbol.icon ?? Icons.help_outline,
-                            size: iconSize,
-                            color: hc ? ink : Colors.black54,
-                          ),
-                        )
-                      : Image.asset(
-                          path,
-                          fit: BoxFit.contain,
-                          errorBuilder: (context, error, stackTrace) => Icon(
-                            symbol.icon ?? Icons.help_outline,
-                            size: iconSize,
-                            color: hc ? ink : Colors.black54,
-                          ),
-                        );
+                  final fallbackIcon = Icon(
+                    symbol.icon ?? Icons.help_outline,
+                    size: iconSize,
+                    color: hc ? ink : Colors.black54,
+                  );
+
+                  // Picture source priority: embedded bytes (e.g. an imported
+                  // OBZ pictogram) → network URL → bundled ARASAAC asset. SVG
+                  // sources must use the SVG decoder; the raster Image widget
+                  // throws on them.
+                  final Widget imageWidget;
+                  final bytes = symbol.imageBytes;
+                  if (bytes != null && bytes.isNotEmpty) {
+                    imageWidget = symbol.isSvg
+                        ? SvgPicture.memory(
+                            bytes,
+                            fit: BoxFit.contain,
+                            placeholderBuilder: (_) => fallbackIcon,
+                          )
+                        : Image.memory(
+                            bytes,
+                            fit: BoxFit.contain,
+                            errorBuilder: (context, error, stackTrace) =>
+                                fallbackIcon,
+                          );
+                  } else if (symbol.imageUrl != null) {
+                    imageWidget = symbol.isSvg
+                        ? SvgPicture.network(
+                            symbol.imageUrl!,
+                            fit: BoxFit.contain,
+                            placeholderBuilder: (_) => fallbackIcon,
+                          )
+                        : Image.network(
+                            symbol.imageUrl!,
+                            fit: BoxFit.contain,
+                            // Pictograms are small tiles; cap the decoded bitmap
+                            // size so the image cache doesn't hold full-res copies.
+                            cacheWidth: 200,
+                            errorBuilder: (context, error, stackTrace) =>
+                                fallbackIcon,
+                          );
+                  } else {
+                    imageWidget = Image.asset(
+                      path,
+                      fit: BoxFit.contain,
+                      errorBuilder: (context, error, stackTrace) => fallbackIcon,
+                    );
+                  }
 
                   return Center(
                     child: Padding(

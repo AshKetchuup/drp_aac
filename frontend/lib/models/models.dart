@@ -24,6 +24,22 @@ class Symbol {
   final String? imageUrl;
   final bool isFolder;
 
+  /// Raw image bytes for symbols whose picture isn't a network URL — e.g.
+  /// buttons imported from an OBZ board, whose pictograms are embedded in the
+  /// archive (or as data URIs). Takes precedence over [imageUrl] when set.
+  final Uint8List? imageBytes;
+
+  /// Whether [imageBytes]/[imageUrl] points at an SVG, so the UI uses an SVG
+  /// decoder rather than the raster [Image] widget (which throws on SVG).
+  final bool isSvg;
+
+  /// Author-supplied tile colours, carried over from an imported board so the
+  /// sentence rail matches the board's appearance instead of repainting the
+  /// symbol with the default Colourful Semantics palette. Null → default tile
+  /// styling (category colour).
+  final Color? backgroundColor;
+  final Color? borderColor;
+
   const Symbol({
     required this.id,
     required this.label,
@@ -32,6 +48,10 @@ class Symbol {
     this.audioPath,
     this.imageUrl,
     this.isFolder = false,
+    this.imageBytes,
+    this.isSvg = false,
+    this.backgroundColor,
+    this.borderColor,
   });
 
   Symbol copyWith({
@@ -42,6 +62,10 @@ class Symbol {
     String? audioPath,
     String? imageUrl,
     bool? isFolder,
+    Uint8List? imageBytes,
+    bool? isSvg,
+    Color? backgroundColor,
+    Color? borderColor,
   }) {
     return Symbol(
       id: id ?? this.id,
@@ -51,6 +75,10 @@ class Symbol {
       audioPath: audioPath ?? this.audioPath,
       imageUrl: imageUrl ?? this.imageUrl,
       isFolder: isFolder ?? this.isFolder,
+      imageBytes: imageBytes ?? this.imageBytes,
+      isSvg: isSvg ?? this.isSvg,
+      backgroundColor: backgroundColor ?? this.backgroundColor,
+      borderColor: borderColor ?? this.borderColor,
     );
   }
 

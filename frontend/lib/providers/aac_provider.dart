@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:typed_data';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart' show rootBundle;
@@ -192,7 +193,15 @@ class AACProvider extends ChangeNotifier {
     if (result == null) return;
 
     final file = result.files.single;
-    final bytes = await file.readAsBytes();
+    // Stream the picked file's bytes rather than calling readAsBytes(): the
+    // latter throws when the data isn't already in memory (e.g. on web, where
+    // there is no fetchable file path), whereas the stream reads the bytes on
+    // every platform.
+    final builder = BytesBuilder(copy: false);
+    await for (final chunk in file.readAsByteStream()) {
+      builder.add(chunk);
+    }
+    final bytes = builder.toBytes();
 
     if (file.extension?.toLowerCase() == 'obz') {
       final boardSet = ObzParser().parseObzBytes(bytes);
