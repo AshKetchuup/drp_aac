@@ -43,9 +43,17 @@ class BottomBar extends StatelessWidget {
                     width: 40,
                     height: 40,
                     decoration: BoxDecoration(
-                      color: AppTheme.primary.withValues(alpha: 0.2),
+                      // Translucent lime tint reads muddy on pure black —
+                      // solid surfaces + full-strength border in High Contrast.
+                      color: AppTheme.isHighContrast
+                          ? AppTheme.surfaceLight
+                          : AppTheme.primary.withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(10),
-                      border: Border.all(color: AppTheme.primary.withValues(alpha: 0.5)),
+                      border: Border.all(
+                        color: AppTheme.isHighContrast
+                            ? AppTheme.primary
+                            : AppTheme.primary.withValues(alpha: 0.5),
+                      ),
                     ),
                     child: Icon(
                       Icons.person_rounded,
@@ -131,8 +139,10 @@ class BottomBar extends StatelessWidget {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
               decoration: BoxDecoration(
-                color: isCalmingMode 
-                    ? AppTheme.error.withValues(alpha: 0.2) 
+                color: isCalmingMode
+                    ? (AppTheme.isHighContrast
+                        ? AppTheme.surfaceLight
+                        : AppTheme.error.withValues(alpha: 0.2))
                     : AppTheme.surfaceLight,
                 borderRadius: BorderRadius.circular(10),
                 border: Border.all(

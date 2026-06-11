@@ -76,7 +76,7 @@ class _HomeScreenState extends State<HomeScreen> {
               children: [
                 // Top thin menu bar
                 Container(
-                  color: Colors.white,
+                  color: AppTheme.isHighContrast ? Colors.black : Colors.white,
                   padding: const EdgeInsets.symmetric(
                     horizontal: 16,
                     vertical: 4,
@@ -90,7 +90,9 @@ class _HomeScreenState extends State<HomeScreen> {
                             Container(
                               padding: const EdgeInsets.all(4),
                               decoration: BoxDecoration(
-                                color: Colors.blue.withValues(alpha: 0.1),
+                                color: AppTheme.isHighContrast
+                                    ? AppTheme.surfaceLight
+                                    : Colors.blue.withValues(alpha: 0.1),
                                 shape: BoxShape.circle,
                               ),
                               child: Icon(
@@ -106,7 +108,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                                 style: TextStyle(
-                                  color: Colors.black87,
+                                  color: AppTheme.isHighContrast
+                                      ? Colors.white
+                                      : Colors.black87,
                                   fontWeight: FontWeight.bold,
                                   fontSize: 16,
                                 ),
@@ -123,10 +127,18 @@ class _HomeScreenState extends State<HomeScreen> {
                               child: Container(
                                 padding: const EdgeInsets.all(6),
                                 decoration: BoxDecoration(
-                                  color: Colors.grey.withValues(alpha: 0.1),
+                                  color: AppTheme.isHighContrast
+                                      ? AppTheme.surfaceLight
+                                      : Colors.grey.withValues(alpha: 0.1),
                                   borderRadius: BorderRadius.circular(8),
                                 ),
-                                child: Icon(Icons.apps_rounded, color: Colors.black54, size: 20),
+                                child: Icon(
+                                  Icons.apps_rounded,
+                                  color: AppTheme.isHighContrast
+                                      ? AppTheme.textSecondary
+                                      : Colors.black54,
+                                  size: 20,
+                                ),
                               ),
                             ),
                           ],
@@ -147,14 +159,22 @@ class _HomeScreenState extends State<HomeScreen> {
                                   _showEmotions
                                       ? Icons.emoji_emotions
                                       : Icons.emoji_emotions_outlined,
-                                  color: Colors.purple,
+                                  color: AppTheme.isHighContrast
+                                      ? (_showEmotions
+                                          ? AppTheme.focusHighlight
+                                          : Colors.white)
+                                      : Colors.purple,
                                   size: 20,
                                 ),
                                 const SizedBox(width: 4),
                                 Text(
                                   'Emotions',
                                   style: TextStyle(
-                                    color: Colors.purple,
+                                    color: AppTheme.isHighContrast
+                                        ? (_showEmotions
+                                            ? AppTheme.focusHighlight
+                                            : Colors.white)
+                                        : Colors.purple,
                                     fontSize: 14,
                                   ),
                                 ),
@@ -193,7 +213,9 @@ class _HomeScreenState extends State<HomeScreen> {
                             onTap: _openSettings,
                             child: Icon(
                               Icons.settings,
-                              color: Colors.black87,
+                              color: AppTheme.isHighContrast
+                                  ? Colors.white
+                                  : Colors.black87,
                               size: 20,
                             ),
                           ),

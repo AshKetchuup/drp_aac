@@ -4,6 +4,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import '../providers/aac_provider.dart';
 import '../models/models.dart';
+import '../theme/app_theme.dart';
 import 'symbol_tile.dart';
 
 class SentenceRail extends StatelessWidget {
@@ -56,8 +57,15 @@ class SentenceRail extends StatelessWidget {
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 12),
                     decoration: BoxDecoration(
-                      color: Colors.white,
-                      border: Border.all(color: Colors.black, width: 2),
+                      color: AppTheme.isHighContrast
+                          ? Colors.black
+                          : Colors.white,
+                      border: Border.all(
+                        color: AppTheme.isHighContrast
+                            ? Colors.white
+                            : Colors.black,
+                        width: 2,
+                      ),
                     ),
                     child: ListView.separated(
                       scrollDirection: Axis.horizontal,
@@ -90,14 +98,22 @@ class SentenceRail extends StatelessWidget {
                   ),
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
-                    children: const [
-                      Icon(Icons.volume_up, color: Colors.white, size: 32),
+                    children: [
+                      Icon(
+                        Icons.volume_up,
+                        color: AppTheme.isHighContrast
+                            ? AppTheme.onColor(Colors.blue)
+                            : Colors.white,
+                        size: 32,
+                      ),
                       FittedBox(
                         fit: BoxFit.scaleDown,
                         child: Text(
                           'Speak',
                           style: TextStyle(
-                            color: Colors.white,
+                            color: AppTheme.isHighContrast
+                                ? AppTheme.onColor(Colors.blue)
+                                : Colors.white,
                             fontWeight: FontWeight.bold,
                             fontSize: 12,
                           ),
@@ -154,12 +170,17 @@ class _IconButton extends StatelessWidget {
         decoration: BoxDecoration(
           color: color,
           borderRadius: BorderRadius.circular(4),
-          border: Border.all(color: Colors.black87, width: 1),
+          border: Border.all(
+            color: AppTheme.isHighContrast ? Colors.white : Colors.black87,
+            width: 1,
+          ),
         ),
         child: Center(
           child: Icon(
             icon,
-            color: Colors.white,
+            color: AppTheme.isHighContrast
+                ? AppTheme.onColor(color)
+                : Colors.white,
             size: 36,
           ),
         ),
@@ -174,7 +195,8 @@ class _IconButton extends StatelessWidget {
       builder: (dialogContext) {
         String inputText = '';
         return AlertDialog(
-          backgroundColor: Colors.white,
+          backgroundColor:
+              AppTheme.isHighContrast ? Colors.black : Colors.white,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           title: const Text('Add Custom Word'),
           content: Column(
@@ -289,9 +311,15 @@ class _DialogOption extends StatelessWidget {
             width: 56,
             height: 56,
             decoration: BoxDecoration(
-              color: Colors.blue.withValues(alpha: 0.1),
+              color: AppTheme.isHighContrast
+                  ? AppTheme.surfaceLight
+                  : Colors.blue.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.blue.withValues(alpha: 0.3)),
+              border: Border.all(
+                color: AppTheme.isHighContrast
+                    ? Colors.white
+                    : Colors.blue.withValues(alpha: 0.3),
+              ),
             ),
             child: Icon(icon, color: Colors.blue, size: 28),
           ),

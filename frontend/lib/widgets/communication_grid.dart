@@ -59,7 +59,7 @@ class _CommunicationGridState extends State<CommunicationGrid> {
     }).toList();
   }
 
-  static const List<_CategoryPage> _pages = [
+  static final List<_CategoryPage> _pages = [
     _CategoryPage(null, 'All', Icons.apps, AppTheme.textSecondary),
     _CategoryPage(
       'pronoun',
@@ -484,8 +484,8 @@ class _CommunicationGridState extends State<CommunicationGrid> {
                 symbol: widget.nowNextData.now!,
               ),
             if (hasNow && hasNext)
-              const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 12),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 12),
                 child: Center(
                   child: Icon(
                     Icons.arrow_forward_rounded,
@@ -1199,9 +1199,9 @@ class _ContextSuggestionsPageState extends State<_ContextSuggestionsPage> {
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Icon(Icons.lock_outline, size: 48, color: AppTheme.textSecondary),
+                          Icon(Icons.lock_outline, size: 48, color: AppTheme.textSecondary),
                           const SizedBox(height: 12),
-                          const Text(
+                          Text(
                             'Please log in to use smart suggestions',
                             style: TextStyle(
                               color: AppTheme.textSecondary,
@@ -1210,7 +1210,7 @@ class _ContextSuggestionsPageState extends State<_ContextSuggestionsPage> {
                             ),
                           ),
                           const SizedBox(height: 4),
-                          const Text(
+                          Text(
                             'Go to the Dashboard and tap the Login button',
                             style: TextStyle(
                               color: AppTheme.textSecondary,
@@ -1221,7 +1221,7 @@ class _ContextSuggestionsPageState extends State<_ContextSuggestionsPage> {
                       ),
                     )
                   : visibleSuggestions.isEmpty
-                  ? const Center(
+                  ? Center(
                       child: Text(
                         'No suggestions available.',
                         style: TextStyle(color: AppTheme.textSecondary),

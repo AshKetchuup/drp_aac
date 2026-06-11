@@ -586,7 +586,9 @@ class _DropCell extends StatelessWidget {
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
                 color: candidateData.isNotEmpty
-                    ? AppTheme.primary
+                    ? (AppTheme.isHighContrast
+                        ? AppTheme.focusHighlight
+                        : AppTheme.primary)
                     : AppTheme.border,
                 width: 2,
               ),
@@ -780,7 +782,11 @@ class _ToggleChip extends StatelessWidget {
         child: Text(
           label,
           style: TextStyle(
-            color: selected ? Colors.white : AppTheme.textSecondary,
+            color: selected
+                ? (AppTheme.isHighContrast
+                    ? AppTheme.onColor(AppTheme.primary)
+                    : Colors.white)
+                : AppTheme.textSecondary,
             fontWeight: FontWeight.w600,
             fontSize: 14,
           ),

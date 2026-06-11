@@ -38,7 +38,9 @@ class NowNextDisplay extends StatelessWidget {
             Icon(
               Icons.arrow_forward_rounded,
               size: 44,
-              color: AppTheme.textSecondary.withValues(alpha: 0.6),
+              color: AppTheme.isHighContrast
+                  ? Colors.white
+                  : AppTheme.textSecondary.withValues(alpha: 0.6),
             ),
 
             const SizedBox(width: 16),
@@ -84,14 +86,18 @@ class _StaticDisplayZone extends StatelessWidget {
             width: double.infinity,
             padding: const EdgeInsets.symmetric(vertical: 12),
             decoration: BoxDecoration(
-              color: labelColor.withValues(alpha: 0.12),
+              color: AppTheme.isHighContrast
+                  ? labelColor
+                  : labelColor.withValues(alpha: 0.12),
               borderRadius: const BorderRadius.vertical(top: Radius.circular(18)),
             ),
             child: Text(
               label,
               textAlign: TextAlign.center,
               style: TextStyle(
-                color: labelColor,
+                color: AppTheme.isHighContrast
+                    ? AppTheme.onColor(labelColor)
+                    : labelColor,
                 fontSize: 24,
                 fontWeight: FontWeight.w900,
                 letterSpacing: 2,

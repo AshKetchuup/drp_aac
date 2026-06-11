@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
+import '../theme/app_theme.dart';
 
 final authService = AuthService();
 
@@ -8,19 +9,25 @@ class LoginScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // This screen is light-styled by design; in High Contrast it flips to
+    // black surfaces with white text (colour-only change).
+    final hc = AppTheme.isHighContrast;
+    final bg = hc ? Colors.black : const Color(0xFFF0F4F8);
+    final ink = hc ? Colors.white : const Color(0xFF1E293B);
+
     return Scaffold(
-      backgroundColor: const Color(0xFFF0F4F8),
+      backgroundColor: bg,
       appBar: AppBar(
-        backgroundColor: const Color(0xFFF0F4F8),
+        backgroundColor: bg,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Color(0xFF1E293B)),
+          icon: Icon(Icons.arrow_back, color: ink),
           onPressed: () => Navigator.pop(context, false),
         ),
-        title: const Text(
+        title: Text(
           'Login',
           style: TextStyle(
-            color: Color(0xFF1E293B),
+            color: ink,
             fontWeight: FontWeight.bold,
           ),
         ),
