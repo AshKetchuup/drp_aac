@@ -462,14 +462,14 @@ class _CommunicationGridState extends State<CommunicationGrid> {
         margin: const EdgeInsets.fromLTRB(8, 10, 16, 10),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         decoration: BoxDecoration(
-          color: AppTheme.secondary.withValues(alpha: 0.15), // Sky blue tint for contrast
+          color: const Color(0xFF1E3A8A), // Solid dark blue for strong contrast against slate background
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppTheme.secondary.withValues(alpha: 0.6), width: 2), // Prominent border
+          border: Border.all(color: AppTheme.secondary, width: 3), // Bright, prominent border
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.1),
-              blurRadius: 4,
-              offset: const Offset(0, 2),
+              color: AppTheme.secondary.withValues(alpha: 0.2),
+              blurRadius: 8,
+              offset: const Offset(0, 4),
             )
           ],
         ),
