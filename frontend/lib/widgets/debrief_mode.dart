@@ -187,7 +187,7 @@ class _Header extends StatelessWidget {
               borderRadius: BorderRadius.circular(14),
               border: Border.all(color: AppTheme.border),
             ),
-            child: const Row(
+            child: Row(
               children: [
                 Icon(Icons.arrow_back, color: AppTheme.textSecondary, size: 18),
                 SizedBox(width: 6),
@@ -243,7 +243,7 @@ class _Header extends StatelessWidget {
               borderRadius: BorderRadius.circular(14),
               border: Border.all(color: AppTheme.border),
             ),
-            child: const Row(
+            child: Row(
               children: [
                 Icon(Icons.close, color: AppTheme.textSecondary, size: 18),
                 SizedBox(width: 6),
@@ -284,10 +284,14 @@ class _EmotionStrip extends StatelessWidget {
             width: 132,
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
             decoration: BoxDecoration(
-              color: AppTheme.secondary.withValues(alpha: 0.12),
+              color: AppTheme.isHighContrast
+                  ? AppTheme.surfaceLight
+                  : AppTheme.secondary.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(14),
               border: Border.all(
-                color: AppTheme.secondary.withValues(alpha: 0.6),
+                color: AppTheme.isHighContrast
+                    ? AppTheme.secondary
+                    : AppTheme.secondary.withValues(alpha: 0.6),
               ),
             ),
             child: const Text(

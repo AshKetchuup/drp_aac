@@ -31,7 +31,7 @@ class _VoiceSettingsDialogState extends State<VoiceSettingsDialog> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Pitch: ${_pitch.toStringAsFixed(1)}', style: const TextStyle(color: AppTheme.textSecondary)),
+          Text('Pitch: ${_pitch.toStringAsFixed(1)}', style: TextStyle(color: AppTheme.textSecondary)),
           Slider(
             value: _pitch,
             min: 0.5,
@@ -44,7 +44,7 @@ class _VoiceSettingsDialogState extends State<VoiceSettingsDialog> {
             },
           ),
           const SizedBox(height: 16),
-          Text('Speed: ${_rate.toStringAsFixed(2)}', style: const TextStyle(color: AppTheme.textSecondary)),
+          Text('Speed: ${_rate.toStringAsFixed(2)}', style: TextStyle(color: AppTheme.textSecondary)),
           Slider(
             value: _rate,
             min: 0.1,
@@ -117,42 +117,25 @@ class AppearanceDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<AACProvider>();
-    final currentMode = provider.themeMode;
 
     return AlertDialog(
       backgroundColor: AppTheme.surface,
       title: const Text('Appearance', style: TextStyle(color: AppTheme.textPrimary)),
-      content: RadioGroup<ThemeMode>(
-        groupValue: currentMode,
-        onChanged: (val) {
-          provider.updateThemeMode(val!);
-          Navigator.pop(context);
-        },
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            RadioListTile<ThemeMode>(
-              title: const Text('System Default', style: TextStyle(color: AppTheme.textPrimary)),
-              value: ThemeMode.system,
-              activeColor: AppTheme.primary,
-            ),
-            RadioListTile<ThemeMode>(
-              title: const Text('Light Mode', style: TextStyle(color: AppTheme.textPrimary)),
-              value: ThemeMode.light,
-              activeColor: AppTheme.primary,
-            ),
-            RadioListTile<ThemeMode>(
-              title: const Text('Dark Mode', style: TextStyle(color: AppTheme.textPrimary)),
-              value: ThemeMode.dark,
-              activeColor: AppTheme.primary,
-            ),
-          ],
+      content: SwitchListTile(
+        contentPadding: EdgeInsets.zero,
+        value: provider.highContrast,
+        onChanged: provider.setHighContrast,
+        activeThumbColor: AppTheme.primary,
+        title: const Text('High Contrast', style: TextStyle(color: AppTheme.textPrimary)),
+        subtitle: Text(
+          'Black background, white text, strong borders. Word colours stay the same.',
+          style: TextStyle(color: AppTheme.textSecondary),
         ),
       ),
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: const Text('Cancel', style: TextStyle(color: AppTheme.primary)),
+          child: const Text('Done', style: TextStyle(color: AppTheme.primary)),
         ),
       ],
     );

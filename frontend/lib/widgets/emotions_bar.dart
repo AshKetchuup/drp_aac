@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../theme/app_theme.dart';
 
 class EmotionsBar extends StatelessWidget {
   final Function(String) onTap;
@@ -7,12 +8,16 @@ class EmotionsBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final hc = AppTheme.isHighContrast;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      decoration: const BoxDecoration(
-        color: Colors.white,
+      decoration: BoxDecoration(
+        color: hc ? Colors.black : Colors.white,
         border: Border(
-          bottom: BorderSide(color: Colors.black87, width: 2),
+          bottom: BorderSide(
+            color: hc ? Colors.white : Colors.black87,
+            width: 2,
+          ),
         ),
       ),
       child: Column(
@@ -20,10 +25,10 @@ class EmotionsBar extends StatelessWidget {
         children: [
           Row(
             children: [
-              const Text(
+              Text(
                 'Emotion',
                 style: TextStyle(
-                  color: Colors.teal,
+                  color: hc ? Colors.white : Colors.teal,
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
                 ),
@@ -43,10 +48,10 @@ class EmotionsBar extends StatelessWidget {
           const SizedBox(height: 8),
           Row(
             children: [
-              const Text(
+              Text(
                 'Tone',
                 style: TextStyle(
-                  color: Colors.pinkAccent,
+                  color: hc ? Colors.white : Colors.pinkAccent,
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
                 ),
