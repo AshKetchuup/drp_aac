@@ -53,6 +53,13 @@ def generate_suggestions(payload):
     if not history_str:
         history_str = "No recent history."
         
+    target_min = payload.min_suggestions
+    if payload.current_suggestions:
+        # Ensure enough buffer to survive deduplication and still yield >= 3 new items
+        target_min = payload.min_suggestions + len(payload.current_suggestions) + 3
+    
+    target_max = target_min + 4
+
     system_prompt = f"""You are a speech therapist/SEND teacher helping a non-verbal child communicate using an AAC app.
 Your task: given what someone just said to the child, predict the words the child most likely wants to say back.
 
@@ -64,39 +71,35 @@ What the child said recently:
 {history_str}
 
 RULES:
-- CRITICAL: You MUST return EXACTLY 15 words. Not fewer, not more.
+- IMPORTANT: SUGGEST AT LEAST {target_min} to {target_max} words or short phrases the child would realistically reply with.
 - IMPORTANT: Include the words from MOST RELEVANT to LEAST RELEVANT. 
 - INCLUDE THE PROPER NOUNS WITHIN THE SENTENCE, that are not already in the AAC board.
-- IF the child's likes are directly relevant to the topic, include them. 
-- CRITICAL: Dont OVER use the likes if not relevant. DO NOT include random likes (like "Park" or "Swings") if the topic is about something completely different (like "Pets"). Instead, suggest other things to expand the child's vocabulary and general knowledge.
+- CRITICAL RULE ABOUT LIKES: NEVER include the child's likes to pad out your list. ONLY include them if they perfectly and logically answer the specific question. If asked "Who is your favorite character?", it is WRONG to output "Park" or "Swings".
+- To reach the required {target_min} words, provide new, highly relevant vocabulary closely related to the topic to expand the child's knowledge!
 - NEVER include anything from the dislikes list.
 - Focus on specific, meaningful vocabulary (nouns, verbs, adjectives) — NOT generic words like "Yes", "No", "Please", "I want" since those are already on the child's board.
 - Use the conversation history to make smarter, contextual predictions.
 - Return ONLY a valid JSON array of strings. Nothing else. No numbers, no explanations, no keys.
 - NO REPEATS
-- THE ARRAY MUST CONTAIN EXACTLY 15 ITEMS.
 
 GOOD example:
 Someone said: "What animal do you like?"
 Child likes: Dogs, Cats, Park, Swings
 Child dislikes: Spiders
-Answer: ["Dogs", "Cats", "Rabbits", "Hamster", "Fish", "Birds", "Turtles", "Lizards", "Snakes", "Frogs", "Guinea Pigs", "Mice", "Horses", "Cows", "Pigs"]
+Answer: ["Dogs", "Cats", "Rabbits", "Hamster", "Fish"]
 
 BAD example (NEVER do this):
 ["1", "Dogs", "2", "Cats"] — numbers are WRONG
 {{"animals": ["Dogs"]}} — objects are WRONG
 ["Dogs", "Park", "Swings"] — WRONG: "Park" and "Swings" are not animals! Do not force irrelevant likes!"""
 
-    user_prompt = f"""Someone said: "{payload.text}"
-Child likes: {likes_str}
-Child dislikes: {dislikes_str}
-You MUST give me exactly 15 suggestions."""
+    user_prompt = f"""Someone said: "{payload.text}\""""
 
     if payload.current_suggestions:
         exclude_str = ", ".join(payload.current_suggestions)
         user_prompt += f"\n\nCRITICAL: You have already suggested the following words: {exclude_str}.\nYOU MUST NOT SUGGEST ANY OF THOSE WORDS AGAIN. Give me entirely DIFFERENT options!"
 
-    user_prompt += f"\nReturn a JSON array with exactly 15 strings:"
+    user_prompt += f"\nReturn a JSON array with AT LEAST {target_min} strings:"
 
     response = ollama.chat(
         model='qwen2.5:1.5b', # Extremely smart 1B model
