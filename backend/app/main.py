@@ -14,7 +14,7 @@ async def lifespan(app: FastAPI):
     yield
 
 
-app = FastAPI(title="AAC Homework API", lifespan=lifespan)
+app = FastAPI(title="alpAACa API", lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
