@@ -56,7 +56,6 @@ class AuthService {
         redirectUrl,
         discoveryUrl: '$issuer.well-known/openid-configuration',
         scopes: scopes,
-        promptValues: const ['login'],
       ),
     );
 
@@ -100,7 +99,6 @@ class AuthService {
         'scope': scopes.join(' '),
         'code_challenge': codeChallenge,
         'code_challenge_method': 'S256',
-        'prompt': 'login',
       },
     );
 
@@ -225,7 +223,6 @@ class AuthService {
         'scope': scopes.join(' '),
         'code_challenge': codeChallenge,
         'code_challenge_method': 'S256',
-        'prompt': 'login',
       },
     );
 
