@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import '../providers/aac_provider.dart';
 import '../models/models.dart';
 import '../theme/app_theme.dart';
+import 'draw_icon_pad.dart';
 import 'symbol_tile.dart';
 
 class SentenceRail extends StatelessWidget {
@@ -259,6 +260,22 @@ class _IconButton extends StatelessWidget {
                         if (context.mounted) {
                           _saveAndClose(dialogContext, provider, inputText.trim(), bytes);
                         }
+                      }
+                    },
+                  ),
+                  _DialogOption(
+                    icon: Icons.draw,
+                    label: 'Draw',
+                    onTap: () async {
+                      if (inputText.trim().isEmpty) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Please type a word first')),
+                        );
+                        return;
+                      }
+                      final bytes = await showDrawIconDialog(context);
+                      if (bytes != null && context.mounted) {
+                        _saveAndClose(dialogContext, provider, inputText.trim(), bytes);
                       }
                     },
                   ),
