@@ -1,4 +1,4 @@
-import 'dart:convert';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
@@ -236,9 +236,8 @@ class _IconButton extends StatelessWidget {
                       final photo = await picker.pickImage(source: ImageSource.camera, maxWidth: 300);
                       if (photo != null) {
                         final bytes = await photo.readAsBytes();
-                        final dataUri = 'data:image/jpeg;base64,${base64Encode(bytes)}';
                         if (context.mounted) {
-                          _saveAndClose(dialogContext, provider, inputText.trim(), dataUri);
+                          _saveAndClose(dialogContext, provider, inputText.trim(), bytes);
                         }
                       }
                     },
@@ -257,9 +256,8 @@ class _IconButton extends StatelessWidget {
                       final photo = await picker.pickImage(source: ImageSource.gallery, maxWidth: 300);
                       if (photo != null) {
                         final bytes = await photo.readAsBytes();
-                        final dataUri = 'data:image/jpeg;base64,${base64Encode(bytes)}';
                         if (context.mounted) {
-                          _saveAndClose(dialogContext, provider, inputText.trim(), dataUri);
+                          _saveAndClose(dialogContext, provider, inputText.trim(), bytes);
                         }
                       }
                     },
@@ -287,13 +285,13 @@ class _IconButton extends StatelessWidget {
     );
   }
 
-  void _saveAndClose(BuildContext dialogContext, AACProvider provider, String word, String? imageUrl) {
+  void _saveAndClose(BuildContext dialogContext, AACProvider provider, String word, Uint8List? imageBytes) {
     final symbol = Symbol(
       id: 'custom_${word.toLowerCase().replaceAll(' ', '_')}_${DateTime.now().millisecondsSinceEpoch}',
       label: word,
       category: SymbolCategory.noun,
       icon: Icons.star,
-      imageUrl: imageUrl,
+      imageBytes: imageBytes,
     );
     provider.addCustomSymbol(symbol);
     provider.addToSentence(symbol);
