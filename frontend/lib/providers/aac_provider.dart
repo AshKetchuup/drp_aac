@@ -26,12 +26,19 @@ class AACProvider extends ChangeNotifier {
   int? _gridColumns; // null = Auto
   bool _highContrast = false; // false = default Dark theme, true = High Contrast
   int _minSuggestions = 4;
+  String _punctuation = '';
 
   double get voicePitch => _voicePitch;
   double get voiceRate => _voiceRate;
   int? get gridColumns => _gridColumns;
   bool get highContrast => _highContrast;
   int get minSuggestions => _minSuggestions;
+  String get punctuation => _punctuation;
+
+  void setPunctuation(String p) {
+    _punctuation = p;
+    notifyListeners();
+  }
 
   void updateVoiceSettings(double pitch, double rate) {
     _voicePitch = pitch;
@@ -238,7 +245,7 @@ class AACProvider extends ChangeNotifier {
 
   Future<void> speak(String text) async {
     if (text.isNotEmpty) {
-      await _flutterTts.speak(text);
+      await _flutterTts.speak(text + _punctuation);
     }
   }
 
