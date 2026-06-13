@@ -55,11 +55,12 @@ def generate_suggestions(payload):
         history_str = "No recent history."
         
     target_min = payload.min_suggestions
+    # If we need more options, we add a very small buffer (e.g. +2) rather than linearly scaling. 
+    # Linearly scaling to massive numbers forces the model to hallucinate likes.
     if payload.current_suggestions:
-        # Ensure enough buffer to survive deduplication and still yield >= 3 new items
-        target_min = payload.min_suggestions + len(payload.current_suggestions) + 3
-    
-    target_max = target_min + 4
+        target_min = payload.min_suggestions + 2
+        
+    target_max = target_min + 3
 
     system_prompt = f"""You are a speech therapist/SEND teacher helping a non-verbal child communicate using an AAC app.
 Your task: given what someone just said to the child, predict the words the child most likely wants to say back.
@@ -98,7 +99,7 @@ BAD example (NEVER do this):
 
     if payload.current_suggestions:
         exclude_str = ", ".join(payload.current_suggestions)
-        user_prompt += f"\n\nCRITICAL: You have already suggested the following words: {exclude_str}.\nYOU MUST NOT SUGGEST ANY OF THOSE WORDS AGAIN. Give me entirely DIFFERENT options!"
+        user_prompt += f"\n\nCRITICAL RULE: You have ALREADY suggested these words: {exclude_str}. YOU MUST NOT SUGGEST ANY OF THOSE WORDS AGAIN! You must think of completely NEW, DISTINCT, and UNIQUE options related to the topic! Dig deeper into your vocabulary!"
 
     user_prompt += f"\nReturn a JSON array with AT LEAST {target_min} strings:"
 
@@ -113,7 +114,7 @@ BAD example (NEVER do this):
         options={
             'num_predict': 256, # Increased to prevent cutting off long JSON arrays
             'num_ctx': 1024,
-            'temperature': 0.7,
+            'temperature': 0.85 if payload.current_suggestions else 0.7, # Higher temp = more unique/rare words for extended pages
         }
     )
     
@@ -136,7 +137,16 @@ BAD example (NEVER do this):
     suggestions_list = []
     
     def normalize_for_dedup(s):
-        return re.sub(r'[^a-z0-9]', '', s.lower())
+        n = re.sub(r'[^a-z0-9]', '', s.lower())
+        # Basic English plural stemming for deduplication
+        if len(n) > 3:
+            if n.endswith('ies'):
+                return n[:-3] + 'y'
+            elif n.endswith('es') and n[-3] in ['s', 'z', 'x', 'c', 'h']:
+                return n[:-2]
+            elif n.endswith('s') and not n.endswith('ss'):
+                return n[:-1]
+        return n
         
     existing_normalized = set(normalize_for_dedup(s) for s in payload.current_suggestions) if payload.current_suggestions else set()
     
