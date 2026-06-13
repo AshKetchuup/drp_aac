@@ -205,7 +205,16 @@ class _IconButton extends StatelessWidget {
           backgroundColor:
               AppTheme.isHighContrast ? Colors.black : Colors.white,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          title: const Text('Add Custom Word'),
+          // The dialog forces a light surface, but the dark theme's default
+          // title/button ink is white — which is invisible on white. Pin the
+          // ink dark here (white only in High Contrast, where the surface is
+          // black).
+          title: Text(
+            'Add Custom Word',
+            style: TextStyle(
+              color: AppTheme.isHighContrast ? Colors.white : const Color(0xFF1E293B),
+            ),
+          ),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -285,10 +294,18 @@ class _IconButton extends StatelessWidget {
           ),
           actions: [
             TextButton(
+              // Light surface: override the white default foreground so the
+              // label is readable (High Contrast keeps its yellow-on-black).
+              style: AppTheme.isHighContrast
+                  ? null
+                  : TextButton.styleFrom(foregroundColor: const Color(0xFF2563EB)),
               onPressed: () => Navigator.pop(dialogContext),
               child: const Text('Cancel'),
             ),
             TextButton(
+              style: AppTheme.isHighContrast
+                  ? null
+                  : TextButton.styleFrom(foregroundColor: const Color(0xFF2563EB)),
               onPressed: () {
                 if (inputText.trim().isNotEmpty) {
                   _saveAndClose(dialogContext, provider, inputText.trim(), null);

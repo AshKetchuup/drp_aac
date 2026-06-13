@@ -124,7 +124,14 @@ class _DrawIconDialogState extends State<_DrawIconDialog> {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       titlePadding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
       contentPadding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
-      title: const Text('Draw an icon'),
+      // Light surface (white paper for the canvas), so pin the title ink dark —
+      // the dark theme's default white title is invisible here.
+      title: Text(
+        'Draw an icon',
+        style: TextStyle(
+          color: AppTheme.isHighContrast ? Colors.white : const Color(0xFF1E293B),
+        ),
+      ),
       content: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -200,7 +207,11 @@ class _DrawIconDialogState extends State<_DrawIconDialog> {
             // ─── Pen width slider ────────────────────────────────────────
             Row(
               children: [
-                const Icon(Icons.line_weight, size: 20),
+                Icon(
+                  Icons.line_weight,
+                  size: 20,
+                  color: AppTheme.isHighContrast ? Colors.white : Colors.black54,
+                ),
                 Expanded(
                   child: Slider(
                     value: _penWidth,
@@ -214,6 +225,9 @@ class _DrawIconDialogState extends State<_DrawIconDialog> {
                   child: Text(
                     _penWidth.round().toString(),
                     textAlign: TextAlign.end,
+                    style: TextStyle(
+                      color: AppTheme.isHighContrast ? Colors.white : Colors.black87,
+                    ),
                   ),
                 ),
               ],
@@ -223,10 +237,18 @@ class _DrawIconDialogState extends State<_DrawIconDialog> {
       ),
       actions: [
         TextButton(
+          // White default foreground is invisible on this light surface; keep
+          // the High Contrast theme's yellow-on-black untouched.
+          style: AppTheme.isHighContrast
+              ? null
+              : TextButton.styleFrom(foregroundColor: const Color(0xFF2563EB)),
           onPressed: () => Navigator.pop(context, null),
           child: const Text('Cancel'),
         ),
         TextButton(
+          style: AppTheme.isHighContrast
+              ? null
+              : TextButton.styleFrom(foregroundColor: const Color(0xFF2563EB)),
           onPressed: _save,
           child: const Text('Use Drawing'),
         ),

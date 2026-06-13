@@ -782,10 +782,11 @@ class _ToggleChip extends StatelessWidget {
         child: Text(
           label,
           style: TextStyle(
+            // Dark ink on the lime selected chip — white was unreadable on the
+            // light-green fill. onColor picks the higher-contrast ink for both
+            // the Dark and High Contrast palettes.
             color: selected
-                ? (AppTheme.isHighContrast
-                    ? AppTheme.onColor(AppTheme.primary)
-                    : Colors.white)
+                ? AppTheme.onColor(AppTheme.primary)
                 : AppTheme.textSecondary,
             fontWeight: FontWeight.w600,
             fontSize: 14,
