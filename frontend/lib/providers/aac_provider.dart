@@ -13,12 +13,18 @@ import 'package:flutter_tts/flutter_tts.dart';
 import '../models/models.dart';
 import '../widgets/scheduler.dart';
 import '../repositories/schedule_repository.dart';
-import '../repositories/local_schedule_repository.dart';
+import '../repositories/synced_schedule_repository.dart';
+import '../repositories/profile_repository.dart';
+import '../repositories/tile_repository.dart';
+import '../repositories/board_repository.dart';
 import '../services/auth_service.dart';
 import '../services/kpi_logger.dart';
 
 class AACProvider extends ChangeNotifier {
   final ScheduleRepository _scheduleRepo;
+  final ProfileRepository _profileRepo;
+  final TileRepository _tileRepo;
+  final BoardRepository _boardRepo;
 
   // Settings State
   double _voicePitch = 1.0;
@@ -49,12 +55,21 @@ class AACProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  AACProvider({ScheduleRepository? scheduleRepo})
-    : _scheduleRepo = scheduleRepo ?? LocalScheduleRepository() {
+  AACProvider({
+    ScheduleRepository? scheduleRepo,
+    ProfileRepository? profileRepo,
+    TileRepository? tileRepo,
+    BoardRepository? boardRepo,
+  }) : _scheduleRepo = scheduleRepo ?? SyncedScheduleRepository(),
+       _profileRepo = profileRepo ?? ProfileRepository(),
+       _tileRepo = tileRepo ?? TileRepository(),
+       _boardRepo = boardRepo ?? BoardRepository() {
     _initTts();
     // Preload the bundled starter board so it's the first board ready to use,
     // without taking over the rich home view.
     loadDefaultBoardSet();
+    // Load the teacher's child profiles (remote, with local-cache fallback).
+    bootstrapProfiles();
   }
 
   ({Symbol? now, Symbol? next}) calculateNowNext() {
@@ -184,6 +199,10 @@ class AACProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  // Boards saved remotely (raw bytes in GridFS) for the active profile.
+  List<BoardMeta> _savedBoards = [];
+  List<BoardMeta> get savedBoards => List.unmodifiable(_savedBoards);
+
   Future<void> importBoard() async {
     final result = await FilePicker.pickFiles(
       type: FileType.custom,
@@ -202,8 +221,32 @@ class AACProvider extends ChangeNotifier {
       builder.add(chunk);
     }
     final bytes = builder.toBytes();
+    final ext = file.extension?.toLowerCase();
 
-    if (file.extension?.toLowerCase() == 'obz') {
+    _applyBoardBytes(bytes, ext);
+    notifyListeners();
+
+    // Save the imported board to the active child profile (best-effort).
+    final pid = _currentProfile?.id;
+    if (pid != null) {
+      try {
+        await _boardRepo.upload(
+          pid,
+          filename: file.name,
+          bytes: bytes,
+          name: file.name,
+          contentType: ext == 'obz' ? 'application/zip' : 'application/json',
+        );
+        await loadSavedBoards();
+      } catch (e) {
+        debugPrint('Failed to upload board: $e');
+      }
+    }
+  }
+
+  /// Parse raw board bytes (.obz or .obf) into the active imported board set.
+  void _applyBoardBytes(Uint8List bytes, String? ext) {
+    if (ext == 'obz') {
       final boardSet = ObzParser().parseObzBytes(bytes);
       _importedBoardSet = boardSet;
       _activeImportedBoardPath = boardSet.rootPath;
@@ -218,7 +261,46 @@ class AACProvider extends ChangeNotifier {
       );
       _activeImportedBoardPath = 'board.obf';
     }
+  }
 
+  /// Refresh the list of boards saved remotely for the active profile.
+  Future<void> loadSavedBoards() async {
+    final pid = _currentProfile?.id;
+    if (pid == null) {
+      _savedBoards = [];
+      return;
+    }
+    try {
+      _savedBoards = await _boardRepo.list(pid);
+      notifyListeners();
+    } catch (e) {
+      debugPrint('Failed to list saved boards: $e');
+    }
+  }
+
+  /// Download a saved board's bytes from the backend and make it the active board.
+  Future<void> openSavedBoard(String boardId) async {
+    final pid = _currentProfile?.id;
+    if (pid == null) return;
+    final idx = _savedBoards.indexWhere((b) => b.boardId == boardId);
+    if (idx < 0) return;
+    final meta = _savedBoards[idx];
+    final bytes = await _boardRepo.download(pid, boardId);
+    final ext = meta.filename.toLowerCase().endsWith('.obz') ? 'obz' : 'obf';
+    _applyBoardBytes(bytes, ext);
+    notifyListeners();
+  }
+
+  /// Delete a saved board (metadata + GridFS bytes) for the active profile.
+  Future<void> deleteSavedBoard(String boardId) async {
+    final pid = _currentProfile?.id;
+    if (pid == null) return;
+    try {
+      await _boardRepo.deleteBoard(pid, boardId);
+    } catch (e) {
+      debugPrint('Failed to delete saved board: $e');
+    }
+    _savedBoards.removeWhere((b) => b.boardId == boardId);
     notifyListeners();
   }
 
@@ -235,18 +317,15 @@ class AACProvider extends ChangeNotifier {
     }
   }
 
-  UserProfile? _currentProfile = UserProfile(
-    id: 'mock_may',
-    name: 'Bob',
-    avatarId: 'girl_1',
-    likes: ['legos'],
-    dislikes: ['trains'],
-    createdAt: DateTime.now(),
-  );
+  // Child profiles for the signed-in teacher account. The active profile owns
+  // the tiles, schedule and saved boards currently shown.
+  List<UserProfile> _profiles = [];
+  UserProfile? _currentProfile;
+  bool _bootstrapping = true;
   final List<Symbol> _sentenceBuilder = [];
   final List<Symbol> _customSymbols = [];
   String? _currentEmotion;
-  bool _isProfileSetupComplete = true;
+  bool _isProfileSetupComplete = false;
 
   // Smart Suggestions State
   bool _isListeningContext = false;
@@ -256,6 +335,9 @@ class AACProvider extends ChangeNotifier {
   bool _authRequired = false;
 
   UserProfile? get currentProfile => _currentProfile;
+  List<UserProfile> get profiles => List.unmodifiable(_profiles);
+  String? get activeProfileId => _currentProfile?.id;
+  bool get bootstrapping => _bootstrapping;
   List<Symbol> get sentenceBuilder => _sentenceBuilder;
   List<Symbol> get customSymbols => _customSymbols;
   String? get currentEmotion => _currentEmotion;
@@ -269,17 +351,118 @@ class AACProvider extends ChangeNotifier {
 
   String get currentSentence => _sentenceBuilder.map((s) => s.label).join(' ');
 
-  void addCustomSymbol(Symbol symbol) {
+  Future<void> addCustomSymbol(Symbol symbol) async {
     // Avoid duplicates by checking label
     if (!_customSymbols.any((s) => s.label.toLowerCase() == symbol.label.toLowerCase())) {
       _customSymbols.add(symbol);
       notifyListeners();
+      // Persist to the active child profile (best-effort; cached locally too).
+      final pid = _currentProfile?.id;
+      if (pid != null) {
+        try {
+          await _tileRepo.save(pid, symbol);
+        } catch (e) {
+          debugPrint('Failed to save custom tile: $e');
+        }
+      }
     }
   }
 
-  void setProfile(UserProfile profile) {
+  // ── Profiles (remote-backed, per teacher account) ──────────────────────
+  /// Load the teacher's child profiles and activate the first one. Called at
+  /// startup and again after login so a freshly-authenticated session pulls the
+  /// account's profiles from the backend.
+  Future<void> bootstrapProfiles() async {
+    _bootstrapping = true;
+    notifyListeners();
+    try {
+      _profiles = await _profileRepo.load();
+    } catch (e) {
+      debugPrint('Failed to load profiles: $e');
+      _profiles = [];
+    }
+    if (_profiles.isNotEmpty) {
+      await _activateProfile(_profiles.first);
+    } else {
+      _currentProfile = null;
+      _isProfileSetupComplete = false;
+    }
+    _bootstrapping = false;
+    notifyListeners();
+  }
+
+  /// Make [profile] active and (re)load its tiles, schedule and saved boards.
+  Future<void> _activateProfile(UserProfile profile) async {
     _currentProfile = profile;
     _isProfileSetupComplete = true;
+    _currentEmotion = profile.currentMood;
+
+    final repo = _scheduleRepo;
+    if (repo is SyncedScheduleRepository) {
+      repo.profileId = profile.id;
+    }
+    _scheduleLoaded = false;
+    await loadSchedule();
+    await _loadTiles();
+    await loadSavedBoards();
+    notifyListeners();
+  }
+
+  Future<void> _loadTiles() async {
+    final pid = _currentProfile?.id;
+    _customSymbols.clear();
+    if (pid == null) return;
+    try {
+      _customSymbols.addAll(await _tileRepo.load(pid));
+    } catch (e) {
+      debugPrint('Failed to load custom tiles: $e');
+    }
+  }
+
+  /// Create or update a child profile, persist it, and make it active. Used by
+  /// the setup wizard (new child) and profile editing.
+  Future<void> setProfile(UserProfile profile) async {
+    final idx = _profiles.indexWhere((p) => p.id == profile.id);
+    if (idx >= 0) {
+      _profiles[idx] = profile;
+    } else {
+      _profiles.add(profile);
+    }
+    try {
+      await _profileRepo.save(profile);
+    } catch (e) {
+      debugPrint('Failed to save profile: $e');
+    }
+    await _activateProfile(profile);
+  }
+
+  /// Switch the active child to an existing profile.
+  Future<void> selectProfile(String profileId) async {
+    final idx = _profiles.indexWhere((p) => p.id == profileId);
+    if (idx < 0) return;
+    await _activateProfile(_profiles[idx]);
+  }
+
+  /// Delete a child profile (and, on the backend, its tiles/schedule/boards).
+  Future<void> deleteProfile(String profileId) async {
+    _profiles.removeWhere((p) => p.id == profileId);
+    try {
+      await _profileRepo.delete(profileId);
+    } catch (e) {
+      debugPrint('Failed to delete profile: $e');
+    }
+    if (_currentProfile?.id == profileId) {
+      if (_profiles.isNotEmpty) {
+        await _activateProfile(_profiles.first);
+      } else {
+        _currentProfile = null;
+        _isProfileSetupComplete = false;
+        _customSymbols.clear();
+        _savedBoards = [];
+        schedule = {};
+        _scheduleLoaded = false;
+      }
+    }
     notifyListeners();
   }
 

@@ -1,5 +1,6 @@
-import 'package:flutter/material.dart';
+import 'dart:convert';
 import 'dart:typed_data';
+import 'package:flutter/material.dart';
 
 enum SymbolCategory {
   pronoun,
@@ -82,23 +83,63 @@ class Symbol {
     );
   }
 
-  // Add to your Symbol class:
+  /// JSON round-trip for local caching (schedules) and the backend tile API.
+  ///
+  /// Custom/drawn tiles carry their picture in [imageBytes]; we serialise those
+  /// bytes as base64 ([imageB64]) so a redrawn tile survives a save/reload.
+  /// Author tile colours are stored as 32-bit ARGB ints. [icon_name] is kept for
+  /// backwards-compatibility with the predefined-icon lookup used by the bundled
+  /// board; arbitrary [IconData] code points are intentionally NOT reconstructed
+  /// to stay compatible with `--tree-shake-icons` release builds.
   Map<String, dynamic> toJson() => {
     'id': id,
     'label': label,
     'category': category.name,
     // Store it as a predictable string name instead of a codePoint integer
     'icon_name': id,
+    'isSvg': isSvg,
+    if (icon != null) 'iconCodePoint': icon!.codePoint,
+    if (imageBytes != null) 'imageB64': base64Encode(imageBytes!),
+    if (imageUrl != null) 'imageUrl': imageUrl,
+    if (backgroundColor != null) 'backgroundColor': backgroundColor!.toARGB32(),
+    if (borderColor != null) 'borderColor': borderColor!.toARGB32(),
   };
 
   factory Symbol.fromJson(Map<String, dynamic> json) {
+    final imageB64 = json['imageB64'] as String?;
+    final mappedIcon = _getIconDataFromName((json['icon_name'] as String?) ?? '');
     return Symbol(
       id: json['id'] as String,
       label: json['label'] as String,
-      category: SymbolCategory.values.byName(json['category'] as String),
-      // Look up the IconData directly using the static mapping system
-      icon: _getIconDataFromName(json['icon_name'] as String),
+      category: SymbolCategory.values.byName(
+        (json['category'] as String?) ?? 'noun',
+      ),
+      // Look up a known IconData by name; custom tiles fall back to a star so
+      // there's always something to show when there is no picture.
+      icon: mappedIcon ?? (imageB64 == null ? null : Icons.star),
+      imageUrl: json['imageUrl'] as String?,
+      imageBytes: imageB64 != null ? base64Decode(imageB64) : null,
+      isSvg: json['isSvg'] as bool? ?? false,
+      backgroundColor: json['backgroundColor'] != null
+          ? Color(json['backgroundColor'] as int)
+          : null,
+      borderColor: json['borderColor'] != null
+          ? Color(json['borderColor'] as int)
+          : null,
     );
+  }
+
+  /// Backend tile-API shape: the same payload but keyed by `tile_id` (the
+  /// backend Tile model) instead of the client-side `id`.
+  Map<String, dynamic> toTileJson() {
+    final json = toJson();
+    json.remove('id');
+    json.remove('icon_name');
+    return {'tile_id': id, ...json};
+  }
+
+  factory Symbol.fromTileJson(Map<String, dynamic> json) {
+    return Symbol.fromJson({...json, 'id': json['tile_id']});
   }
 
   static IconData? _getIconDataFromName(String name) {
@@ -167,6 +208,34 @@ class UserProfile {
       createdAt: createdAt ?? this.createdAt,
     );
   }
+
+  /// Matches the backend `Profile` model (frontend `id` maps to `profile_id`).
+  /// Used both for the remote API and the local SharedPreferences cache.
+  Map<String, dynamic> toJson() => {
+    'profile_id': id,
+    'name': name,
+    if (age != null) 'age': age,
+    if (pronoun != null) 'pronoun': pronoun,
+    'avatarId': avatarId,
+    'likes': likes,
+    'dislikes': dislikes,
+    if (currentMood != null) 'currentMood': currentMood,
+    'createdAt': createdAt.toIso8601String(),
+  };
+
+  factory UserProfile.fromJson(Map<String, dynamic> json) => UserProfile(
+    id: (json['profile_id'] ?? json['id']) as String,
+    name: json['name'] as String,
+    age: json['age'] as int?,
+    pronoun: json['pronoun'] as String?,
+    avatarId: (json['avatarId'] as String?) ?? 'avatar_1',
+    likes: (json['likes'] as List?)?.cast<String>() ?? const [],
+    dislikes: (json['dislikes'] as List?)?.cast<String>() ?? const [],
+    currentMood: json['currentMood'] as String?,
+    createdAt: json['createdAt'] != null
+        ? (DateTime.tryParse(json['createdAt'] as String) ?? DateTime.now())
+        : DateTime.now(),
+  );
 }
 
 class EmergencyOption {

@@ -88,6 +88,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
     if (result == true) {
       await _checkAuthState();
+      // Now that a token exists, pull this account's child profiles remotely.
+      if (mounted) {
+        await context.read<AACProvider>().bootstrapProfiles();
+      }
     }
   }
 

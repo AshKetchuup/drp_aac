@@ -59,6 +59,12 @@ class AppShell extends StatelessWidget {
   Widget build(BuildContext context) {
     return Consumer<AACProvider>(
       builder: (context, provider, child) {
+        // While the teacher's child profiles are loading from the backend.
+        if (provider.bootstrapping) {
+          return const Scaffold(
+            body: Center(child: CircularProgressIndicator()),
+          );
+        }
         if (!provider.isProfileSetupComplete) {
           return ProfileSetup(
             onComplete: (profile) {
