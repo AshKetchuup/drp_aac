@@ -18,6 +18,7 @@ import '../repositories/profile_repository.dart';
 import '../repositories/tile_repository.dart';
 import '../repositories/board_repository.dart';
 import '../services/auth_service.dart';
+import '../services/api_client.dart';
 import '../services/kpi_logger.dart';
 
 class AACProvider extends ChangeNotifier {
@@ -434,6 +435,18 @@ class AACProvider extends ChangeNotifier {
     notifyListeners();
     try {
       _profiles = await _profileRepo.load();
+    } on ApiException catch (e) {
+      if (e.authRequired) {
+        // We had a token but the backend rejected it (expired/revoked). Clear
+        // it and return to the welcome/login screen rather than pretending the
+        // account simply has no profiles.
+        debugPrint('Stored token rejected ($e); signing out.');
+        _bootstrapping = false;
+        await logoutSession();
+        return;
+      }
+      debugPrint('Failed to load profiles: $e');
+      _profiles = [];
     } catch (e) {
       debugPrint('Failed to load profiles: $e');
       _profiles = [];

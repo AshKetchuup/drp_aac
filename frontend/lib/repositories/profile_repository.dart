@@ -13,7 +13,9 @@ class ProfileRepository {
   final ApiClient _api;
   static const _cacheKey = 'profiles_cache';
 
-  /// Remote list (source of truth); falls back to the cache when offline.
+  /// Remote list (source of truth); falls back to the cache on a network/other
+  /// error so the app still works offline. A rejected token (401/403) is
+  /// rethrown so the caller can sign out instead of masking it as "no profiles".
   Future<List<UserProfile>> load() async {
     try {
       final data = await _api.getJson('/api/profiles') as List? ?? [];
@@ -22,6 +24,9 @@ class ProfileRepository {
           .toList();
       await _writeCache(profiles);
       return profiles;
+    } on ApiException catch (e) {
+      if (e.authRequired) rethrow;
+      return _readCache();
     } catch (_) {
       return _readCache();
     }
