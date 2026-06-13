@@ -64,7 +64,7 @@ What the child said recently:
 {history_str}
 
 RULES:
-- IMPORTANT: SUGGEST ATLEAST 4 to 10 words or short phrases the child would realistically reply with.
+- IMPORTANT: SUGGEST ATLEAST {payload.min_suggestions} to {payload.min_suggestions + 4} words or short phrases the child would realistically reply with.
 - IMPORTANT: Include the words from MOST RELEVANT to LEAST RELEVANT. 
 - INCLUDE THE PROPER NOUNS WITHIN THE SENTENCE, that are not already in the AAC board.
 - IF the child's likes are directly relevant to the topic, include them. 
@@ -151,7 +151,7 @@ Child dislikes: {dislikes_str}"""
                     suggestions_list.append(cleaned)
                     existing_lower.add(cleaned_lower)
         
-    return suggestions_list[:8]
+    return suggestions_list[:max(payload.min_suggestions + 4, 8)]
 
 
 if __name__ == '__main__':

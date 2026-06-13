@@ -25,11 +25,13 @@ class AACProvider extends ChangeNotifier {
   double _voiceRate = 0.4;
   int? _gridColumns; // null = Auto
   bool _highContrast = false; // false = default Dark theme, true = High Contrast
+  int _minSuggestions = 4;
 
   double get voicePitch => _voicePitch;
   double get voiceRate => _voiceRate;
   int? get gridColumns => _gridColumns;
   bool get highContrast => _highContrast;
+  int get minSuggestions => _minSuggestions;
 
   void updateVoiceSettings(double pitch, double rate) {
     _voicePitch = pitch;
@@ -46,6 +48,11 @@ class AACProvider extends ChangeNotifier {
 
   void setHighContrast(bool enabled) {
     _highContrast = enabled;
+    notifyListeners();
+  }
+
+  void updateMinSuggestions(int count) {
+    _minSuggestions = count.clamp(2, 15);
     notifyListeners();
   }
 
@@ -418,6 +425,7 @@ class AACProvider extends ChangeNotifier {
           'likes': likes,
           'dislikes': dislikes,
           'current_suggestions': append ? _contextSuggestions : [],
+          'min_suggestions': _minSuggestions,
         }),
       );
       stopwatch.stop();

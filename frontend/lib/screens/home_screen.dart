@@ -353,6 +353,17 @@ class SettingsSheet extends StatelessWidget {
                         },
                       ),
                       SettingsTile(
+                        icon: Icons.auto_awesome_outlined,
+                        label: 'Suggestion Count',
+                        onTap: () {
+                          Navigator.pop(context);
+                          showDialog(
+                            context: context,
+                            builder: (_) => const SuggestionCountDialog(),
+                          );
+                        },
+                      ),
+                      SettingsTile(
                         icon: Icons.cloud_outlined,
                         label: 'Backup & Sync',
                         onTap: () {},
