@@ -198,7 +198,7 @@ class _SuggestionCountDialogState extends State<SuggestionCountDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: const Text('Cancel', style: TextStyle(color: AppTheme.textSecondary)),
+          child: Text('Cancel', style: TextStyle(color: AppTheme.textSecondary)),
         ),
         TextButton(
           onPressed: () {

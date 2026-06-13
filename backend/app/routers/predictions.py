@@ -64,7 +64,7 @@ What the child said recently:
 {history_str}
 
 RULES:
-- IMPORTANT: SUGGEST ATLEAST {payload.min_suggestions} to {payload.min_suggestions + 4} words or short phrases the child would realistically reply with.
+- CRITICAL: You MUST return EXACTLY 15 words. Not fewer, not more.
 - IMPORTANT: Include the words from MOST RELEVANT to LEAST RELEVANT. 
 - INCLUDE THE PROPER NOUNS WITHIN THE SENTENCE, that are not already in the AAC board.
 - IF the child's likes are directly relevant to the topic, include them. 
@@ -74,12 +74,13 @@ RULES:
 - Use the conversation history to make smarter, contextual predictions.
 - Return ONLY a valid JSON array of strings. Nothing else. No numbers, no explanations, no keys.
 - NO REPEATS
+- THE ARRAY MUST CONTAIN EXACTLY 15 ITEMS.
 
 GOOD example:
 Someone said: "What animal do you like?"
 Child likes: Dogs, Cats, Park, Swings
 Child dislikes: Spiders
-Answer: ["Dogs", "Cats", "Rabbits", "Hamster", "Fish"]
+Answer: ["Dogs", "Cats", "Rabbits", "Hamster", "Fish", "Birds", "Turtles", "Lizards", "Snakes", "Frogs", "Guinea Pigs", "Mice", "Horses", "Cows", "Pigs"]
 
 BAD example (NEVER do this):
 ["1", "Dogs", "2", "Cats"] — numbers are WRONG
@@ -88,13 +89,14 @@ BAD example (NEVER do this):
 
     user_prompt = f"""Someone said: "{payload.text}"
 Child likes: {likes_str}
-Child dislikes: {dislikes_str}"""
+Child dislikes: {dislikes_str}
+You MUST give me exactly 15 suggestions."""
 
     if payload.current_suggestions:
         exclude_str = ", ".join(payload.current_suggestions)
         user_prompt += f"\n\nCRITICAL: You have already suggested the following words: {exclude_str}.\nYOU MUST NOT SUGGEST ANY OF THOSE WORDS AGAIN. Give me entirely DIFFERENT options!"
 
-    user_prompt += "\nAnswer:"
+    user_prompt += f"\nReturn a JSON array with exactly 15 strings:"
 
     response = ollama.chat(
         model='qwen2.5:1.5b', # Extremely smart 1B model
@@ -151,7 +153,7 @@ Child dislikes: {dislikes_str}"""
                     suggestions_list.append(cleaned)
                     existing_lower.add(cleaned_lower)
         
-    return suggestions_list[:max(payload.min_suggestions + 4, 8)]
+    return suggestions_list[:payload.min_suggestions]
 
 
 if __name__ == '__main__':
