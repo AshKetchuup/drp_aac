@@ -68,8 +68,9 @@ class AACProvider extends ChangeNotifier {
     // Preload the bundled starter board so it's the first board ready to use,
     // without taking over the rich home view.
     loadDefaultBoardSet();
-    // Load the teacher's child profiles (remote, with local-cache fallback).
-    bootstrapProfiles();
+    // Decide the opening screen: if a token is already stored, load the
+    // account's profiles; otherwise land on the welcome/login screen.
+    refreshSession();
   }
 
   ({Symbol? now, Symbol? next}) calculateNowNext() {
@@ -322,6 +323,8 @@ class AACProvider extends ChangeNotifier {
   List<UserProfile> _profiles = [];
   UserProfile? _currentProfile;
   bool _bootstrapping = true;
+  bool _loggedIn = false;
+  bool _demoMode = false;
   final List<Symbol> _sentenceBuilder = [];
   final List<Symbol> _customSymbols = [];
   String? _currentEmotion;
@@ -338,6 +341,8 @@ class AACProvider extends ChangeNotifier {
   List<UserProfile> get profiles => List.unmodifiable(_profiles);
   String? get activeProfileId => _currentProfile?.id;
   bool get bootstrapping => _bootstrapping;
+  bool get loggedIn => _loggedIn;
+  bool get demoMode => _demoMode;
   List<Symbol> get sentenceBuilder => _sentenceBuilder;
   List<Symbol> get customSymbols => _customSymbols;
   String? get currentEmotion => _currentEmotion;
@@ -366,6 +371,58 @@ class AACProvider extends ChangeNotifier {
         }
       }
     }
+  }
+
+  // ── Session (welcome / login / demo) ───────────────────────────────────
+  /// Determine the opening screen. If a token is stored, pull the account's
+  /// profiles from the backend; otherwise leave the app signed-out so the
+  /// welcome/login screen is shown. Call again after a login completes.
+  Future<void> refreshSession() async {
+    _bootstrapping = true;
+    notifyListeners();
+    _loggedIn = await AuthService().isLoggedIn();
+    if (_loggedIn) {
+      _demoMode = false;
+      await bootstrapProfiles();
+    } else {
+      _bootstrapping = false;
+      notifyListeners();
+    }
+  }
+
+  /// Sign out: clear the token and all profile-scoped state so the app returns
+  /// to the welcome/login screen.
+  Future<void> logoutSession() async {
+    await AuthService().logout();
+    _loggedIn = false;
+    _demoMode = false;
+    _profiles = [];
+    _currentProfile = null;
+    _isProfileSetupComplete = false;
+    _customSymbols.clear();
+    _savedBoards = [];
+    schedule = {};
+    _scheduleLoaded = false;
+    notifyListeners();
+  }
+
+  /// Explore the app without signing in, using a built-in default child profile.
+  /// Its tiles/schedule/boards are kept in the local cache (remote sync is
+  /// unavailable while signed out, so those writes simply stay local).
+  Future<void> useDemoProfile() async {
+    _demoMode = true;
+    final demo = UserProfile(
+      id: 'demo_profile',
+      name: 'Demo',
+      avatarId: 'boy_1',
+      likes: const ['legos', 'dinosaurs'],
+      dislikes: const ['loud noises'],
+      createdAt: DateTime.now(),
+    );
+    if (!_profiles.any((p) => p.id == demo.id)) {
+      _profiles = [..._profiles, demo];
+    }
+    await _activateProfile(demo);
   }
 
   // ── Profiles (remote-backed, per teacher account) ──────────────────────

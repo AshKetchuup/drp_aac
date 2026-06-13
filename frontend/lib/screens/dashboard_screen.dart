@@ -88,15 +88,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
     if (result == true) {
       await _checkAuthState();
-      // Now that a token exists, pull this account's child profiles remotely.
+      // Now that a token exists, refresh the session and pull this account's
+      // child profiles remotely.
       if (mounted) {
-        await context.read<AACProvider>().bootstrapProfiles();
+        await context.read<AACProvider>().refreshSession();
       }
     }
   }
 
   Future<void> _handleLogoutTap() async {
-    await _authService.logout();
+    // Clears the token and all profile state, returning the app to the
+    // welcome/login screen.
+    await context.read<AACProvider>().logoutSession();
     if (mounted) {
       setState(() {
         _isLoggedIn = false;

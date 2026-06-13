@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/models.dart';
@@ -40,8 +41,14 @@ class SyncedScheduleRepository implements ScheduleRepository {
   Future<void> save(Map<SlotKey, List<Symbol>> schedule) async {
     if (profileId == null) return;
     final data = _encode(schedule);
+    // Cache first so the change survives locally, then sync best-effort: a
+    // failed push (offline / demo / expired token) must not break editing.
     await _writeCacheRaw(data);
-    await _api.putJson('/api/profiles/$profileId/schedule', {'data': data});
+    try {
+      await _api.putJson('/api/profiles/$profileId/schedule', {'data': data});
+    } catch (e) {
+      debugPrint('Schedule sync failed (kept locally): $e');
+    }
   }
 
   @override
