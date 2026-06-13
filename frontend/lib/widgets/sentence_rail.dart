@@ -1,10 +1,11 @@
-import 'dart:convert';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import '../providers/aac_provider.dart';
 import '../models/models.dart';
 import '../theme/app_theme.dart';
+import 'draw_icon_pad.dart';
 import 'symbol_tile.dart';
 
 class SentenceRail extends StatelessWidget {
@@ -204,7 +205,16 @@ class _IconButton extends StatelessWidget {
           backgroundColor:
               AppTheme.isHighContrast ? Colors.black : Colors.white,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          title: const Text('Add Custom Word'),
+          // The dialog forces a light surface, but the dark theme's default
+          // title/button ink is white — which is invisible on white. Pin the
+          // ink dark here (white only in High Contrast, where the surface is
+          // black).
+          title: Text(
+            'Add Custom Word',
+            style: TextStyle(
+              color: AppTheme.isHighContrast ? Colors.white : const Color(0xFF1E293B),
+            ),
+          ),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -236,9 +246,8 @@ class _IconButton extends StatelessWidget {
                       final photo = await picker.pickImage(source: ImageSource.camera, maxWidth: 300);
                       if (photo != null) {
                         final bytes = await photo.readAsBytes();
-                        final dataUri = 'data:image/jpeg;base64,${base64Encode(bytes)}';
                         if (context.mounted) {
-                          _saveAndClose(dialogContext, provider, inputText.trim(), dataUri);
+                          _saveAndClose(dialogContext, provider, inputText.trim(), bytes);
                         }
                       }
                     },
@@ -257,10 +266,25 @@ class _IconButton extends StatelessWidget {
                       final photo = await picker.pickImage(source: ImageSource.gallery, maxWidth: 300);
                       if (photo != null) {
                         final bytes = await photo.readAsBytes();
-                        final dataUri = 'data:image/jpeg;base64,${base64Encode(bytes)}';
                         if (context.mounted) {
-                          _saveAndClose(dialogContext, provider, inputText.trim(), dataUri);
+                          _saveAndClose(dialogContext, provider, inputText.trim(), bytes);
                         }
+                      }
+                    },
+                  ),
+                  _DialogOption(
+                    icon: Icons.draw,
+                    label: 'Draw',
+                    onTap: () async {
+                      if (inputText.trim().isEmpty) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Please type a word first')),
+                        );
+                        return;
+                      }
+                      final bytes = await showDrawIconDialog(context);
+                      if (bytes != null && context.mounted) {
+                        _saveAndClose(dialogContext, provider, inputText.trim(), bytes);
                       }
                     },
                   ),
@@ -270,10 +294,18 @@ class _IconButton extends StatelessWidget {
           ),
           actions: [
             TextButton(
+              // Light surface: override the white default foreground so the
+              // label is readable (High Contrast keeps its yellow-on-black).
+              style: AppTheme.isHighContrast
+                  ? null
+                  : TextButton.styleFrom(foregroundColor: const Color(0xFF2563EB)),
               onPressed: () => Navigator.pop(dialogContext),
               child: const Text('Cancel'),
             ),
             TextButton(
+              style: AppTheme.isHighContrast
+                  ? null
+                  : TextButton.styleFrom(foregroundColor: const Color(0xFF2563EB)),
               onPressed: () {
                 if (inputText.trim().isNotEmpty) {
                   _saveAndClose(dialogContext, provider, inputText.trim(), null);
@@ -287,13 +319,13 @@ class _IconButton extends StatelessWidget {
     );
   }
 
-  void _saveAndClose(BuildContext dialogContext, AACProvider provider, String word, String? imageUrl) {
+  void _saveAndClose(BuildContext dialogContext, AACProvider provider, String word, Uint8List? imageBytes) {
     final symbol = Symbol(
       id: 'custom_${word.toLowerCase().replaceAll(' ', '_')}_${DateTime.now().millisecondsSinceEpoch}',
       label: word,
       category: SymbolCategory.noun,
       icon: Icons.star,
-      imageUrl: imageUrl,
+      imageBytes: imageBytes,
     );
     provider.addCustomSymbol(symbol);
     provider.addToSentence(symbol);

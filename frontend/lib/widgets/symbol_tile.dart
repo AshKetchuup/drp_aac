@@ -332,28 +332,45 @@ class MiniSymbolTile extends StatelessWidget {
         ? 'assets/arasaac/dislike.png'
         : 'assets/arasaac/$searchWord.png';
 
-    final imageWidget = symbol.imageUrl != null
-        ? Image.network(
-            symbol.imageUrl!,
-            fit: BoxFit.contain,
-            // Pictograms render in small tiles; cap the decoded bitmap size
-            // so the image cache doesn't hold full-res copies.
-            cacheWidth: 200,
-            errorBuilder: (context, error, stackTrace) => Icon(
-              symbol.icon ?? Icons.help_outline,
-              size: isExpanded ? 32 : 16, // Scale fallback icon size
-              color: AppTheme.isHighContrast ? Colors.black : Colors.black87,
-            ),
-          )
-        : Image.asset(
-            path,
-            fit: BoxFit.contain,
-            errorBuilder: (context, error, stackTrace) => Icon(
-              symbol.icon ?? Icons.help_outline,
-              size: isExpanded ? 32 : 16, // Scale fallback icon size
-              color: AppTheme.isHighContrast ? Colors.black : Colors.black87,
-            ),
-          );
+    final Icon fallbackIcon = Icon(
+      symbol.icon ?? Icons.help_outline,
+      size: isExpanded ? 32 : 16, // Scale fallback icon size
+      color: AppTheme.isHighContrast ? Colors.black : Colors.black87,
+    );
+
+    // Picture source priority mirrors [SymbolTile]: embedded bytes (e.g. a
+    // photo taken when adding a custom word, or an imported pictogram) →
+    // network URL → bundled ARASAAC asset.
+    final Widget imageWidget;
+    final bytes = symbol.imageBytes;
+    if (bytes != null && bytes.isNotEmpty) {
+      imageWidget = symbol.isSvg
+          ? SvgPicture.memory(
+              bytes,
+              fit: BoxFit.contain,
+              placeholderBuilder: (_) => fallbackIcon,
+            )
+          : Image.memory(
+              bytes,
+              fit: BoxFit.contain,
+              errorBuilder: (context, error, stackTrace) => fallbackIcon,
+            );
+    } else if (symbol.imageUrl != null) {
+      imageWidget = Image.network(
+        symbol.imageUrl!,
+        fit: BoxFit.contain,
+        // Pictograms render in small tiles; cap the decoded bitmap size
+        // so the image cache doesn't hold full-res copies.
+        cacheWidth: 200,
+        errorBuilder: (context, error, stackTrace) => fallbackIcon,
+      );
+    } else {
+      imageWidget = Image.asset(
+        path,
+        fit: BoxFit.contain,
+        errorBuilder: (context, error, stackTrace) => fallbackIcon,
+      );
+    }
 
     final double finalIconSize = iconSize ?? (isExpanded ? 40 : 24);
 

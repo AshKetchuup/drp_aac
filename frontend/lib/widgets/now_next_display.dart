@@ -28,7 +28,7 @@ class NowNextDisplay extends StatelessWidget {
             Expanded(
               child: _StaticDisplayZone(
                 label: 'NOW',
-                labelColor: const Color(0xFF2196F3),
+                labelColor: AppTheme.secondary,
                 symbol: now,
               ),
             ),
@@ -47,7 +47,7 @@ class NowNextDisplay extends StatelessWidget {
             Expanded(
               child: _StaticDisplayZone(
                 label: 'NEXT',
-                labelColor: const Color(0xFF4CAF50),
+                labelColor: AppTheme.categoryNoun,
                 symbol: next,
               ),
             ),
