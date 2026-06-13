@@ -3,6 +3,7 @@ from app.schemas import PredictionRequest, PredictionResponse
 from app.auth import get_current_user
 import ollama
 import json
+import re
 
 router = APIRouter(prefix="/api/context", tags=["predictions"])
 
@@ -133,7 +134,11 @@ BAD example (NEVER do this):
         
     # Fully flatten any nested lists, split comma-separated strings, and convert to strings
     suggestions_list = []
-    existing_lower = set(s.lower() for s in payload.current_suggestions) if payload.current_suggestions else set()
+    
+    def normalize_for_dedup(s):
+        return re.sub(r'[^a-z0-9]', '', s.lower())
+        
+    existing_normalized = set(normalize_for_dedup(s) for s in payload.current_suggestions) if payload.current_suggestions else set()
     
     for item in raw_list:
         val = ""
@@ -151,10 +156,10 @@ BAD example (NEVER do this):
                 cleaned = cleaned[1:].strip()
                 
             if cleaned:
-                cleaned_lower = cleaned.lower()
-                if cleaned_lower not in existing_lower:
+                normalized = normalize_for_dedup(cleaned)
+                if normalized and normalized not in existing_normalized:
                     suggestions_list.append(cleaned)
-                    existing_lower.add(cleaned_lower)
+                    existing_normalized.add(normalized)
         
     return suggestions_list[:payload.min_suggestions]
 
