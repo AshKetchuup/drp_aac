@@ -55,12 +55,13 @@ def generate_suggestions(payload):
         history_str = "No recent history."
         
     target_min = payload.min_suggestions
-    # If we need more options, we add a very small buffer (e.g. +2) rather than linearly scaling. 
-    # Linearly scaling to massive numbers forces the model to hallucinate likes.
+    # Ask the model for roughly 2x what the user wants so that after
+    # deduplication / filtering we still reliably hit the requested count.
+    generation_target = target_min * 2
     if payload.current_suggestions:
-        target_min = payload.min_suggestions + 2
+        generation_target = (payload.min_suggestions + 2) * 2
         
-    target_max = target_min + 3
+    generation_max = generation_target + 4
 
     system_prompt = f"""You are a speech therapist/SEND teacher helping a non-verbal child communicate using an AAC app.
 Your task: given what someone just said to the child, predict the words the child most likely wants to say back.
@@ -73,11 +74,11 @@ What the child said recently:
 {history_str}
 
 RULES:
-- IMPORTANT: SUGGEST AT LEAST {target_min} to {target_max} words or short phrases the child would realistically reply with.
+- IMPORTANT: SUGGEST AT LEAST {generation_target} to {generation_max} words or short phrases the child would realistically reply with.
 - IMPORTANT: Include the words from MOST RELEVANT to LEAST RELEVANT. 
 - INCLUDE THE PROPER NOUNS WITHIN THE SENTENCE, that are not already in the AAC board.
 - CRITICAL RULE ABOUT LIKES: NEVER include the child's likes to pad out your list. ONLY include them if they perfectly and logically answer the specific question. If asked "Who is your favorite character?", it is WRONG to output "Park" or "Swings".
-- To reach the required {target_min} words, provide new, highly relevant vocabulary closely related to the topic to expand the child's knowledge!
+- To reach the required {generation_target} words, provide new, highly relevant vocabulary closely related to the topic to expand the child's knowledge!
 - NEVER include anything from the dislikes list.
 - Focus on specific, meaningful vocabulary (nouns, verbs, adjectives) — NOT generic words like "Yes", "No", "Please", "I want" since those are already on the child's board.
 - Use the conversation history to make smarter, contextual predictions.
@@ -101,7 +102,7 @@ BAD example (NEVER do this):
         exclude_str = ", ".join(payload.current_suggestions)
         user_prompt += f"\n\nCRITICAL RULE: You have ALREADY suggested these words: {exclude_str}. YOU MUST NOT SUGGEST ANY OF THOSE WORDS AGAIN! You must think of completely NEW, DISTINCT, and UNIQUE options related to the topic! Dig deeper into your vocabulary!"
 
-    user_prompt += f"\nReturn a JSON array with AT LEAST {target_min} strings:"
+    user_prompt += f"\nReturn a JSON array with AT LEAST {generation_target} strings:"
 
     response = ollama.chat(
         model='qwen2.5:1.5b', # Extremely smart 1B model
@@ -112,7 +113,7 @@ BAD example (NEVER do this):
         format='json',
         keep_alive=-1,  # CRITICAL FOR SPEED: Keeps model loaded in RAM permanently
         options={
-            'num_predict': 256, # Increased to prevent cutting off long JSON arrays
+            'num_predict': 512, # Generous budget for larger JSON arrays (8-15 suggestions)
             'num_ctx': 1024,
             'temperature': 0.85 if payload.current_suggestions else 0.7, # Higher temp = more unique/rare words for extended pages
         }
