@@ -45,23 +45,6 @@ class EmotionsBar extends StatelessWidget {
               _EmojiBtn(emoji: '😊', onTap: () => onTap('Happy')),
             ],
           ),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              Text(
-                'Tone',
-                style: TextStyle(
-                  color: hc ? Colors.white : Colors.pinkAccent,
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(width: 16),
-              _EmojiBtn(emoji: '!', onTap: () => onTap('Exclamation mark')),
-              const SizedBox(width: 8),
-              _EmojiBtn(emoji: '?', onTap: () => onTap('Question mark')),
-            ],
-          ),
         ],
       ),
     );

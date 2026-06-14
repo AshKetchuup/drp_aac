@@ -455,6 +455,11 @@ class _CommunicationGridState extends State<CommunicationGrid> {
 
   // ─── REFACTORED INLINE NOW/NEXT USING EXISTING MINI_SYMBOL_TILE ───────────
   Widget _buildInlineNowNext() {
+    // Respect the user's setting to hide the Now/Next badge entirely.
+    if (!context.read<AACProvider>().showNowNext) {
+      return const SizedBox.shrink();
+    }
+
     final hasNow = widget.nowNextData.now != null;
     final hasNext = widget.nowNextData.next != null;
 
@@ -601,7 +606,8 @@ class _CommunicationGridState extends State<CommunicationGrid> {
     // Add custom symbols created from context suggestions
     displaySymbols.addAll(provider.customSymbols);
 
-    final hasNowNext = widget.nowNextData.now != null || widget.nowNextData.next != null;
+    final hasNowNext = provider.showNowNext &&
+        (widget.nowNextData.now != null || widget.nowNextData.next != null);
 
     return Column(
       children: [
@@ -612,73 +618,94 @@ class _CommunicationGridState extends State<CommunicationGrid> {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Expanded(
-                child: ListView.separated(
+                child: ColoredBox(
+                  color: const Color(0xFF0F172A),
+                  child: ListView.separated(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 16,
                     vertical: 10,
                   ),
                   scrollDirection: Axis.horizontal,
                   itemCount: pages.length,
+                  // Keep tabs close together, but leave enough room that the
+                  // active tab's scale-up still shows a gap to its neighbours.
                   separatorBuilder: (_, _) => const SizedBox(width: 8),
                   itemBuilder: (context, index) {
                     final page = pages[index];
                     final isActive = index == _currentPage;
 
+                    // Tabs always show their full, bright category colour.
+                    // Selection is conveyed by a contrasting ring, a colour
+                    // glow, a slight scale-up and bolder text — not by dimming.
+                    final ink = AppTheme.onColor(page.color);
+                    // The ring/border is a darker shade of the tab's own colour
+                    // so it reads as a cohesive outline rather than a washed-out
+                    // grey/white that clashed with the bright fill.
+                    final hsl = HSLColor.fromColor(page.color);
+                    final ringColor = AppTheme.isHighContrast
+                        ? AppTheme.focusHighlight
+                        : hsl
+                            .withLightness((hsl.lightness * 0.5).clamp(0.0, 1.0))
+                            .toColor();
+
                     return GestureDetector(
                       onTap: () => _goToPage(index),
-                      child: AnimatedContainer(
+                      child: AnimatedScale(
                         duration: const Duration(milliseconds: 180),
-                        padding: EdgeInsets.symmetric(horizontal: hasNowNext ? 12 : 16, vertical: 8),
-                        decoration: BoxDecoration(
-                          color: isActive
-                              ? page.color
-                              : page.color.withValues(alpha: 0.3),
-                          borderRadius: BorderRadius.circular(14),
-                          border: Border.all(
-                            color: isActive ? page.color : AppTheme.border,
+                        scale: isActive ? 1.08 : 0.92,
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 180),
+                          padding: EdgeInsets.symmetric(
+                            horizontal: hasNowNext ? 12 : 16,
+                            vertical: 8,
                           ),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              page.icon,
-                              size: hasNowNext ? 18 : 22,
+                          decoration: BoxDecoration(
+                            color: page.color,
+                            borderRadius: BorderRadius.circular(14),
+                            border: Border.all(
                               color: isActive
-                                  ? Colors.white
-                                  : Colors.white70,
+                                  ? ringColor
+                                  : ringColor.withValues(alpha: 0.85),
+                              width: isActive ? 4 : 3,
                             ),
-                            const SizedBox(width: 4),
-                            Text(
-                              page.label,
-                              style: TextStyle(
-                                color: isActive
-                                    ? Colors.white
-                                    : Colors.white70,
-                                fontSize: hasNowNext ? 13 : 16,
-                                fontWeight: isActive
-                                    ? FontWeight.w700
-                                    : FontWeight.w500,
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                page.icon,
+                                size: hasNowNext ? 18 : 22,
+                                color: ink,
                               ),
-                            ),
-                            if (page.categoryId == 'context') ...[
-                              const SizedBox(width: 6),
-                              GestureDetector(
-                                onTap: () => _closeContextPage(context),
-                                child: Icon(
-                                  Icons.close,
-                                  size: 16,
-                                  color: isActive
-                                      ? Colors.white
-                                      : Colors.white70,
+                              const SizedBox(width: 4),
+                              Text(
+                                page.label,
+                                style: TextStyle(
+                                  color: ink,
+                                  fontSize: hasNowNext ? 13 : 16,
+                                  fontWeight: isActive
+                                      ? FontWeight.w800
+                                      : FontWeight.w600,
                                 ),
                               ),
+                              if (page.categoryId == 'context') ...[
+                                const SizedBox(width: 6),
+                                GestureDetector(
+                                  onTap: () => _closeContextPage(context),
+                                  child: Icon(
+                                    Icons.close,
+                                    size: 16,
+                                    color: ink,
+                                  ),
+                                ),
+                              ],
                             ],
-                          ],
+                          ),
                         ),
                       ),
                     );
                   },
+                ),
                 ),
               ),
               _buildInlineNowNext(), // Inline element displays here stretched vertically
