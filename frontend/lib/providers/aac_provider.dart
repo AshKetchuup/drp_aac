@@ -676,19 +676,24 @@ class AACProvider extends ChangeNotifier {
       final likes = _currentProfile?.likes ?? [];
       final dislikes = _currentProfile?.dislikes ?? [];
 
+      final requestBody = {
+        'text': _teacherPrompt ?? '',
+        'likes': likes,
+        'dislikes': dislikes,
+        'current_suggestions': append ? _contextSuggestions : [],
+        'min_suggestions': _minSuggestions,
+      };
+      debugPrint('>>> FETCH SUGGESTIONS: min_suggestions=$_minSuggestions, prompt="${_teacherPrompt}", append=$append');
+      debugPrint('>>> REQUEST BODY: ${jsonEncode(requestBody)}');
+
       final stopwatch = Stopwatch()..start();
       final response = await http.post(
         Uri.parse(apiUrl),
         headers: headers,
-        body: jsonEncode({
-          'text': _teacherPrompt ?? '',
-          'likes': likes,
-          'dislikes': dislikes,
-          'current_suggestions': append ? _contextSuggestions : [],
-          'min_suggestions': _minSuggestions,
-        }),
+        body: jsonEncode(requestBody),
       );
       stopwatch.stop();
+      debugPrint('>>> RESPONSE ${response.statusCode}: ${response.body}');
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
