@@ -39,14 +39,12 @@ class SentenceRail extends StatelessWidget {
                 },
               ),
               const SizedBox(width: 4),
-              // Undo/Backspace (Word level)
+              // Home Button
               _IconButton(
-                icon: Icons.keyboard_backspace,
+                icon: Icons.home,
                 color: Colors.blueGrey,
                 onTap: () {
-                  if (provider.sentenceBuilder.isNotEmpty) {
-                    provider.removeFromSentence(provider.sentenceBuilder.length - 1);
-                  }
+                  Navigator.of(context).popUntil((route) => route.isFirst);
                 },
               ),
               const SizedBox(width: 4),
@@ -140,6 +138,23 @@ class SentenceRail extends StatelessWidget {
                   if (provider.sentenceBuilder.isNotEmpty) {
                     provider.removeFromSentence(provider.sentenceBuilder.length - 1);
                   }
+                },
+              ),
+              const SizedBox(width: 4),
+              // Punctuation Toggles
+              _PunctuationToggle(
+                symbol: '?',
+                isSelected: provider.punctuation == '?',
+                onTap: () {
+                  provider.setPunctuation(provider.punctuation == '?' ? '' : '?');
+                },
+              ),
+              const SizedBox(width: 4),
+              _PunctuationToggle(
+                symbol: '!',
+                isSelected: provider.punctuation == '!',
+                onTap: () {
+                  provider.setPunctuation(provider.punctuation == '!' ? '' : '!');
                 },
               ),
               const SizedBox(width: 4),
@@ -367,6 +382,46 @@ class _DialogOption extends StatelessWidget {
             style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _PunctuationToggle extends StatelessWidget {
+  final String symbol;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  const _PunctuationToggle({
+    super.key,
+    required this.symbol,
+    required this.isSelected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 40,
+        decoration: BoxDecoration(
+          color: isSelected ? Colors.amber : Colors.blueGrey,
+          borderRadius: BorderRadius.circular(4),
+          border: Border.all(
+            color: AppTheme.isHighContrast ? Colors.white : Colors.black87,
+            width: 1,
+          ),
+        ),
+        alignment: Alignment.center,
+        child: Text(
+          symbol,
+          style: TextStyle(
+            color: isSelected ? Colors.black : Colors.white,
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
       ),
     );
   }

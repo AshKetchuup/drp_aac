@@ -6,6 +6,7 @@ class PredictionRequest(BaseModel):
     likes: list[str] = []
     dislikes: list[str] = []
     current_suggestions: list[str] = []
+    min_suggestions: int = 4
 
 
 class PredictionResponse(BaseModel):

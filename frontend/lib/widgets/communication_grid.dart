@@ -601,6 +601,8 @@ class _CommunicationGridState extends State<CommunicationGrid> {
     // Add custom symbols created from context suggestions
     displaySymbols.addAll(provider.customSymbols);
 
+    final hasNowNext = widget.nowNextData.now != null || widget.nowNextData.next != null;
+
     return Column(
       children: [
         // ─── TOP BAR ROW: CHIPS (LEFT) + NOW/NEXT (RIGHT) ────────────────────
@@ -626,11 +628,11 @@ class _CommunicationGridState extends State<CommunicationGrid> {
                       onTap: () => _goToPage(index),
                       child: AnimatedContainer(
                         duration: const Duration(milliseconds: 180),
-                        padding: const EdgeInsets.symmetric(horizontal: 14),
+                        padding: EdgeInsets.symmetric(horizontal: hasNowNext ? 12 : 16, vertical: 8),
                         decoration: BoxDecoration(
                           color: isActive
-                              ? page.color.withValues(alpha: 0.18)
-                              : AppTheme.surface,
+                              ? page.color
+                              : page.color.withValues(alpha: 0.3),
                           borderRadius: BorderRadius.circular(14),
                           border: Border.all(
                             color: isActive ? page.color : AppTheme.border,
@@ -641,19 +643,19 @@ class _CommunicationGridState extends State<CommunicationGrid> {
                           children: [
                             Icon(
                               page.icon,
-                              size: 18,
+                              size: hasNowNext ? 18 : 22,
                               color: isActive
-                                  ? page.color
-                                  : AppTheme.textSecondary,
+                                  ? Colors.white
+                                  : Colors.white70,
                             ),
-                            const SizedBox(width: 8),
+                            const SizedBox(width: 4),
                             Text(
                               page.label,
                               style: TextStyle(
                                 color: isActive
-                                    ? page.color
-                                    : AppTheme.textSecondary,
-                                fontSize: 14,
+                                    ? Colors.white
+                                    : Colors.white70,
+                                fontSize: hasNowNext ? 13 : 16,
                                 fontWeight: isActive
                                     ? FontWeight.w700
                                     : FontWeight.w500,
@@ -667,8 +669,8 @@ class _CommunicationGridState extends State<CommunicationGrid> {
                                   Icons.close,
                                   size: 16,
                                   color: isActive
-                                      ? page.color
-                                      : AppTheme.textSecondary,
+                                      ? Colors.white
+                                      : Colors.white70,
                                 ),
                               ),
                             ],

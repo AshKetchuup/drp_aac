@@ -166,6 +166,13 @@ class _ProfileSetupState extends State<ProfileSetup> {
                   ],
                 ),
               ),
+              IconButton(
+                icon: const Icon(Icons.home),
+                color: AppTheme.textSecondary,
+                onPressed: () {
+                  Navigator.of(context).popUntil((route) => route.isFirst);
+                },
+              ),
             ],
           ),
           const SizedBox(height: 24),

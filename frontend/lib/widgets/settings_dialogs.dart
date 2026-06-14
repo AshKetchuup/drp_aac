@@ -141,3 +141,73 @@ class AppearanceDialog extends StatelessWidget {
     );
   }
 }
+
+class SuggestionCountDialog extends StatefulWidget {
+  const SuggestionCountDialog({super.key});
+
+  @override
+  State<SuggestionCountDialog> createState() => _SuggestionCountDialogState();
+}
+
+class _SuggestionCountDialogState extends State<SuggestionCountDialog> {
+  late int _count;
+
+  @override
+  void initState() {
+    super.initState();
+    _count = context.read<AACProvider>().minSuggestions;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      backgroundColor: AppTheme.surface,
+      title: const Text('Suggestion Count', style: TextStyle(color: AppTheme.textPrimary)),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Minimum suggestions: $_count',
+            style: TextStyle(color: AppTheme.textSecondary),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            'How many word suggestions the AI will generate each time.',
+            style: TextStyle(color: AppTheme.textSecondary, fontSize: 12),
+          ),
+          const SizedBox(height: 16),
+          Slider(
+            value: _count.toDouble(),
+            min: 2,
+            max: 15,
+            divisions: 13,
+            label: '$_count',
+            activeColor: AppTheme.primary,
+            onChanged: (val) => setState(() => _count = val.round()),
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text('2', style: TextStyle(color: AppTheme.textSecondary, fontSize: 12)),
+              Text('15', style: TextStyle(color: AppTheme.textSecondary, fontSize: 12)),
+            ],
+          ),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: Text('Cancel', style: TextStyle(color: AppTheme.textSecondary)),
+        ),
+        TextButton(
+          onPressed: () {
+            context.read<AACProvider>().updateMinSuggestions(_count);
+            Navigator.pop(context);
+          },
+          child: const Text('Save', style: TextStyle(color: AppTheme.primary)),
+        ),
+      ],
+    );
+  }
+}

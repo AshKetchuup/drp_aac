@@ -22,7 +22,6 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   String? _activeCategory;
-  bool _showEmotions = false; // Toggle for emotions view
 
   void _handleSymbolTap(Symbol symbol) {
     final provider = Provider.of<AACProvider>(context, listen: false);
@@ -151,41 +150,6 @@ class _HomeScreenState extends State<HomeScreen> {
                         children: [
                           const SizedBox(width: 16),
                           GestureDetector(
-                            onTap: () {
-                              setState(() {
-                                _showEmotions = !_showEmotions;
-                              });
-                            },
-                            child: Row(
-                              children: [
-                                Icon(
-                                  _showEmotions
-                                      ? Icons.emoji_emotions
-                                      : Icons.emoji_emotions_outlined,
-                                  color: AppTheme.isHighContrast
-                                      ? (_showEmotions
-                                          ? AppTheme.focusHighlight
-                                          : Colors.white)
-                                      : Colors.purple,
-                                  size: 20,
-                                ),
-                                const SizedBox(width: 4),
-                                Text(
-                                  'Emotions',
-                                  style: TextStyle(
-                                    color: AppTheme.isHighContrast
-                                        ? (_showEmotions
-                                            ? AppTheme.focusHighlight
-                                            : Colors.white)
-                                        : Colors.purple,
-                                    fontSize: 14,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(width: 16),
-                          GestureDetector(
                             onTap: () => Navigator.push(
                               context,
                               MaterialPageRoute(
@@ -229,9 +193,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
                 // Sentence builder rail
                 SentenceRail(onSpeak: _handleSpeak, onClear: _handleClear),
-                    _showEmotions
-                        ? EmotionsBar(onTap: (val) => Provider.of<AACProvider>(context, listen: false).speak(val))
-                        : SmartSuggestions(onSuggestionTap: _handleSuggestionTap),
+                SmartSuggestions(onSuggestionTap: _handleSuggestionTap),
                 // Main communication grid
                 Expanded(
                   child: CommunicationGrid(
@@ -353,6 +315,17 @@ class SettingsSheet extends StatelessWidget {
                           showDialog(
                             context: context,
                             builder: (_) => const AppearanceDialog(),
+                          );
+                        },
+                      ),
+                      SettingsTile(
+                        icon: Icons.auto_awesome_outlined,
+                        label: 'Suggestion Count',
+                        onTap: () {
+                          Navigator.pop(context);
+                          showDialog(
+                            context: context,
+                            builder: (_) => const SuggestionCountDialog(),
                           );
                         },
                       ),

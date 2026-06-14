@@ -3,6 +3,7 @@ from app.schemas import PredictionRequest, PredictionResponse
 from app.auth import get_current_user
 import ollama
 import json
+import re
 
 router = APIRouter(prefix="/api/context", tags=["predictions"])
 
@@ -53,6 +54,14 @@ def generate_suggestions(payload):
     if not history_str:
         history_str = "No recent history."
         
+    target_min = payload.min_suggestions
+    # If we need more options, we add a very small buffer (e.g. +2) rather than linearly scaling. 
+    # Linearly scaling to massive numbers forces the model to hallucinate likes.
+    if payload.current_suggestions:
+        target_min = payload.min_suggestions + 2
+        
+    target_max = target_min + 3
+
     system_prompt = f"""You are a speech therapist/SEND teacher helping a non-verbal child communicate using an AAC app.
 Your task: given what someone just said to the child, predict the words the child most likely wants to say back.
 
@@ -64,11 +73,11 @@ What the child said recently:
 {history_str}
 
 RULES:
-- IMPORTANT: SUGGEST ATLEAST 4 to 10 words or short phrases the child would realistically reply with.
+- IMPORTANT: SUGGEST AT LEAST {target_min} to {target_max} words or short phrases the child would realistically reply with.
 - IMPORTANT: Include the words from MOST RELEVANT to LEAST RELEVANT. 
 - INCLUDE THE PROPER NOUNS WITHIN THE SENTENCE, that are not already in the AAC board.
-- IF the child's likes are directly relevant to the topic, include them. 
-- CRITICAL: Dont OVER use the likes if not relevant. DO NOT include random likes (like "Park" or "Swings") if the topic is about something completely different (like "Pets"). Instead, suggest other things to expand the child's vocabulary and general knowledge.
+- CRITICAL RULE ABOUT LIKES: NEVER include the child's likes to pad out your list. ONLY include them if they perfectly and logically answer the specific question. If asked "Who is your favorite character?", it is WRONG to output "Park" or "Swings".
+- To reach the required {target_min} words, provide new, highly relevant vocabulary closely related to the topic to expand the child's knowledge!
 - NEVER include anything from the dislikes list.
 - Focus on specific, meaningful vocabulary (nouns, verbs, adjectives) — NOT generic words like "Yes", "No", "Please", "I want" since those are already on the child's board.
 - Use the conversation history to make smarter, contextual predictions.
@@ -86,15 +95,13 @@ BAD example (NEVER do this):
 {{"animals": ["Dogs"]}} — objects are WRONG
 ["Dogs", "Park", "Swings"] — WRONG: "Park" and "Swings" are not animals! Do not force irrelevant likes!"""
 
-    user_prompt = f"""Someone said: "{payload.text}"
-Child likes: {likes_str}
-Child dislikes: {dislikes_str}"""
+    user_prompt = f"""Someone said: "{payload.text}\""""
 
     if payload.current_suggestions:
         exclude_str = ", ".join(payload.current_suggestions)
-        user_prompt += f"\n\nCRITICAL: You have already suggested the following words: {exclude_str}.\nYOU MUST NOT SUGGEST ANY OF THOSE WORDS AGAIN. Give me entirely DIFFERENT options!"
+        user_prompt += f"\n\nCRITICAL RULE: You have ALREADY suggested these words: {exclude_str}. YOU MUST NOT SUGGEST ANY OF THOSE WORDS AGAIN! You must think of completely NEW, DISTINCT, and UNIQUE options related to the topic! Dig deeper into your vocabulary!"
 
-    user_prompt += "\nAnswer:"
+    user_prompt += f"\nReturn a JSON array with AT LEAST {target_min} strings:"
 
     response = ollama.chat(
         model='qwen2.5:1.5b', # Extremely smart 1B model
@@ -107,7 +114,7 @@ Child dislikes: {dislikes_str}"""
         options={
             'num_predict': 256, # Increased to prevent cutting off long JSON arrays
             'num_ctx': 1024,
-            'temperature': 0.7,
+            'temperature': 0.85 if payload.current_suggestions else 0.7, # Higher temp = more unique/rare words for extended pages
         }
     )
     
@@ -128,7 +135,20 @@ Child dislikes: {dislikes_str}"""
         
     # Fully flatten any nested lists, split comma-separated strings, and convert to strings
     suggestions_list = []
-    existing_lower = set(s.lower() for s in payload.current_suggestions) if payload.current_suggestions else set()
+    
+    def normalize_for_dedup(s):
+        n = re.sub(r'[^a-z0-9]', '', s.lower())
+        # Basic English plural stemming for deduplication
+        if len(n) > 3:
+            if n.endswith('ies'):
+                return n[:-3] + 'y'
+            elif n.endswith('es') and n[-3] in ['s', 'z', 'x', 'c', 'h']:
+                return n[:-2]
+            elif n.endswith('s') and not n.endswith('ss'):
+                return n[:-1]
+        return n
+        
+    existing_normalized = set(normalize_for_dedup(s) for s in payload.current_suggestions) if payload.current_suggestions else set()
     
     for item in raw_list:
         val = ""
@@ -146,12 +166,12 @@ Child dislikes: {dislikes_str}"""
                 cleaned = cleaned[1:].strip()
                 
             if cleaned:
-                cleaned_lower = cleaned.lower()
-                if cleaned_lower not in existing_lower:
+                normalized = normalize_for_dedup(cleaned)
+                if normalized and normalized not in existing_normalized:
                     suggestions_list.append(cleaned)
-                    existing_lower.add(cleaned_lower)
+                    existing_normalized.add(normalized)
         
-    return suggestions_list[:8]
+    return suggestions_list[:payload.min_suggestions]
 
 
 if __name__ == '__main__':
