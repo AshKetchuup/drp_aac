@@ -5,6 +5,7 @@ import 'theme/app_theme.dart';
 import 'providers/aac_provider.dart';
 import 'screens/profile_setup_screen.dart';
 import 'screens/dashboard_screen.dart';
+import 'screens/welcome_screen.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -59,14 +60,29 @@ class AppShell extends StatelessWidget {
   Widget build(BuildContext context) {
     return Consumer<AACProvider>(
       builder: (context, provider, child) {
-        if (!provider.isProfileSetupComplete) {
+        // While checking the session / loading profiles from the backend.
+        if (provider.bootstrapping) {
+          return const Scaffold(
+            body: Center(child: CircularProgressIndicator()),
+          );
+        }
+        // An active profile (real or demo) → straight into the app.
+        if (provider.isProfileSetupComplete) {
+          return const DashboardScreen();
+        }
+        // Signed in but no child profiles yet → create the first one.
+        if (provider.loggedIn) {
           return ProfileSetup(
             onComplete: (profile) {
               provider.setProfile(profile);
             },
           );
         }
-        return const DashboardScreen();
+        // Signed out → greeting screen: log in with Authentik or try a demo.
+        return WelcomeScreen(
+          onLoggedIn: provider.refreshSession,
+          onDemo: provider.useDemoProfile,
+        );
       },
     );
   }

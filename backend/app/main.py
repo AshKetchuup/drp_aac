@@ -1,8 +1,20 @@
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.routers import predictions
 
-app = FastAPI(title="AAC Homework API")
+from app.db import init_db
+from app.routers import predictions, profiles, tiles, schedule, boards
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Create Mongo indexes on startup (idempotent).
+    await init_db()
+    yield
+
+
+app = FastAPI(title="alpAACa API", lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
@@ -13,3 +25,7 @@ app.add_middleware(
 )
 
 app.include_router(predictions.router)
+app.include_router(profiles.router)
+app.include_router(tiles.router)
+app.include_router(schedule.router)
+app.include_router(boards.router)

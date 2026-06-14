@@ -8,6 +8,7 @@ import '../widgets/communication_grid.dart';
 import '../widgets/smart_suggestions.dart';
 import '../widgets/emotions_bar.dart';
 import '../widgets/settings_dialogs.dart';
+import '../widgets/profile_manager.dart';
 import 'calming_mode_screen.dart';
 import 'dashboard_screen.dart';
 import '../widgets/scheduler.dart';
@@ -277,9 +278,12 @@ class SettingsSheet extends StatelessWidget {
                   child: Column(
                     children: [
                       SettingsTile(
-                        icon: Icons.person_outline,
-                        label: 'Edit Profile',
-                        onTap: () {},
+                        icon: Icons.people_outline,
+                        label: 'Children Profiles',
+                        onTap: () {
+                          Navigator.pop(context);
+                          showProfilePicker(context);
+                        },
                       ),
                       SettingsTile(
                         icon: Icons.volume_up_outlined,
@@ -359,6 +363,14 @@ class SettingsSheet extends StatelessWidget {
                           }
                         },
                       ),
+                      SettingsTile(
+                        icon: Icons.cloud_download_outlined,
+                        label: 'Saved Boards',
+                        onTap: () {
+                          Navigator.pop(context);
+                          showSavedBoards(context);
+                        },
+                      ),
                       if (provider.importedBoardSet != null)
                         SettingsTile(
                           icon: Icons.clear_all_outlined,
@@ -377,12 +389,12 @@ class SettingsSheet extends StatelessWidget {
                 width: double.infinity,
                 child: OutlinedButton.icon(
                   onPressed: () {
-                    provider.resetSetup();
                     Navigator.pop(context);
+                    showProfilePicker(context);
                   },
-                  icon: const Icon(Icons.logout, color: AppTheme.error),
+                  icon: const Icon(Icons.switch_account, color: AppTheme.error),
                   label: Text(
-                    'Switch Profile',
+                    'Switch Child',
                     style: TextStyle(color: AppTheme.error),
                   ),
                   style: OutlinedButton.styleFrom(
