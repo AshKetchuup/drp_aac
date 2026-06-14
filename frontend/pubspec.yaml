@@ -54,6 +54,7 @@ flutter:
   uses-material-design: true
   assets:
     - assets/
+    - assets/icon/
     - assets/arasaac/
     - assets/boards/
     - assets/minigame/
