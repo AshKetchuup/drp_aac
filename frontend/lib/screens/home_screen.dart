@@ -278,8 +278,6 @@ class SettingsSheet extends StatelessWidget {
               child: SettingsOptionsList(dismissFirst: true),
             ),
           ),
-          const SizedBox(height: 16),
-          const _SwitchChildButton(dismissFirst: true),
         ],
       ),
     );
@@ -316,8 +314,6 @@ class SettingsScreen extends StatelessWidget {
             // On the full page, options open their dialogs in place — nothing
             // to dismiss first.
             SettingsOptionsList(dismissFirst: false),
-            SizedBox(height: 16),
-            _SwitchChildButton(dismissFirst: false),
           ],
         ),
       ),
@@ -381,17 +377,6 @@ class SettingsOptionsList extends StatelessWidget {
           },
         ),
         SettingsTile(
-          icon: Icons.grid_view_outlined,
-          label: 'Grid Layout',
-          onTap: () {
-            dismiss();
-            showDialog(
-              context: context,
-              builder: (_) => const GridLayoutDialog(),
-            );
-          },
-        ),
-        SettingsTile(
           icon: Icons.color_lens_outlined,
           label: 'Appearance',
           onTap: () {
@@ -412,16 +397,6 @@ class SettingsOptionsList extends StatelessWidget {
               builder: (_) => const SuggestionCountDialog(),
             );
           },
-        ),
-        SettingsTile(
-          icon: Icons.cloud_outlined,
-          label: 'Backup & Sync',
-          onTap: () {},
-        ),
-        SettingsTile(
-          icon: Icons.help_outline,
-          label: 'Help & Support',
-          onTap: () {},
         ),
         SettingsTile(
           icon: Icons.dashboard_outlined,
@@ -465,35 +440,6 @@ class SettingsOptionsList extends StatelessWidget {
             },
           ),
       ],
-    );
-  }
-}
-
-/// The red "Switch Child" action shown beneath the settings options.
-class _SwitchChildButton extends StatelessWidget {
-  final bool dismissFirst;
-
-  const _SwitchChildButton({required this.dismissFirst});
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      width: double.infinity,
-      child: OutlinedButton.icon(
-        onPressed: () {
-          if (dismissFirst) Navigator.pop(context);
-          showProfilePicker(context);
-        },
-        icon: const Icon(Icons.switch_account, color: AppTheme.error),
-        label: Text(
-          'Switch Child',
-          style: TextStyle(color: AppTheme.error),
-        ),
-        style: OutlinedButton.styleFrom(
-          side: const BorderSide(color: AppTheme.error),
-          padding: const EdgeInsets.symmetric(vertical: 16),
-        ),
-      ),
     );
   }
 }

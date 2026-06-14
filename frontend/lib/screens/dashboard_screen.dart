@@ -446,20 +446,18 @@ class MinigamesPlaceholder extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppTheme.isHighContrast ? Colors.black : const Color(0xFFF0F4F8),
+      backgroundColor: AppTheme.background,
       appBar: AppBar(
-        backgroundColor: AppTheme.isHighContrast ? Colors.black : const Color(0xFFF0F4F8),
+        backgroundColor: AppTheme.background,
+        foregroundColor: AppTheme.textPrimary,
         elevation: 0,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: AppTheme.isHighContrast ? Colors.white : const Color(0xFF1E293B)),
+          icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.pop(context),
         ),
-        title: Text(
+        title: const Text(
           'Minigames',
-          style: TextStyle(
-            color: AppTheme.isHighContrast ? Colors.white : const Color(0xFF1E293B),
-            fontWeight: FontWeight.bold,
-          ),
+          style: TextStyle(fontWeight: FontWeight.bold),
         ),
       ),
       body: ListView(
@@ -480,75 +478,18 @@ class MinigamesPlaceholder extends StatelessWidget {
               );
             },
           ),
-          const _ComingSoonTile(),
+          const SizedBox(height: 12),
+          Center(
+            child: Text(
+              'More minigames coming soon!',
+              style: TextStyle(
+                color: AppTheme.textSecondary,
+                fontSize: 13,
+                fontStyle: FontStyle.italic,
+              ),
+            ),
+          ),
         ],
-      ),
-    );
-  }
-}
-
-/// A muted, non-interactive card signalling that more minigames are on the way.
-class _ComingSoonTile extends StatelessWidget {
-  const _ComingSoonTile();
-
-  @override
-  Widget build(BuildContext context) {
-    final borderColor = AppTheme.isHighContrast
-        ? Colors.white
-        : const Color(0xFFCBD5E1);
-    final mutedText = AppTheme.isHighContrast
-        ? AppTheme.textSecondary
-        : const Color(0xFF94A3B8);
-
-    return Card(
-      color: AppTheme.isHighContrast ? Colors.black : Colors.white,
-      margin: const EdgeInsets.only(bottom: 16),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(20),
-        side: BorderSide(
-          color: borderColor,
-          width: AppTheme.isHighContrast ? 2 : 1.5,
-        ),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Row(
-          children: [
-            Container(
-              width: 64,
-              height: 64,
-              decoration: BoxDecoration(
-                color: AppTheme.isHighContrast
-                    ? Colors.black
-                    : const Color(0xFFF1F5F9),
-                borderRadius: BorderRadius.circular(18),
-                border: Border.all(color: borderColor),
-              ),
-              child: Icon(Icons.more_horiz_rounded, size: 32, color: mutedText),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'More minigames in development',
-                    style: TextStyle(
-                      color: AppTheme.isHighContrast ? Colors.white : const Color(0xFF1E293B),
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    'New games are on the way — check back soon!',
-                    style: TextStyle(color: mutedText, fontSize: 14),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }
@@ -573,16 +514,14 @@ class _MinigameTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
-      // This hub uses a light background, so force a light card surface in the
-      // default theme — otherwise the card inherits the dark slate cardTheme
-      // colour and the dark title/subtitle text becomes unreadable on it.
-      color: AppTheme.isHighContrast ? Colors.black : Colors.white,
+      color: AppTheme.surface,
       margin: const EdgeInsets.only(bottom: 16),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(20),
-        side: AppTheme.isHighContrast
-            ? const BorderSide(color: Colors.white, width: 2)
-            : BorderSide.none,
+        side: BorderSide(
+          color: AppTheme.border,
+          width: AppTheme.isHighContrast ? 2 : 1,
+        ),
       ),
       child: InkWell(
         borderRadius: BorderRadius.circular(20),
@@ -608,7 +547,7 @@ class _MinigameTile extends StatelessWidget {
                     Text(
                       title,
                       style: TextStyle(
-                        color: AppTheme.isHighContrast ? Colors.white : const Color(0xFF1E293B),
+                        color: AppTheme.textPrimary,
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
                       ),
@@ -617,14 +556,14 @@ class _MinigameTile extends StatelessWidget {
                     Text(
                       subtitle,
                       style: TextStyle(
-                        color: AppTheme.isHighContrast ? AppTheme.textSecondary : const Color(0xFF64748B),
+                        color: AppTheme.textSecondary,
                         fontSize: 14,
                       ),
                     ),
                   ],
                 ),
               ),
-              Icon(Icons.chevron_right_rounded, color: AppTheme.isHighContrast ? AppTheme.textSecondary : const Color(0xFF94A3B8)),
+              Icon(Icons.chevron_right_rounded, color: AppTheme.textSecondary),
             ],
           ),
         ),
