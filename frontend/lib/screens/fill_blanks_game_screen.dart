@@ -330,42 +330,28 @@ class _BlankSlot extends StatelessWidget {
   Widget build(BuildContext context) {
     final isFilled = filledCard != null;
 
+    // Once solved the underline turns green; while empty it's a plain white
+    // gap, like "The boy ___ water".
+    final underlineColor = isFilled
+        ? (AppTheme.isHighContrast
+            ? AppTheme.focusHighlight
+            : const Color(0xFF22C55E))
+        : Colors.white;
+
     return Semantics(
       label: isFilled
           ? 'Blank filled with ${filledCard!.label}'
           : 'Empty blank, ${type.question}',
       child: AnimatedContainer(
-        // Green success flash: border and glow snap to green on fill, then the
-        // bounce below draws the eye to the completed word.
+        // A blank word-gap: just an underline beneath the cue/answer text. The
+        // underline snaps to green on a correct fill.
         duration: const Duration(milliseconds: 250),
-        constraints: const BoxConstraints(minWidth: 130, minHeight: 52),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        constraints: const BoxConstraints(minWidth: 120),
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
         decoration: BoxDecoration(
-          color: AppTheme.isHighContrast
-              ? type.color
-              : type.color.withValues(alpha: isFilled ? 0.9 : 0.22),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: isFilled
-                ? (AppTheme.isHighContrast
-                    ? AppTheme.focusHighlight
-                    : const Color(0xFF22C55E))
-                : (AppTheme.isHighContrast
-                    ? AppTheme.onColor(type.color)
-                    : type.color),
-            width: 3,
+          border: Border(
+            bottom: BorderSide(color: underlineColor, width: 4),
           ),
-          boxShadow: AppTheme.isHighContrast
-              ? null
-              : isFilled
-                  ? [
-                      BoxShadow(
-                        color: const Color(0xFF22C55E).withValues(alpha: 0.6),
-                        blurRadius: 14,
-                        spreadRadius: 2,
-                      ),
-                    ]
-                  : null,
         ),
         child: isFilled
             ? TweenAnimationBuilder<double>(
@@ -378,30 +364,16 @@ class _BlankSlot extends StatelessWidget {
                     Transform.scale(scale: scale, child: child),
                 child: Text(
                   filledCard!.label,
-                  style: TextStyle(
-                    color: AppTheme.isHighContrast
-                        ? AppTheme.onColor(type.color)
-                        : type.onColor,
-                    fontSize: 24,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    color: AppTheme.textPrimary,
+                    fontSize: 26,
                     fontWeight: FontWeight.w800,
                   ),
                 ),
               )
-            : Center(
-                child: Text(
-                  type.question,
-                  style: TextStyle(
-                    color: AppTheme.isHighContrast
-                        ? AppTheme.onColor(type.color)
-                        : type == SemanticType.whatKind
-                            ? type.color
-                            : type.color,
-                    fontSize: 18,
-                    fontWeight: FontWeight.w700,
-                    fontStyle: FontStyle.italic,
-                  ),
-                ),
-              ),
+            // Empty: just a blank gap sized like a word, e.g. "The boy ___ water".
+            : const SizedBox(width: 104, height: 30),
       ),
     );
   }

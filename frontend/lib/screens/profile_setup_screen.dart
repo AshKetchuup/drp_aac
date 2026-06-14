@@ -129,6 +129,17 @@ class _ProfileSetupState extends State<ProfileSetup> {
         children: [
           Row(
             children: [
+              // Leading back arrow, consistent with every other screen. Hidden
+              // during first-profile onboarding (the root route, nothing to
+              // pop) — there's nowhere to go back to until a profile exists.
+              if (Navigator.canPop(context)) ...[
+                IconButton(
+                  icon: const Icon(Icons.arrow_back),
+                  color: AppTheme.textSecondary,
+                  onPressed: () => Navigator.pop(context),
+                ),
+                const SizedBox(width: 4),
+              ],
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
@@ -165,13 +176,6 @@ class _ProfileSetupState extends State<ProfileSetup> {
                     ),
                   ],
                 ),
-              ),
-              IconButton(
-                icon: const Icon(Icons.home),
-                color: AppTheme.textSecondary,
-                onPressed: () {
-                  Navigator.of(context).popUntil((route) => route.isFirst);
-                },
               ),
             ],
           ),

@@ -5,7 +5,6 @@ import '../providers/aac_provider.dart';
 import '../models/models.dart';
 import '../services/auth_service.dart';
 import 'home_screen.dart';
-import 'profile_setup_screen.dart';
 import 'calming_mode_screen.dart';
 import 'now_next_screen.dart';
 import 'fill_blanks_game_screen.dart';
@@ -110,8 +109,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final provider = Provider.of<AACProvider>(context);
-
     return Scaffold(
       backgroundColor: AppTheme.isHighContrast ? Colors.black : const Color(0xFFF0F4F8),
       body: SafeArea(
@@ -218,39 +215,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       ),
                     ),
                   ],
-                  const SizedBox(width: 8),
-                  // Settings button
-                  GestureDetector(
-                    onTap: () {
-                      showModalBottomSheet(
-                        context: context,
-                        backgroundColor: AppTheme.surface,
-                        shape: const RoundedRectangleBorder(
-                          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-                        ),
-                        builder: (context) => SettingsSheet(),
-                      );
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: AppTheme.isHighContrast ? AppTheme.surfaceLight : Colors.white,
-                        borderRadius: BorderRadius.circular(12),
-                        boxShadow: AppTheme.isHighContrast ? null : [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.05),
-                            blurRadius: 8,
-                            offset: const Offset(0, 2),
-                          ),
-                        ],
-                      ),
-                      child: Icon(
-                        Icons.settings_rounded,
-                        color: AppTheme.isHighContrast ? Colors.white : const Color(0xFF64748B),
-                        size: 24,
-                      ),
-                    ),
-                  ),
                 ],
               ),
               const SizedBox(height: 24),
@@ -287,20 +251,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       },
                     ),
                         _DashboardTile(
-                          title: 'Profile',
-                      icon: Icons.person_rounded,
-                      backgroundColor: const Color(0xFFFFEDD5), // Soft Orange (Who)
-                      iconColor: const Color(0xFFEA580C),
+                          title: 'Calming Mode',
+                      icon: Icons.spa_rounded,
+                      backgroundColor: const Color(0xFFDBEAFE), // Soft Blue (Where/Describe)
+                      iconColor: const Color(0xFF2563EB),
                       onTap: () {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (_) => ProfileSetup(
-                              onComplete: (profile) {
-                                provider.setProfile(profile);
-                                Navigator.pop(context);
-                              },
-                            ),
+                            builder: (_) => const CalmingModeScreen(),
                           ),
                         );
                       },
@@ -354,15 +313,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       },
                     ),
                         _DashboardTile(
-                          title: 'Calming Mode',
-                      icon: Icons.spa_rounded,
-                      backgroundColor: const Color(0xFFDBEAFE), // Soft Blue (Where/Describe)
-                      iconColor: const Color(0xFF2563EB),
+                          title: 'Settings',
+                      icon: Icons.settings_rounded,
+                      backgroundColor: const Color(0xFFE2E8F0), // Soft Slate (Tools)
+                      iconColor: const Color(0xFF475569),
                       onTap: () {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (_) => const CalmingModeScreen(),
+                            builder: (_) => const SettingsScreen(),
                           ),
                         );
                       },
@@ -492,7 +451,7 @@ class MinigamesPlaceholder extends StatelessWidget {
         backgroundColor: AppTheme.isHighContrast ? Colors.black : const Color(0xFFF0F4F8),
         elevation: 0,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back_rounded, color: AppTheme.isHighContrast ? Colors.white : const Color(0xFF1E293B)),
+          icon: Icon(Icons.arrow_back, color: AppTheme.isHighContrast ? Colors.white : const Color(0xFF1E293B)),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
@@ -509,7 +468,7 @@ class MinigamesPlaceholder extends StatelessWidget {
           _MinigameTile(
             title: 'Fill in the Blanks',
             subtitle: 'Pick the word that completes the sentence',
-            icon: Icons.text_fields_rounded,
+            icon: Icons.edit_note_rounded,
             // Colourful Semantics "Doing?" yellow — matches the game itself.
             gradient: const [Color(0xFFFACC15), Color(0xFFCA8A04)],
             onTap: () {
@@ -521,7 +480,75 @@ class MinigamesPlaceholder extends StatelessWidget {
               );
             },
           ),
+          const _ComingSoonTile(),
         ],
+      ),
+    );
+  }
+}
+
+/// A muted, non-interactive card signalling that more minigames are on the way.
+class _ComingSoonTile extends StatelessWidget {
+  const _ComingSoonTile();
+
+  @override
+  Widget build(BuildContext context) {
+    final borderColor = AppTheme.isHighContrast
+        ? Colors.white
+        : const Color(0xFFCBD5E1);
+    final mutedText = AppTheme.isHighContrast
+        ? AppTheme.textSecondary
+        : const Color(0xFF94A3B8);
+
+    return Card(
+      color: AppTheme.isHighContrast ? Colors.black : Colors.white,
+      margin: const EdgeInsets.only(bottom: 16),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(20),
+        side: BorderSide(
+          color: borderColor,
+          width: AppTheme.isHighContrast ? 2 : 1.5,
+        ),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Row(
+          children: [
+            Container(
+              width: 64,
+              height: 64,
+              decoration: BoxDecoration(
+                color: AppTheme.isHighContrast
+                    ? Colors.black
+                    : const Color(0xFFF1F5F9),
+                borderRadius: BorderRadius.circular(18),
+                border: Border.all(color: borderColor),
+              ),
+              child: Icon(Icons.more_horiz_rounded, size: 32, color: mutedText),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'More minigames in development',
+                    style: TextStyle(
+                      color: AppTheme.isHighContrast ? Colors.white : const Color(0xFF1E293B),
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'New games are on the way — check back soon!',
+                    style: TextStyle(color: mutedText, fontSize: 14),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
