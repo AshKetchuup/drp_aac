@@ -5,7 +5,6 @@ import '../providers/aac_provider.dart';
 import '../models/models.dart';
 import '../services/auth_service.dart';
 import 'home_screen.dart';
-import 'profile_setup_screen.dart';
 import 'calming_mode_screen.dart';
 import 'now_next_screen.dart';
 import 'fill_blanks_game_screen.dart';
@@ -110,8 +109,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final provider = Provider.of<AACProvider>(context);
-
     return Scaffold(
       backgroundColor: AppTheme.isHighContrast ? Colors.black : const Color(0xFFF0F4F8),
       body: SafeArea(
@@ -123,19 +120,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
               // Header
               Row(
                 children: [
-                  Container(
-                    width: 56,
-                    height: 56,
-                    decoration: BoxDecoration(
-                      gradient: const LinearGradient(
-                        colors: [Color(0xFF6366F1), Color(0xFF8B5CF6)],
-                      ),
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    child: const Icon(
-                      Icons.apps_rounded,
-                      color: Colors.white,
-                      size: 28,
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(16),
+                    child: Image.asset(
+                      'assets/icon/icon.png',
+                      width: 56,
+                      height: 56,
+                      fit: BoxFit.cover,
                     ),
                   ),
                   const SizedBox(width: 16),
@@ -218,39 +209,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       ),
                     ),
                   ],
-                  const SizedBox(width: 8),
-                  // Settings button
-                  GestureDetector(
-                    onTap: () {
-                      showModalBottomSheet(
-                        context: context,
-                        backgroundColor: AppTheme.surface,
-                        shape: const RoundedRectangleBorder(
-                          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-                        ),
-                        builder: (context) => SettingsSheet(),
-                      );
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: AppTheme.isHighContrast ? AppTheme.surfaceLight : Colors.white,
-                        borderRadius: BorderRadius.circular(12),
-                        boxShadow: AppTheme.isHighContrast ? null : [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.05),
-                            blurRadius: 8,
-                            offset: const Offset(0, 2),
-                          ),
-                        ],
-                      ),
-                      child: Icon(
-                        Icons.settings_rounded,
-                        color: AppTheme.isHighContrast ? Colors.white : const Color(0xFF64748B),
-                        size: 24,
-                      ),
-                    ),
-                  ),
                 ],
               ),
               const SizedBox(height: 24),
@@ -287,20 +245,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       },
                     ),
                         _DashboardTile(
-                          title: 'Profile',
-                      icon: Icons.person_rounded,
-                      backgroundColor: const Color(0xFFFFEDD5), // Soft Orange (Who)
-                      iconColor: const Color(0xFFEA580C),
+                          title: 'Calming Mode',
+                      icon: Icons.spa_rounded,
+                      backgroundColor: const Color(0xFFDBEAFE), // Soft Blue (Where/Describe)
+                      iconColor: const Color(0xFF2563EB),
                       onTap: () {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (_) => ProfileSetup(
-                              onComplete: (profile) {
-                                provider.setProfile(profile);
-                                Navigator.pop(context);
-                              },
-                            ),
+                            builder: (_) => const CalmingModeScreen(),
                           ),
                         );
                       },
@@ -354,15 +307,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       },
                     ),
                         _DashboardTile(
-                          title: 'Calming Mode',
-                      icon: Icons.spa_rounded,
-                      backgroundColor: const Color(0xFFDBEAFE), // Soft Blue (Where/Describe)
-                      iconColor: const Color(0xFF2563EB),
+                          title: 'Settings',
+                      icon: Icons.settings_rounded,
+                      backgroundColor: const Color(0xFFE2E8F0), // Soft Slate (Tools)
+                      iconColor: const Color(0xFF475569),
                       onTap: () {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (_) => const CalmingModeScreen(),
+                            builder: (_) => const SettingsScreen(),
                           ),
                         );
                       },
@@ -487,20 +440,18 @@ class MinigamesPlaceholder extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppTheme.isHighContrast ? Colors.black : const Color(0xFFF0F4F8),
+      backgroundColor: AppTheme.background,
       appBar: AppBar(
-        backgroundColor: AppTheme.isHighContrast ? Colors.black : const Color(0xFFF0F4F8),
+        backgroundColor: AppTheme.background,
+        foregroundColor: AppTheme.textPrimary,
         elevation: 0,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back_rounded, color: AppTheme.isHighContrast ? Colors.white : const Color(0xFF1E293B)),
+          icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.pop(context),
         ),
-        title: Text(
+        title: const Text(
           'Minigames',
-          style: TextStyle(
-            color: AppTheme.isHighContrast ? Colors.white : const Color(0xFF1E293B),
-            fontWeight: FontWeight.bold,
-          ),
+          style: TextStyle(fontWeight: FontWeight.bold),
         ),
       ),
       body: ListView(
@@ -509,7 +460,7 @@ class MinigamesPlaceholder extends StatelessWidget {
           _MinigameTile(
             title: 'Fill in the Blanks',
             subtitle: 'Pick the word that completes the sentence',
-            icon: Icons.text_fields_rounded,
+            icon: Icons.edit_note_rounded,
             // Colourful Semantics "Doing?" yellow — matches the game itself.
             gradient: const [Color(0xFFFACC15), Color(0xFFCA8A04)],
             onTap: () {
@@ -520,6 +471,17 @@ class MinigamesPlaceholder extends StatelessWidget {
                 ),
               );
             },
+          ),
+          const SizedBox(height: 12),
+          Center(
+            child: Text(
+              'More minigames coming soon!',
+              style: TextStyle(
+                color: AppTheme.textSecondary,
+                fontSize: 13,
+                fontStyle: FontStyle.italic,
+              ),
+            ),
           ),
         ],
       ),
@@ -546,16 +508,14 @@ class _MinigameTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
-      // This hub uses a light background, so force a light card surface in the
-      // default theme — otherwise the card inherits the dark slate cardTheme
-      // colour and the dark title/subtitle text becomes unreadable on it.
-      color: AppTheme.isHighContrast ? Colors.black : Colors.white,
+      color: AppTheme.surface,
       margin: const EdgeInsets.only(bottom: 16),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(20),
-        side: AppTheme.isHighContrast
-            ? const BorderSide(color: Colors.white, width: 2)
-            : BorderSide.none,
+        side: BorderSide(
+          color: AppTheme.border,
+          width: AppTheme.isHighContrast ? 2 : 1,
+        ),
       ),
       child: InkWell(
         borderRadius: BorderRadius.circular(20),
@@ -581,7 +541,7 @@ class _MinigameTile extends StatelessWidget {
                     Text(
                       title,
                       style: TextStyle(
-                        color: AppTheme.isHighContrast ? Colors.white : const Color(0xFF1E293B),
+                        color: AppTheme.textPrimary,
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
                       ),
@@ -590,14 +550,14 @@ class _MinigameTile extends StatelessWidget {
                     Text(
                       subtitle,
                       style: TextStyle(
-                        color: AppTheme.isHighContrast ? AppTheme.textSecondary : const Color(0xFF64748B),
+                        color: AppTheme.textSecondary,
                         fontSize: 14,
                       ),
                     ),
                   ],
                 ),
               ),
-              Icon(Icons.chevron_right_rounded, color: AppTheme.isHighContrast ? AppTheme.textSecondary : const Color(0xFF94A3B8)),
+              Icon(Icons.chevron_right_rounded, color: AppTheme.textSecondary),
             ],
           ),
         ),

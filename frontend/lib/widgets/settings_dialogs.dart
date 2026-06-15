@@ -121,16 +121,32 @@ class AppearanceDialog extends StatelessWidget {
     return AlertDialog(
       backgroundColor: AppTheme.surface,
       title: const Text('Appearance', style: TextStyle(color: AppTheme.textPrimary)),
-      content: SwitchListTile(
-        contentPadding: EdgeInsets.zero,
-        value: provider.highContrast,
-        onChanged: provider.setHighContrast,
-        activeThumbColor: AppTheme.primary,
-        title: const Text('High Contrast', style: TextStyle(color: AppTheme.textPrimary)),
-        subtitle: Text(
-          'Black background, white text, strong borders. Word colours stay the same.',
-          style: TextStyle(color: AppTheme.textSecondary),
-        ),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          SwitchListTile(
+            contentPadding: EdgeInsets.zero,
+            value: provider.highContrast,
+            onChanged: provider.setHighContrast,
+            activeThumbColor: AppTheme.primary,
+            title: const Text('High Contrast', style: TextStyle(color: AppTheme.textPrimary)),
+            subtitle: Text(
+              'Black background, white text, strong borders. Word colours stay the same.',
+              style: TextStyle(color: AppTheme.textSecondary),
+            ),
+          ),
+          SwitchListTile(
+            contentPadding: EdgeInsets.zero,
+            value: provider.showNowNext,
+            onChanged: provider.setShowNowNext,
+            activeThumbColor: AppTheme.primary,
+            title: const Text('Show Now / Next', style: TextStyle(color: AppTheme.textPrimary)),
+            subtitle: Text(
+              'Display the Now / Next schedule badge on the communication grid.',
+              style: TextStyle(color: AppTheme.textSecondary),
+            ),
+          ),
+        ],
       ),
       actions: [
         TextButton(

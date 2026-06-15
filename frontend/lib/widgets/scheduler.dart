@@ -706,20 +706,14 @@ class _Header extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-          decoration: BoxDecoration(
-            color: AppTheme.surface,
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: AppTheme.border),
-          ),
-          child: Text(
-            'Visual Schedule',
-            style: TextStyle(
-              color: AppTheme.textPrimary,
-              fontSize: 20,
-              fontWeight: FontWeight.w700,
-            ),
+        IconButton(onPressed: onExit, icon: const Icon(Icons.arrow_back)),
+        const SizedBox(width: 4),
+        Text(
+          'Visual Schedule',
+          style: TextStyle(
+            color: AppTheme.textPrimary,
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
           ),
         ),
         const Spacer(),
@@ -755,7 +749,6 @@ class _Header extends StatelessWidget {
 
         IconButton(onPressed: onSpeak, icon: const Icon(Icons.volume_up)),
         IconButton(onPressed: onClear, icon: const Icon(Icons.delete_outline)),
-        IconButton(onPressed: onExit, icon: const Icon(Icons.close)),
       ],
     );
   }

@@ -11,6 +11,7 @@ import '../widgets/settings_dialogs.dart';
 import '../widgets/profile_manager.dart';
 import 'calming_mode_screen.dart';
 import 'dashboard_screen.dart';
+import 'profile_setup_screen.dart';
 import '../widgets/scheduler.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -134,12 +135,14 @@ class _HomeScreenState extends State<HomeScreen> {
                                       : Colors.grey.withValues(alpha: 0.1),
                                   borderRadius: BorderRadius.circular(8),
                                 ),
-                                child: Icon(
-                                  Icons.apps_rounded,
-                                  color: AppTheme.isHighContrast
-                                      ? AppTheme.textSecondary
-                                      : Colors.black54,
-                                  size: 20,
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(4),
+                                  child: Image.asset(
+                                    'assets/icon/icon.png',
+                                    width: 20,
+                                    height: 20,
+                                    fit: BoxFit.cover,
+                                  ),
                                 ),
                               ),
                             ),
@@ -240,173 +243,205 @@ class SettingsSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<AACProvider>(
-      builder: (context, provider, _) {
-        return Container(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
+    return Container(
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'Settings',
-                    style: TextStyle(
-                      color: AppTheme.textPrimary,
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  GestureDetector(
-                    onTap: () => Navigator.pop(context),
-                    child: Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: AppTheme.surfaceLight,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Icon(Icons.close, color: AppTheme.textSecondary),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 32),
-              Flexible(
-                child: SingleChildScrollView(
-                  child: Column(
-                    children: [
-                      SettingsTile(
-                        icon: Icons.people_outline,
-                        label: 'Children Profiles',
-                        onTap: () {
-                          Navigator.pop(context);
-                          showProfilePicker(context);
-                        },
-                      ),
-                      SettingsTile(
-                        icon: Icons.volume_up_outlined,
-                        label: 'Voice Settings',
-                        onTap: () {
-                          Navigator.pop(context);
-                          showDialog(
-                            context: context,
-                            builder: (_) => const VoiceSettingsDialog(),
-                          );
-                        },
-                      ),
-                      SettingsTile(
-                        icon: Icons.grid_view_outlined,
-                        label: 'Grid Layout',
-                        onTap: () {
-                          Navigator.pop(context);
-                          showDialog(
-                            context: context,
-                            builder: (_) => const GridLayoutDialog(),
-                          );
-                        },
-                      ),
-                      SettingsTile(
-                        icon: Icons.color_lens_outlined,
-                        label: 'Appearance',
-                        onTap: () {
-                          Navigator.pop(context);
-                          showDialog(
-                            context: context,
-                            builder: (_) => const AppearanceDialog(),
-                          );
-                        },
-                      ),
-                      SettingsTile(
-                        icon: Icons.auto_awesome_outlined,
-                        label: 'Suggestion Count',
-                        onTap: () {
-                          Navigator.pop(context);
-                          showDialog(
-                            context: context,
-                            builder: (_) => const SuggestionCountDialog(),
-                          );
-                        },
-                      ),
-                      SettingsTile(
-                        icon: Icons.cloud_outlined,
-                        label: 'Backup & Sync',
-                        onTap: () {},
-                      ),
-                      SettingsTile(
-                        icon: Icons.help_outline,
-                        label: 'Help & Support',
-                        onTap: () {},
-                      ),
-                      SettingsTile(
-                        icon: Icons.dashboard_outlined,
-                        label: 'Load Default Board',
-                        onTap: () async {
-                          Navigator.pop(context);
-                          try {
-                            await provider.activateDefaultBoard();
-                          } catch (e) {
-                            debugPrint('Error loading default board: $e');
-                          }
-                        },
-                      ),
-                      SettingsTile(
-                        icon: Icons.file_upload_outlined,
-                        label: 'Import OBF/OBZ Board',
-                        onTap: () async {
-                          Navigator.pop(context);
-                          try {
-                            await provider.importBoard();
-                          } catch (e) {
-                            debugPrint('Error importing board: $e');
-                          }
-                        },
-                      ),
-                      SettingsTile(
-                        icon: Icons.cloud_download_outlined,
-                        label: 'Saved Boards',
-                        onTap: () {
-                          Navigator.pop(context);
-                          showSavedBoards(context);
-                        },
-                      ),
-                      if (provider.importedBoardSet != null)
-                        SettingsTile(
-                          icon: Icons.clear_all_outlined,
-                          label: 'Clear Imported Board',
-                          onTap: () {
-                            provider.clearImportedBoardSet();
-                            Navigator.pop(context);
-                          },
-                        ),
-                    ],
-                  ),
+              Text(
+                'Settings',
+                style: TextStyle(
+                  color: AppTheme.textPrimary,
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
                 ),
               ),
-              const SizedBox(height: 16),
-              SizedBox(
-                width: double.infinity,
-                child: OutlinedButton.icon(
-                  onPressed: () {
-                    Navigator.pop(context);
-                    showProfilePicker(context);
-                  },
-                  icon: const Icon(Icons.switch_account, color: AppTheme.error),
-                  label: Text(
-                    'Switch Child',
-                    style: TextStyle(color: AppTheme.error),
+              GestureDetector(
+                onTap: () => Navigator.pop(context),
+                child: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: AppTheme.surfaceLight,
+                    borderRadius: BorderRadius.circular(8),
                   ),
-                  style: OutlinedButton.styleFrom(
-                    side: const BorderSide(color: AppTheme.error),
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                  ),
+                  child: Icon(Icons.close, color: AppTheme.textSecondary),
                 ),
               ),
             ],
           ),
-        );
-      },
+          const SizedBox(height: 32),
+          const Flexible(
+            child: SingleChildScrollView(
+              // In the bottom sheet, each option dismisses the sheet first.
+              child: SettingsOptionsList(dismissFirst: true),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Full-screen Settings page launched from the dashboard's Settings tile. Shows
+/// the exact same options as the bottom sheet (plus the Profile editor), but as
+/// a standalone page with a back-arrow header rather than a dismissible sheet.
+class SettingsScreen extends StatelessWidget {
+  const SettingsScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: AppTheme.background,
+      appBar: AppBar(
+        backgroundColor: AppTheme.background,
+        foregroundColor: AppTheme.textPrimary,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => Navigator.pop(context),
+        ),
+        title: const Text(
+          'Settings',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+      ),
+      body: SafeArea(
+        child: ListView(
+          padding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
+          children: const [
+            // On the full page, options open their dialogs in place — nothing
+            // to dismiss first.
+            SettingsOptionsList(dismissFirst: false),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// The shared list of settings options, reused by both the settings bottom
+/// sheet and the full-screen [SettingsScreen]. When [dismissFirst] is true the
+/// caller is the bottom sheet, so each action pops the sheet before opening its
+/// dialog; the full-screen page leaves itself in place.
+class SettingsOptionsList extends StatelessWidget {
+  final bool dismissFirst;
+
+  const SettingsOptionsList({super.key, required this.dismissFirst});
+
+  @override
+  Widget build(BuildContext context) {
+    final provider = context.watch<AACProvider>();
+    void dismiss() {
+      if (dismissFirst) Navigator.pop(context);
+    }
+
+    return Column(
+      children: [
+        SettingsTile(
+          icon: Icons.person_outline,
+          label: 'Profile',
+          onTap: () {
+            dismiss();
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => ProfileSetup(
+                  onComplete: (profile) {
+                    provider.setProfile(profile);
+                    Navigator.pop(context);
+                  },
+                ),
+              ),
+            );
+          },
+        ),
+        SettingsTile(
+          icon: Icons.people_outline,
+          label: 'Children Profiles',
+          onTap: () {
+            dismiss();
+            showProfilePicker(context);
+          },
+        ),
+        SettingsTile(
+          icon: Icons.volume_up_outlined,
+          label: 'Voice Settings',
+          onTap: () {
+            dismiss();
+            showDialog(
+              context: context,
+              builder: (_) => const VoiceSettingsDialog(),
+            );
+          },
+        ),
+        SettingsTile(
+          icon: Icons.color_lens_outlined,
+          label: 'Appearance',
+          onTap: () {
+            dismiss();
+            showDialog(
+              context: context,
+              builder: (_) => const AppearanceDialog(),
+            );
+          },
+        ),
+        SettingsTile(
+          icon: Icons.auto_awesome_outlined,
+          label: 'Suggestion Count',
+          onTap: () {
+            dismiss();
+            showDialog(
+              context: context,
+              builder: (_) => const SuggestionCountDialog(),
+            );
+          },
+        ),
+        SettingsTile(
+          icon: Icons.dashboard_outlined,
+          label: 'Load Default Board',
+          onTap: () async {
+            dismiss();
+            try {
+              await provider.activateDefaultBoard();
+            } catch (e) {
+              debugPrint('Error loading default board: $e');
+            }
+          },
+        ),
+        SettingsTile(
+          icon: Icons.file_upload_outlined,
+          label: 'Import OBF/OBZ Board',
+          onTap: () async {
+            dismiss();
+            try {
+              await provider.importBoard();
+            } catch (e) {
+              debugPrint('Error importing board: $e');
+            }
+          },
+        ),
+        SettingsTile(
+          icon: Icons.cloud_download_outlined,
+          label: 'Saved Boards',
+          onTap: () {
+            dismiss();
+            showSavedBoards(context);
+          },
+        ),
+        if (provider.importedBoardSet != null)
+          SettingsTile(
+            icon: Icons.clear_all_outlined,
+            label: 'Clear Imported Board',
+            onTap: () {
+              provider.clearImportedBoardSet();
+              dismiss();
+            },
+          ),
+      ],
     );
   }
 }

@@ -10,6 +10,7 @@ import 'package:speech_to_text/speech_to_text.dart' as stt;
 import 'package:permission_handler/permission_handler.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_tts/flutter_tts.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../models/models.dart';
 import '../widgets/scheduler.dart';
 import '../repositories/schedule_repository.dart';
@@ -32,20 +33,16 @@ class AACProvider extends ChangeNotifier {
   double _voiceRate = 0.4;
   int? _gridColumns; // null = Auto
   bool _highContrast = false; // false = default Dark theme, true = High Contrast
+  bool _showNowNext = true; // controls the inline Now/Next badge on the grid
+  static const _showNowNextKey = 'show_now_next';
   int _minSuggestions = 4;
-  String _punctuation = '';
 
   double get voicePitch => _voicePitch;
   double get voiceRate => _voiceRate;
   int? get gridColumns => _gridColumns;
   bool get highContrast => _highContrast;
+  bool get showNowNext => _showNowNext;
   int get minSuggestions => _minSuggestions;
-  String get punctuation => _punctuation;
-
-  void setPunctuation(String p) {
-    _punctuation = p;
-    notifyListeners();
-  }
 
   void updateVoiceSettings(double pitch, double rate) {
     _voicePitch = pitch;
@@ -65,6 +62,26 @@ class AACProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  void setShowNowNext(bool enabled) {
+    _showNowNext = enabled;
+    notifyListeners();
+    _persistShowNowNext(enabled);
+  }
+
+  Future<void> _persistShowNowNext(bool enabled) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_showNowNextKey, enabled);
+  }
+
+  Future<void> _loadShowNowNext() async {
+    final prefs = await SharedPreferences.getInstance();
+    final stored = prefs.getBool(_showNowNextKey);
+    if (stored != null && stored != _showNowNext) {
+      _showNowNext = stored;
+      notifyListeners();
+    }
+  }
+
   void updateMinSuggestions(int count) {
     _minSuggestions = count.clamp(2, 15);
     notifyListeners();
@@ -80,6 +97,8 @@ class AACProvider extends ChangeNotifier {
        _tileRepo = tileRepo ?? TileRepository(),
        _boardRepo = boardRepo ?? BoardRepository() {
     _initTts();
+    // Restore persisted UI preferences.
+    _loadShowNowNext();
     // Preload the bundled starter board so it's the first board ready to use,
     // without taking over the rich home view.
     loadDefaultBoardSet();
@@ -329,7 +348,7 @@ class AACProvider extends ChangeNotifier {
 
   Future<void> speak(String text) async {
     if (text.isNotEmpty) {
-      await _flutterTts.speak(text + _punctuation);
+      await _flutterTts.speak(text);
     }
   }
 

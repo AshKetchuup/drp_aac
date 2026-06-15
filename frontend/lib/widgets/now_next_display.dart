@@ -121,6 +121,10 @@ class _StaticDisplayZone extends StatelessWidget {
                     child: SymbolTile(
                       symbol: symbol!,
                       onTap: () {}, // Display only, tap interaction deactivated
+                      // The NOW/NEXT zones are large single tiles — let the
+                      // icon/label grow to fill them like the calming pages,
+                      // instead of leaving a small icon stranded.
+                      maxSizeScale: 2.2,
                     ),
                   ),
           ),
