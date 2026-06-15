@@ -110,10 +110,13 @@ class AACProvider extends ChangeNotifier {
   ({Symbol? now, Symbol? next}) calculateNowNext() {
     final hour = DateTime.now().hour;
     
-    // Determine current slot
-    TimeSlot currentSlot = TimeSlot.evening;
-    if (hour >= 5 && hour < 12) currentSlot = TimeSlot.morning;
-    if (hour >= 12 && hour < 18) currentSlot = TimeSlot.afternoon;
+    // Map the wall-clock hour onto a slot: the first slot whose end-hour we
+    // haven't passed yet. Hours before the day starts fall into the first slot;
+    // hours after it ends fall into the last.
+    final TimeSlot currentSlot = TimeSlot.values.firstWhere(
+      (s) => hour < s.endHour,
+      orElse: () => TimeSlot.values.last,
+    );
 
     // Get current weekday index (0 = Monday, 6 = Sunday)
     final dayIndex = DateTime.now().weekday - 1;
@@ -124,23 +127,33 @@ class AACProvider extends ChangeNotifier {
 
     if (currentList.isNotEmpty) {
       nowSymbol = currentList[0];
-      nextSymbol = currentList.length > 1 
-          ? currentList[1] 
+      nextSymbol = currentList.length > 1
+          ? currentList[1]
           : _getNextSlotFirstSymbol(dayIndex, currentSlot);
     } else {
-      nowSymbol = _getNextSlotFirstSymbol(dayIndex, currentSlot);
-      if (nowSymbol != null && currentSlot == TimeSlot.morning) {
-        nextSymbol = schedule[(dayIndex, TimeSlot.afternoon)]?.firstOrNull; 
+      // Nothing in the current slot — surface the next scheduled slot as "now",
+      // and the slot after that as "next".
+      final nextSlot = _nextSlot(currentSlot);
+      if (nextSlot != null) {
+        nowSymbol = schedule[(dayIndex, nextSlot)]?.firstOrNull;
+        if (nowSymbol != null) {
+          nextSymbol = _getNextSlotFirstSymbol(dayIndex, nextSlot);
+        }
       }
     }
     return (now: nowSymbol, next: nextSymbol);
   }
 
+  // The slot immediately after [current], or null if it is the last one.
+  TimeSlot? _nextSlot(TimeSlot current) {
+    final i = current.index + 1;
+    return i < TimeSlot.values.length ? TimeSlot.values[i] : null;
+  }
+
   // Private helper used internally by the provider calculator
   Symbol? _getNextSlotFirstSymbol(int day, TimeSlot current) {
-    if (current == TimeSlot.morning) return schedule[(day, TimeSlot.afternoon)]?.firstOrNull;
-    if (current == TimeSlot.afternoon) return schedule[(day, TimeSlot.evening)]?.firstOrNull;
-    return null;
+    final next = _nextSlot(current);
+    return next == null ? null : schedule[(day, next)]?.firstOrNull;
   }
 
   Map<SlotKey, List<Symbol>> schedule = {};

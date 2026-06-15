@@ -135,14 +135,12 @@ class _HomeScreenState extends State<HomeScreen> {
                                       : Colors.grey.withValues(alpha: 0.1),
                                   borderRadius: BorderRadius.circular(8),
                                 ),
-                                child: ClipRRect(
-                                  borderRadius: BorderRadius.circular(4),
-                                  child: Image.asset(
-                                    'assets/icon/icon.png',
-                                    width: 20,
-                                    height: 20,
-                                    fit: BoxFit.cover,
-                                  ),
+                                child: Icon(
+                                  Icons.apps_rounded,
+                                  color: AppTheme.isHighContrast
+                                      ? AppTheme.textSecondary
+                                      : Colors.black54,
+                                  size: 20,
                                 ),
                               ),
                             ),
