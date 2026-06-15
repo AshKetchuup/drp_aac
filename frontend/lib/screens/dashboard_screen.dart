@@ -120,14 +120,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
               // Header
               Row(
                 children: [
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(16),
-                    child: Image.asset(
-                      'assets/icon/icon.png',
-                      width: 56,
-                      height: 56,
-                      fit: BoxFit.cover,
-                    ),
+                  Image.asset(
+                    'assets/icon/icon.png',
+                    width: 56,
+                    height: 56,
+                    fit: BoxFit.contain,
                   ),
                   const SizedBox(width: 16),
                   Expanded(
