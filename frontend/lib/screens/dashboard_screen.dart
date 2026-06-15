@@ -23,6 +23,10 @@ class DashboardScreen extends StatefulWidget {
     Symbol(id: 'lunch', label: 'Lunch', icon: Icons.restaurant, category: SymbolCategory.activity),
     Symbol(id: 'outside', label: 'Outside', icon: Icons.park, category: SymbolCategory.activity),
     Symbol(id: 'tablet', label: 'Tablet', icon: Icons.tablet, category: SymbolCategory.activity),
+    Symbol(id: 'play', label: 'Play', icon: Icons.toys, category: SymbolCategory.activity),
+    Symbol(id: 'work', label: 'Work', icon: Icons.work, category: SymbolCategory.activity),
+    Symbol(id: 'read', label: 'Read', icon: Icons.menu_book, category: SymbolCategory.activity),
+    Symbol(id: 'bedtime', label: 'Bedtime', icon: Icons.bedtime, category: SymbolCategory.activity),
   ];
 
   @override

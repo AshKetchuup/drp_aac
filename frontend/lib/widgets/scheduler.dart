@@ -7,13 +7,38 @@ import '../widgets/symbol_tile.dart';
 import '../widgets/now_next_display.dart'; // Ensure this matches your file location
 import '../providers/aac_provider.dart';
 
-enum TimeSlot { morning, afternoon, evening }
+// Three-hour slots spanning the active day, 8 AM – 8 PM.
+enum TimeSlot { morning, midday, afternoon, evening }
 
 extension TimeSlotLabel on TimeSlot {
   String get label => switch (this) {
-    TimeSlot.morning => '🌅 Morning',
-    TimeSlot.afternoon => '☀️ Afternoon',
-    TimeSlot.evening => '🌙 Evening',
+    TimeSlot.morning => '🌅 8 – 11 AM',
+    TimeSlot.midday => '☀️ 11 AM – 2 PM',
+    TimeSlot.afternoon => '🌤️ 2 – 5 PM',
+    TimeSlot.evening => '🌙 5 – 8 PM',
+  };
+
+  // Spoken form for the text-to-speech schedule read-out.
+  String get spokenLabel => switch (this) {
+    TimeSlot.morning => 'From 8 to 11 in the morning',
+    TimeSlot.midday => 'From 11 to 2 in the middle of the day',
+    TimeSlot.afternoon => 'From 2 to 5 in the afternoon',
+    TimeSlot.evening => 'From 5 to 8 in the evening',
+  };
+
+  // Half-open [startHour, endHour) in 24-hour time.
+  int get startHour => switch (this) {
+    TimeSlot.morning => 8,
+    TimeSlot.midday => 11,
+    TimeSlot.afternoon => 14,
+    TimeSlot.evening => 17,
+  };
+
+  int get endHour => switch (this) {
+    TimeSlot.morning => 11,
+    TimeSlot.midday => 14,
+    TimeSlot.afternoon => 17,
+    TimeSlot.evening => 20,
   };
 }
 
@@ -133,70 +158,38 @@ class _ScheduleModeState extends State<ScheduleMode> {
                       } else if (_currentView == ScheduleViewMode.week) {
                         for (int d = 0; d < _kDays.length; d++) {
                           final dayName = _kDays[d];
-                          final morning =
-                              currentSchedule[(d, TimeSlot.morning)] ?? [];
-                          final afternoon =
-                              currentSchedule[(d, TimeSlot.afternoon)] ?? [];
-                          final evening =
-                              currentSchedule[(d, TimeSlot.evening)] ?? [];
+                          final filled = TimeSlot.values
+                              .map(
+                                (slot) => (
+                                  slot,
+                                  currentSchedule[(d, slot)] ??
+                                      const <Symbol>[],
+                                ),
+                              )
+                              .where((e) => e.$2.isNotEmpty)
+                              .toList();
 
-                          if (morning.isNotEmpty ||
-                              afternoon.isNotEmpty ||
-                              evening.isNotEmpty) {
+                          if (filled.isNotEmpty) {
                             sentences.add("On $dayName.");
-                            if (morning.isNotEmpty) {
+                            for (final (slot, items) in filled) {
                               sentences.add(
-                                "In the morning: ${morning.map((s) => s.label).join(', ')}.",
-                              );
-                            }
-                            if (afternoon.isNotEmpty) {
-                              sentences.add(
-                                "In the afternoon: ${afternoon.map((s) => s.label).join(', ')}.",
-                              );
-                            }
-                            if (evening.isNotEmpty) {
-                              sentences.add(
-                                "In the evening: ${evening.map((s) => s.label).join(', ')}.",
+                                "${slot.spokenLabel}: ${items.map((s) => s.label).join(', ')}.",
                               );
                             }
                           }
                         }
                       } else {
                         final dayName = _kDays[_currentDayIndex];
-                        final morning =
-                            currentSchedule[(
-                              _currentDayIndex,
-                              TimeSlot.morning,
-                            )] ??
-                            [];
-                        final afternoon =
-                            currentSchedule[(
-                              _currentDayIndex,
-                              TimeSlot.afternoon,
-                            )] ??
-                            [];
-                        final evening =
-                            currentSchedule[(
-                              _currentDayIndex,
-                              TimeSlot.evening,
-                            )] ??
-                            [];
-
                         sentences.add("For $dayName.");
-                        if (morning.isNotEmpty) {
-                          sentences.add(
-                            "In the morning: ${morning.map((s) => s.label).join(', ')}.",
-                          );
-                        }
-                        if (afternoon.isNotEmpty) {
-                          sentences.add(
-                            "In the afternoon: ${afternoon.map((s) => s.label).join(', ')}.",
-                          );
-                        }
-                        if (evening.isNotEmpty) {
-                          sentences.add(
-                            "In the evening: ${evening.map((s) => s.label).join(', ')}.",
-                          );
+                        for (final slot in TimeSlot.values) {
+                          final items =
+                              currentSchedule[(_currentDayIndex, slot)] ??
+                              const <Symbol>[];
+                          if (items.isNotEmpty) {
+                            sentences.add(
+                              "${slot.spokenLabel}: ${items.map((s) => s.label).join(', ')}.",
+                            );
+                          }
                         }
                       }
 
@@ -366,7 +359,7 @@ class _WeekGrid extends StatelessWidget {
   static const double _labelColWidth = 90;
   static const double _headerRowHeight = 36;
   static const int _numDays = 7;
-  static const int _numSlots = 3;
+  static final int _numSlots = TimeSlot.values.length;
 
   @override
   Widget build(BuildContext context) {
@@ -466,7 +459,7 @@ class _DayView extends StatelessWidget {
 
   static const double _headerRowHeight = 52;
   static const double _labelColWidth = 90;
-  static const int _numSlots = 3;
+  static final int _numSlots = TimeSlot.values.length;
 
   @override
   Widget build(BuildContext context) {
